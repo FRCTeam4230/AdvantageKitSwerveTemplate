@@ -1,39 +1,35 @@
 package frc.robot.subsystems.drive;
 
+import static java.util.Optional.ofNullable;
+
 import edu.wpi.first.math.geometry.Rotation2d;
-import java.util.Optional;
 import java.util.function.Supplier;
+import lombok.Getter;
+import lombok.Setter;
 
 public class DriveController {
-  private Optional<Supplier<Rotation2d>> headingSupplier = Optional.empty();
-  private DriveModeType driveModeType = DriveModeType.STANDARD;
-
-  public void setHeadingSupplier(Supplier<Rotation2d> headingSupplier) {
-    this.headingSupplier = Optional.of(headingSupplier);
-  }
+  @Setter private Supplier<Rotation2d> headingSupplier;
+  @Getter private DriveModeType driveModeType = DriveModeType.STANDARD;
 
   public boolean isHeadingControlled() {
-    return this.headingSupplier.isPresent();
+    return ofNullable(this.headingSupplier).isPresent();
   }
 
   public boolean isSpeakerControlled() {
-    return this.headingSupplier.isPresent() && this.driveModeType == DriveModeType.SPEAKER;
+    return this.driveModeType == DriveModeType.SPEAKER
+        && ofNullable(this.headingSupplier).isPresent();
   }
 
   public boolean isAmpControlled() {
-    return this.headingSupplier.isPresent() && this.driveModeType == DriveModeType.AMP;
-  }
-
-  public DriveModeType getDriveModeType() {
-    return this.driveModeType;
+    return this.driveModeType == DriveModeType.AMP && ofNullable(this.headingSupplier).isPresent();
   }
 
   public void disableHeadingSupplier() {
-    this.headingSupplier = Optional.empty();
+    this.headingSupplier = null;
   }
 
   public Rotation2d getHeadingAngle() {
-    return headingSupplier.get().get();
+    return ofNullable(headingSupplier).map(Supplier::get).orElse(null);
   }
 
   public enum DriveModeType {

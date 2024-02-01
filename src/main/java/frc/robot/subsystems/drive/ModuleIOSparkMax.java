@@ -87,11 +87,14 @@ public class ModuleIOSparkMax implements ModuleIO {
     driveSparkMax.setPeriodicFramePeriod(
         PeriodicFrame.kStatus2, (int) (1000.0 / odometryFrequency));
     turnSparkMax.setPeriodicFramePeriod(PeriodicFrame.kStatus2, (int) (1000.0 / odometryFrequency));
-    timestampQueue = SparkMaxOdometryThread.getInstance().makeTimestampQueue();
-    drivePositionQueue =
-        SparkMaxOdometryThread.getInstance().registerSignal(driveEncoder::getPosition);
-    turnPositionQueue =
-        SparkMaxOdometryThread.getInstance().registerSignal(turnRelativeEncoder::getPosition);
+
+    SparkMaxOdometryThread odometryThread =
+        (SparkMaxOdometryThread) OdometryThread.getInstance(OdometryThread.OdometryType.SPARKMAX);
+
+    timestampQueue = odometryThread.makeTimestampQueue();
+
+    drivePositionQueue = odometryThread.registerSignal(driveEncoder::getPosition);
+    turnPositionQueue = odometryThread.registerSignal(turnRelativeEncoder::getPosition);
 
     driveSparkMax.burnFlash();
     turnSparkMax.burnFlash();

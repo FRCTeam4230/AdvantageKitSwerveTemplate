@@ -26,15 +26,17 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.DriveController;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.FieldConstants;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import javax.swing.*;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
-  private static DriveController driveMode = new DriveController();
+  private static final DriveController driveMode = new DriveController();
 
   static {
     driveMode.disableHeadingSupplier();
@@ -83,13 +85,12 @@ public class DriveCommands {
 
           // Convert to field relative speeds & send command
           boolean isFlipped =
-              DriverStation.getAlliance().isPresent()
-                  && DriverStation.getAlliance().get() == Alliance.Red;
+              DriverStation.getAlliance().filter(alliance -> alliance == Alliance.Red).isPresent();
           drive.runVelocity(
               ChassisSpeeds.fromFieldRelativeSpeeds(
-                  linearVelocity.getX() * drivetrainConfig.maxLinearVelocity(),
-                  linearVelocity.getY() * drivetrainConfig.maxLinearVelocity(),
-                  omega * drivetrainConfig.maxAngularVelocity(),
+                  linearVelocity.getX() * DriveConstants.getDrivetrainConfig().maxLinearVelocity(),
+                  linearVelocity.getY() * DriveConstants.getDrivetrainConfig().maxLinearVelocity(),
+                  omega * DriveConstants.getDrivetrainConfig().maxAngularVelocity(),
                   isFlipped
                       ? drive.getRotation().plus(new Rotation2d(Math.PI))
                       : drive.getRotation()));

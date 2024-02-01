@@ -21,6 +21,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Constants;
+import lombok.Getter;
 import org.littletonrobotics.junction.Logger;
 
 public class Module {
@@ -34,7 +35,9 @@ public class Module {
   private Rotation2d angleSetpoint = null; // Setpoint for closed loop control, null for open loop
   private Double speedSetpoint = null; // Setpoint for closed loop control, null for open loop
   private Rotation2d turnRelativeOffset = null; // Relative + Offset = Absolute
-  private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
+
+  /** -- GETTER -- Returns the module positions received this cycle. */
+  @Getter private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
 
   public Module(ModuleIO io, int index) {
     this.io = io;
@@ -43,8 +46,7 @@ public class Module {
     // Switch constants based on mode (the physics simulator is treated as a
     // separate robot with different tuning)
     switch (Constants.getMode()) {
-      case REAL:
-      case REPLAY:
+      case REAL, REPLAY:
         driveFeedforward = new SimpleMotorFeedforward(0.1, 0.13);
         driveFeedback = new PIDController(0.05, 0.0, 0.0);
         turnFeedback = new PIDController(7.0, 0.0, 0.0);
@@ -183,11 +185,6 @@ public class Module {
   /** Returns the module state (turn angle and drive velocity). */
   public SwerveModuleState getState() {
     return new SwerveModuleState(getVelocityMetersPerSec(), getAngle());
-  }
-
-  /** Returns the module positions received this cycle. */
-  public SwerveModulePosition[] getOdometryPositions() {
-    return odometryPositions;
   }
 
   /** Returns the timestamps of the samples received this cycle. */

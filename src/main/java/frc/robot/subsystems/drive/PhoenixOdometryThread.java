@@ -20,8 +20,6 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.ParentDevice;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -35,33 +33,16 @@ import org.littletonrobotics.junction.Logger;
  * This also allows Phoenix Pro users to benefit from lower latency between devices using CANivore
  * time synchronization.
  */
-public class PhoenixOdometryThread extends Thread {
+public class PhoenixOdometryThread extends OdometryThread {
   private final Lock signalsLock =
       new ReentrantLock(); // Prevents conflicts when registering signals
   private BaseStatusSignal[] signals = new BaseStatusSignal[0];
-  private final List<Queue<Double>> queues = new ArrayList<>();
-  private final List<Queue<Double>> timestampQueues = new ArrayList<>();
+
   private boolean isCANFD = false;
 
-  private static PhoenixOdometryThread instance = null;
-
-  public static PhoenixOdometryThread getInstance() {
-    if (instance == null) {
-      instance = new PhoenixOdometryThread();
-    }
-    return instance;
-  }
-
-  private PhoenixOdometryThread() {
+  protected PhoenixOdometryThread() {
     setName("PhoenixOdometryThread");
     setDaemon(true);
-  }
-
-  @Override
-  public void start() {
-    if (!timestampQueues.isEmpty()) {
-      super.start();
-    }
   }
 
   public Queue<Double> registerSignal(ParentDevice device, StatusSignal<Double> signal) {
@@ -77,17 +58,6 @@ public class PhoenixOdometryThread extends Thread {
       queues.add(queue);
     } finally {
       signalsLock.unlock();
-      Drive.odometryLock.unlock();
-    }
-    return queue;
-  }
-
-  public Queue<Double> makeTimestampQueue() {
-    Queue<Double> queue = new ArrayDeque<>(100);
-    Drive.odometryLock.lock();
-    try {
-      timestampQueues.add(queue);
-    } finally {
       Drive.odometryLock.unlock();
     }
     return queue;

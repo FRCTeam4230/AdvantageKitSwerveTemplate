@@ -19,7 +19,6 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
@@ -43,11 +42,12 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.util.LocalADStarAK;
 import frc.robot.util.VisionHelpers.TimestampedVisionUpdate;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Stream;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -58,15 +58,16 @@ public class Drive extends SubsystemBase {
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   private final SysIdRoutine sysId;
 
-  private static ProfiledPIDController thetaController =
+  private static final ProfiledPIDController thetaController =
       new ProfiledPIDController(
-          headingControllerConstants.Kp(),
+          DriveConstants.getHeadingControllerConstants().Kp(),
           0,
-          headingControllerConstants.Kd(),
+          DriveConstants.getHeadingControllerConstants().Kd(),
           new TrapezoidProfile.Constraints(
-              drivetrainConfig.maxAngularVelocity(), drivetrainConfig.maxAngularAcceleration()));
+              DriveConstants.getDrivetrainConfig().maxAngularVelocity(),
+              DriveConstants.getDrivetrainConfig().maxAngularAcceleration()));
 
-  private SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
+  private final SwerveDriveKinematics kinematics = new SwerveDriveKinematics(moduleTranslations);
   private Rotation2d rawGyroRotation = new Rotation2d();
   private SwerveModulePosition[] lastModulePositions = // For delta tracking
       new SwerveModulePosition[] {
@@ -101,9 +102,8 @@ public class Drive extends SubsystemBase {
     modules[3] = new Module(brModuleIO, 3);
 
     // Start threads (no-op for each if no signals have been created)
-    PhoenixOdometryThread.getInstance().start();
-    SparkMaxOdometryThread.getInstance().start();
-
+    Stream.of(OdometryThread.OdometryType.values())
+        .forEach(val -> Objects.requireNonNull(OdometryThread.getInstance(val)).start());
     // Configure AutoBuilder for PathPlanner
     AutoBuilder.configureHolonomic(
         this::getPose,
@@ -111,8 +111,8 @@ public class Drive extends SubsystemBase {
         () -> kinematics.toChassisSpeeds(getModuleStates()),
         this::runVelocity,
         new HolonomicPathFollowerConfig(
-            drivetrainConfig.maxLinearVelocity(),
-            drivetrainConfig.driveBaseRadius(),
+            DriveConstants.getDrivetrainConfig().maxLinearVelocity(),
+            DriveConstants.getDrivetrainConfig().driveBaseRadius(),
             new ReplanningConfig()),
         () ->
             DriverStation.getAlliance().isPresent()
@@ -214,7 +214,7 @@ public class Drive extends SubsystemBase {
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
     SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(discreteSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(
-        setpointStates, drivetrainConfig.maxLinearVelocity());
+        setpointStates, DriveConstants.getDrivetrainConfig().maxLinearVelocity());
 
     // Send setpoints to modules
     SwerveModuleState[] optimizedSetpointStates = new SwerveModuleState[4];
@@ -297,7 +297,7 @@ public class Drive extends SubsystemBase {
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
   }
 
-  public void setAutoStartPose(Pose2d pose){
+  public void setAutoStartPose(Pose2d pose) {
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
     odometryDrive.resetPosition(rawGyroRotation, getModulePositions(), pose);
   }

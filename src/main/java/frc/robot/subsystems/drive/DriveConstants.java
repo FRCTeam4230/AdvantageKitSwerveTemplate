@@ -9,10 +9,15 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import frc.robot.Constants;
+import java.util.function.DoubleFunction;
+import lombok.Builder;
+import lombok.Getter;
 
 /** All Constants Measured in Meters and Radians (m/s, m/s^2, rad/s, rad/s^2) */
 public final class DriveConstants {
-  public static DrivetrainConfig drivetrainConfig =
+  @Getter
+  private static final DrivetrainConfig drivetrainConfig =
+      // Everything is the same. if we have a different/sim/real then add more here
       switch (Constants.getRobot()) {
         default ->
             new DrivetrainConfig(
@@ -24,8 +29,9 @@ public final class DriveConstants {
                 7.93,
                 29.89);
       };
+
   public static final double wheelRadius = Units.inchesToMeters(2.0);
-  public static final Translation2d[] moduleTranslations =
+  static final Translation2d[] moduleTranslations =
       new Translation2d[] {
         new Translation2d(
             drivetrainConfig.trackwidthX() / 2.0, drivetrainConfig.trackwidthY() / 2.0),
@@ -61,39 +67,55 @@ public final class DriveConstants {
   // Turn to "" for no canbus name
   public static final String canbus = "chassis";
 
+  private static final DoubleFunction<Rotation2d> calculateOffset =
+      offset -> {
+        return Rotation2d.fromRotations(offset).plus(Rotation2d.fromDegrees(180));
+      };
   public static ModuleConfig[] moduleConfigs =
       switch (Constants.getRobot()) {
         case COMPBOT ->
             new ModuleConfig[] {
-              new ModuleConfig(
-                  1,
-                  2,
-                  9,
-                  Rotation2d.fromRotations(-0.383).plus(Rotation2d.fromDegrees(180)),
-                  true),
-              new ModuleConfig(
-                  3,
-                  4,
-                  10,
-                  Rotation2d.fromRotations(-0.251).plus(Rotation2d.fromDegrees(180)),
-                  true),
-              new ModuleConfig(
-                  5,
-                  6,
-                  11,
-                  Rotation2d.fromRotations(-0.057).plus(Rotation2d.fromDegrees(180)),
-                  true),
-              new ModuleConfig(
-                  7,
-                  8,
-                  12,
-                  Rotation2d.fromRotations(-0.470).plus(Rotation2d.fromDegrees(180)),
-                  true)
+              ModuleConfig.builder()
+                  .withDriveID(1)
+                  .withTurnID(2)
+                  .withAbsoluteEncoderChannel(9)
+                  .withAbsoluteEncoderOffset(calculateOffset.apply(-0.383))
+                  .withTurnMotorInverted(true)
+                  .build(),
+              ModuleConfig.builder()
+                  .withDriveID(3)
+                  .withTurnID(4)
+                  .withAbsoluteEncoderChannel(10)
+                  .withAbsoluteEncoderOffset(calculateOffset.apply(-0.251))
+                  .withTurnMotorInverted(true)
+                  .build(),
+              ModuleConfig.builder()
+                  .withDriveID(5)
+                  .withTurnID(6)
+                  .withAbsoluteEncoderChannel(11)
+                  .withAbsoluteEncoderOffset(calculateOffset.apply(-0.057))
+                  .withTurnMotorInverted(true)
+                  .build(),
+              ModuleConfig.builder()
+                  .withDriveID(7)
+                  .withTurnID(8)
+                  .withAbsoluteEncoderChannel(12)
+                  .withAbsoluteEncoderOffset(calculateOffset.apply(-0.470))
+                  .withTurnMotorInverted(true)
+                  .build()
             };
         case SIMBOT -> {
           ModuleConfig[] configs = new ModuleConfig[4];
           for (int i = 0; i < configs.length; i++)
-            configs[i] = new ModuleConfig(0, 0, 0, new Rotation2d(0), false);
+            configs[i] =
+                ModuleConfig.builder()
+                    .withDriveID(0)
+                    .withTurnID(0)
+                    .withAbsoluteEncoderChannel(0)
+                    .withAbsoluteEncoderOffset(new Rotation2d(0))
+                    .withTurnMotorInverted(false)
+                    .build();
+
           yield configs;
         }
       };
@@ -122,12 +144,14 @@ public final class DriveConstants {
                 Mk4iReductions.TURN.reduction);
       };
 
-  public static HeadingControllerConstants headingControllerConstants =
+  @Getter
+  private static final HeadingControllerConstants headingControllerConstants =
       switch (Constants.getRobot()) {
         case COMPBOT -> new HeadingControllerConstants(8.0, 0.0);
         case SIMBOT -> new HeadingControllerConstants(4.0, 0.0);
       };
 
+  @Builder(setterPrefix = "with")
   public record DrivetrainConfig(
       double wheelRadius,
       double trackwidthX,
@@ -141,6 +165,7 @@ public final class DriveConstants {
     }
   }
 
+  @Builder(setterPrefix = "with")
   public record ModuleConfig(
       int driveID,
       int turnID,
@@ -148,6 +173,7 @@ public final class DriveConstants {
       Rotation2d absoluteEncoderOffset,
       boolean turnMotorInverted) {}
 
+  @Builder(setterPrefix = "with")
   public record ModuleConstants(
       double ffKs,
       double ffKv,
@@ -158,6 +184,7 @@ public final class DriveConstants {
       double driveReduction,
       double turnReduction) {}
 
+  @Builder(setterPrefix = "with")
   public record HeadingControllerConstants(double Kp, double Kd) {}
 
   private enum Mk4iReductions {
