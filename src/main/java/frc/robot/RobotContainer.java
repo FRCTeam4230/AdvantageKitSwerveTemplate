@@ -17,8 +17,11 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj.GenericHID;
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -53,6 +56,7 @@ import frc.robot.subsystems.vision.AprilTagVisionIO;
 import frc.robot.subsystems.vision.AprilTagVisionIOLimelight;
 import frc.robot.subsystems.vision.AprilTagVisionIOPhotonVisionSIM;
 import frc.robot.util.ShootingBasedOnPoseCalculator;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
@@ -191,11 +195,17 @@ public class RobotContainer {
         ArmCommands.autoArmToPosition(arm, () -> ArmConstants.Positions.SPEAKER_POS_RAD));
     NamedCommands.registerCommand(
         "Arm to calculated speaker angle",
-        ArmCommands.autoArmToPosition(
-            arm,
+        Commands.runOnce(
             () ->
-                ShootingBasedOnPoseCalculator.calculateAngleInRadiansWithConstantVelocity(
-                    drive.getPose())));
+                Logger.recordOutput(
+                    "arm/targetShootingAngle",
+                    ShootingBasedOnPoseCalculator.calculateAngleInRadiansWithConstantVelocity(
+                        drive.getPose()))));
+    //        ArmCommands.autoArmToPosition(
+    //            arm,
+    //            () ->
+    //                ShootingBasedOnPoseCalculator.calculateAngleInRadiansWithConstantVelocity(
+    //                    drive.getPose())));
 
     // Intake
     NamedCommands.registerCommand(
@@ -252,11 +262,16 @@ public class RobotContainer {
     autoChooser.addOption(
         "Arm sysid dynamic reverse", arm.sysid.dynamic(SysIdRoutine.Direction.kReverse));
 
+    autoChooser.addOption("AmpTrajTest", new PathPlannerAuto("AmpTrajTest.auto"));
+
     // Configure the button bindings
     aprilTagVision.setDataInterfaces(drive::addVisionData);
     driveMode.setPoseSupplier(drive::getPose);
     driveMode.disableHeadingControl();
     configureButtonBindings();
+
+    PowerDistribution examplePD = new PowerDistribution(50, ModuleType.kRev);
+    examplePD.setSwitchableChannel(true);
   }
 
   /**
