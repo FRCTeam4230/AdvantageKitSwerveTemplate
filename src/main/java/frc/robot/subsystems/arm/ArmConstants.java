@@ -9,7 +9,7 @@ public class ArmConstants {
   public static final double kG = 1.5; // to-a do tune
   public static final double kV = 0; // todo tune
   public static final double kA = 0.0; // todo tune
-  public static final double kP = 0.3; // 4; // todo tune
+  public static final double kP = 4; // todo tune
   public static final double kI = 0.0; // todo tune
   public static final double kD = 0; // todo tune
   public static final double ARM_ENCODER_OFFSET_RAD = 2.1338351287912601;
