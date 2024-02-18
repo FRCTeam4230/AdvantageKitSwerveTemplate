@@ -130,8 +130,7 @@ public class RobotContainer {
         rightClimber =
             new ClimberSubsystem(
                 new ClimberIOSparkMax(
-                    ClimberConstants.RIGHT_MOTOR_ID,
-                    ClimberConstants.RIGHT_LIMIT_SWITCH_DIO_PORT),
+                    ClimberConstants.RIGHT_MOTOR_ID, ClimberConstants.RIGHT_LIMIT_SWITCH_DIO_PORT),
                 "right");
         break;
 
@@ -358,10 +357,9 @@ public class RobotContainer {
 
   private void configureUniversalControls(CommandXboxController controller) {
     controller.povDown().onTrue(ArmCommands.autoArmToPosition(arm, intakePos::get));
-    controller.povRight().onTrue(ArmCommands.autoArmToPosition(arm, speakerPos::get));
+    controller.povLeft().onTrue(ArmCommands.autoArmToPosition(arm, speakerPos::get));
     controller.povUp().onTrue(ArmCommands.autoArmToPosition(arm, ampPos::get));
 
-    controller.povLeft().toggleOnTrue(runShooterVolts);
     controller.rightBumper().whileTrue(runShooterVolts);
   }
 
