@@ -127,13 +127,11 @@ public class RobotContainer {
                 new ClimberIOSparkMax(
                     ClimberConstants.LEFT_MOTOR_ID, ClimberConstants.LEFT_LIMIT_SWITCH_DIO_PORT),
                 "left");
-        //        rightClimber =
-        //            new ClimberSubsystem(
-        //                new ClimberIOSparkMax(
-        //                    ClimberConstants.RIGHT_MOTOR_ID,
-        // ClimberConstants.RIGHT_LIMIT_SWITCH_DIO_PORT),
-        //                "right");
-        rightClimber = new ClimberSubsystem(new ClimberIO() {}, "fake right");
+        rightClimber =
+            new ClimberSubsystem(
+                new ClimberIOSparkMax(
+                    ClimberConstants.RIGHT_MOTOR_ID, ClimberConstants.RIGHT_LIMIT_SWITCH_DIO_PORT),
+                "right");
         break;
 
       case SIM:
@@ -330,8 +328,6 @@ public class RobotContainer {
             intake::stop,
             intake));
 
-    driverController.rightBumper().whileTrue(runShooterVolts);
-
     driverController.a().onTrue(Commands.runOnce(drive::resetGyro));
 
     leftClimber.setDefaultCommand(
@@ -339,17 +335,17 @@ public class RobotContainer {
     rightClimber.setDefaultCommand(
         new ManualClimberCommand(rightClimber, () -> -secondController.getRightY()));
 
-    secondController.leftBumper().whileTrue(runShooterVolts);
-    secondController.rightBumper().whileTrue(new IntakeUntilNoteCommand(colorSensor, intake));
+    secondController.leftBumper().whileTrue(new IntakeUntilNoteCommand(colorSensor, intake));
 
-    secondController
-        .a()
-        .whileTrue(
-            ArmCommands.manualArmCommand(
-                arm,
-                () ->
-                    (secondController.getLeftTriggerAxis()
-                        - secondController.getRightTriggerAxis())));
+    //    secondController
+    //        .a()
+    //        .whileTrue(
+    //            ArmCommands.manualArmCommand(
+    //                arm,
+    //                () ->
+    //                    2
+    //                        * (secondController.getLeftTriggerAxis()
+    //                            - secondController.getRightTriggerAxis())));
 
     secondController.x().whileTrue(new ResetClimbers(leftClimber));
     secondController.b().whileTrue(new ResetClimbers(rightClimber));
@@ -361,10 +357,10 @@ public class RobotContainer {
 
   private void configureUniversalControls(CommandXboxController controller) {
     controller.povDown().onTrue(ArmCommands.autoArmToPosition(arm, intakePos::get));
-    controller.povRight().onTrue(ArmCommands.autoArmToPosition(arm, speakerPos::get));
+    controller.povLeft().onTrue(ArmCommands.autoArmToPosition(arm, speakerPos::get));
     controller.povUp().onTrue(ArmCommands.autoArmToPosition(arm, ampPos::get));
 
-    controller.povLeft().toggleOnTrue(runShooterVolts);
+    controller.rightBumper().whileTrue(runShooterVolts);
   }
 
   /**
