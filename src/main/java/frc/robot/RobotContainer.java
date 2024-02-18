@@ -339,15 +339,15 @@ public class RobotContainer {
 
     secondController.leftBumper().whileTrue(new IntakeUntilNoteCommand(colorSensor, intake));
 
-//    secondController
-//        .a()
-//        .whileTrue(
-//            ArmCommands.manualArmCommand(
-//                arm,
-//                () ->
-//                    2
-//                        * (secondController.getLeftTriggerAxis()
-//                            - secondController.getRightTriggerAxis())));
+    //    secondController
+    //        .a()
+    //        .whileTrue(
+    //            ArmCommands.manualArmCommand(
+    //                arm,
+    //                () ->
+    //                    2
+    //                        * (secondController.getLeftTriggerAxis()
+    //                            - secondController.getRightTriggerAxis())));
 
     secondController.x().whileTrue(new ResetClimbers(leftClimber));
     secondController.b().whileTrue(new ResetClimbers(rightClimber));
