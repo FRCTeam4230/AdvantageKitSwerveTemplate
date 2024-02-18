@@ -8,8 +8,7 @@ public class ClimberSubsystem extends SubsystemBase {
   private final ClimberIO climberIO;
   private final ClimberIOInputsAutoLogged climberIOInputs = new ClimberIOInputsAutoLogged();
   private String descriptor;
-  @AutoLogOutput
-  private double volts = 0;
+  @AutoLogOutput private double volts = 0;
 
   public ClimberSubsystem(ClimberIO climberIO, String descriptor) {
     this.climberIO = climberIO;
