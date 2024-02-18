@@ -14,7 +14,15 @@ public class ArmCommands {
   public static Command manualArmCommand(ArmSubsystem arm, DoubleSupplier supplier) {
     return Commands.run(
         () -> {
-          arm.setManualVoltage(supplier.getAsDouble() * ArmConstants.MANUAL_ARM_MAX_VOLTS);
+          double volts = supplier.getAsDouble() * ArmConstants.MANUAL_ARM_MAX_VOLTS;
+          if ((volts > 0) && arm.atTop()) {
+            return;
+          }
+
+          if ((volts < 0) && arm.atBottom()) {
+            return;
+          }
+          arm.setManualVoltage(volts);
         },
         arm);
   }

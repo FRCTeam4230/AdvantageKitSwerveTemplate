@@ -348,9 +348,8 @@ public class RobotContainer {
             ArmCommands.manualArmCommand(
                 arm,
                 () ->
-                    2
-                        * (secondController.getLeftTriggerAxis()
-                            - secondController.getRightTriggerAxis())));
+                    (secondController.getLeftTriggerAxis()
+                        - secondController.getRightTriggerAxis())));
 
     secondController.x().whileTrue(new ResetClimbers(leftClimber));
     secondController.b().whileTrue(new ResetClimbers(rightClimber));

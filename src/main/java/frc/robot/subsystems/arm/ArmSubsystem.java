@@ -180,6 +180,16 @@ public class ArmSubsystem extends SubsystemBase {
   }
 
   @AutoLogOutput
+  public boolean atTop() {
+    return armIOInputs.upperLimit;
+  }
+
+  @AutoLogOutput
+  public boolean atBottom() {
+    return armIOInputs.lowerLimit;
+  }
+
+  @AutoLogOutput
   public double getPositionRad() {
     return armIOInputs.positionRad;
   }
