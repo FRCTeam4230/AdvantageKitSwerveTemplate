@@ -17,6 +17,7 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -319,10 +320,10 @@ public class RobotContainer {
             () -> {
               intake.setVoltage(
                   IntakeConstants.INTAKE_VOLTAGE
-                      * (driverController.getLeftTriggerAxis()
+                      * MathUtil.clamp(driverController.getLeftTriggerAxis()
                           - driverController.getRightTriggerAxis()
                           + secondController.getLeftTriggerAxis()
-                          - secondController.getRightTriggerAxis()));
+                          - secondController.getRightTriggerAxis(), -1, 1));
             },
             intake::stop,
             intake));
