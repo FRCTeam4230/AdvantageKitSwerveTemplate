@@ -262,7 +262,7 @@ public class RobotContainer {
     autoChooser.addOption(
         "Arm sysid dynamic reverse", arm.sysid.dynamic(SysIdRoutine.Direction.kReverse));
 
-    autoChooser.addOption("AmpTrajTest", new PathPlannerAuto("AmpTrajTest.auto"));
+    autoChooser.addOption("AmpTrajTest", new PathPlannerAuto("AmpTrajTest"));
 
     // Configure the button bindings
     aprilTagVision.setDataInterfaces(drive::addVisionData);
