@@ -36,10 +36,10 @@ public class ClimberSubsystem extends SubsystemBase {
 
   private boolean cannotUseVolts(double volts) {
     return (climberIOInputs.atBottom);
-//        && ((climberIOInputs.positionRotations > ClimberConstants.FULL_EXTENSION_ROTATIONS
-//                && volts > 0)
-//            || (climberIOInputs.positionRotations < ClimberConstants.FULL_EXTENSION_ROTATIONS
-//                && volts < 0)));
+    //        && ((climberIOInputs.positionRotations > ClimberConstants.FULL_EXTENSION_ROTATIONS
+    //                && volts > 0)
+    //            || (climberIOInputs.positionRotations < ClimberConstants.FULL_EXTENSION_ROTATIONS
+    //                && volts < 0)));
   }
 
   public void setVoltage(double volts) {
