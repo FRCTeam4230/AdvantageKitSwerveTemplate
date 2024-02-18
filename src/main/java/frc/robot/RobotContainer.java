@@ -17,6 +17,7 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -261,7 +262,7 @@ public class RobotContainer {
     autoChooser.addOption(
         "Arm sysid dynamic reverse", arm.sysid.dynamic(SysIdRoutine.Direction.kReverse));
 
-    //    autoChooser.addOption("AmpTrajTest", new PathPlannerAuto("AmpTrajTest"));
+    autoChooser.addOption("AmpTrajTest", new PathPlannerAuto("AmpTrajTest"));
 
     // Configure the button bindings
     aprilTagVision.setDataInterfaces(drive::addVisionData);
