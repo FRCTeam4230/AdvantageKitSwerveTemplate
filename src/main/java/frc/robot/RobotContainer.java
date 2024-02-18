@@ -17,7 +17,6 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
@@ -216,7 +215,7 @@ public class RobotContainer {
         ShooterCommands.fullshot(
             shooter, intake, colorSensor, ShooterConstants.AUTO_SPEAKER_SHOOT_VELOCITY));
 
-//    AutoBuilder.buildAuto("MiddleTwoNote");
+    //    AutoBuilder.buildAuto("MiddleTwoNote");
 
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -261,7 +260,7 @@ public class RobotContainer {
     autoChooser.addOption(
         "Arm sysid dynamic reverse", arm.sysid.dynamic(SysIdRoutine.Direction.kReverse));
 
-//    autoChooser.addOption("AmpTrajTest", new PathPlannerAuto("AmpTrajTest"));
+    //    autoChooser.addOption("AmpTrajTest", new PathPlannerAuto("AmpTrajTest"));
 
     // Configure the button bindings
     aprilTagVision.setDataInterfaces(drive::addVisionData);
