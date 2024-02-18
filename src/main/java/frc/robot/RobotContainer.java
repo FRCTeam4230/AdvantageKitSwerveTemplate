@@ -20,8 +20,6 @@ import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -41,6 +39,7 @@ import frc.robot.subsystems.climber.ClimberIOSparkMax;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveController;
+import frc.robot.subsystems.drive.DriveController.DriveModeType;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX2;
 import frc.robot.subsystems.drive.ModuleIO;
@@ -269,9 +268,6 @@ public class RobotContainer {
     driveMode.setPoseSupplier(drive::getPose);
     driveMode.disableHeadingControl();
     configureButtonBindings();
-
-    PowerDistribution examplePD = new PowerDistribution(50, ModuleType.kRev);
-    examplePD.setSwitchableChannel(true);
   }
 
   /**
@@ -307,13 +303,27 @@ public class RobotContainer {
             () -> -driverController.getRightX(),
             () -> driverController.getLeftX()));
 
+    driveMode.setDriveMode(DriveModeType.SPEAKER);
+    driverController
+        .y()
+        .toggleOnTrue(
+            Commands.startEnd(
+                () -> {
+                  driveMode.enableHeadingControl();
+                },
+                () -> {
+                  driveMode.disableHeadingControl();
+                }));
+
     intake.setDefaultCommand(
         Commands.runEnd(
             () -> {
               intake.setVoltage(
                   IntakeConstants.INTAKE_VOLTAGE
                       * (driverController.getLeftTriggerAxis()
-                          - driverController.getRightTriggerAxis()));
+                          - driverController.getRightTriggerAxis()
+                          + secondController.getLeftTriggerAxis()
+                          - secondController.getRightTriggerAxis()));
             },
             intake::stop,
             intake));
