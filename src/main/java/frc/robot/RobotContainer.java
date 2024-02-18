@@ -330,8 +330,6 @@ public class RobotContainer {
             intake::stop,
             intake));
 
-    driverController.rightBumper().whileTrue(runShooterVolts);
-
     driverController.a().onTrue(Commands.runOnce(drive::resetGyro));
 
     leftClimber.setDefaultCommand(
@@ -339,18 +337,17 @@ public class RobotContainer {
     rightClimber.setDefaultCommand(
         new ManualClimberCommand(rightClimber, () -> -secondController.getRightY()));
 
-    secondController.leftBumper().whileTrue(runShooterVolts);
-    secondController.rightBumper().whileTrue(new IntakeUntilNoteCommand(colorSensor, intake));
+    secondController.leftBumper().whileTrue(new IntakeUntilNoteCommand(colorSensor, intake));
 
-    secondController
-        .a()
-        .whileTrue(
-            ArmCommands.manualArmCommand(
-                arm,
-                () ->
-                    2
-                        * (secondController.getLeftTriggerAxis()
-                            - secondController.getRightTriggerAxis())));
+//    secondController
+//        .a()
+//        .whileTrue(
+//            ArmCommands.manualArmCommand(
+//                arm,
+//                () ->
+//                    2
+//                        * (secondController.getLeftTriggerAxis()
+//                            - secondController.getRightTriggerAxis())));
 
     secondController.x().whileTrue(new ResetClimbers(leftClimber));
     secondController.b().whileTrue(new ResetClimbers(rightClimber));
@@ -366,6 +363,7 @@ public class RobotContainer {
     controller.povUp().onTrue(ArmCommands.autoArmToPosition(arm, ampPos::get));
 
     controller.povLeft().toggleOnTrue(runShooterVolts);
+    controller.rightBumper().whileTrue(runShooterVolts);
   }
 
   /**
