@@ -34,6 +34,7 @@ import frc.robot.subsystems.ColorSensor.ColorSensor;
 import frc.robot.subsystems.ColorSensor.ColorSensorIO;
 import frc.robot.subsystems.ColorSensor.ColorSensorIOReal;
 import frc.robot.subsystems.arm.*;
+import frc.robot.subsystems.arm.ArmConstants.Positions;
 import frc.robot.subsystems.climber.ClimberConstants;
 import frc.robot.subsystems.climber.ClimberIO;
 import frc.robot.subsystems.climber.ClimberIOSparkMax;
@@ -263,6 +264,17 @@ public class RobotContainer {
         "Arm sysid dynamic reverse", arm.sysid.dynamic(SysIdRoutine.Direction.kReverse));
 
     autoChooser.addOption("AmpTrajTest", new PathPlannerAuto("AmpTrajTest"));
+    autoChooser.addOption(
+        "shoot auto",
+        ArmCommands.autoArmToPosition(arm, () -> Positions.SPEAKER_POS_RAD)
+            .andThen(Commands.runOnce(() -> shooter.runVolts(ShooterConstants.RUN_VOLTS), shooter))
+            .andThen(Commands.waitSeconds(2))
+            .andThen(
+                Commands.runOnce(() -> intake.setVoltage(IntakeConstants.INTAKE_VOLTAGE), intake))
+            .andThen(Commands.waitSeconds(1))
+            .andThen(Commands.runOnce(() -> shooter.runVolts(0), shooter))
+            .andThen(Commands.runOnce(() -> intake.setVoltage(0), intake))
+            .andThen(ArmCommands.autoArmToPosition(arm, () -> Positions.INTAKE_POS_RAD)));
 
     // Configure the button bindings
     aprilTagVision.setDataInterfaces(drive::addVisionData);
