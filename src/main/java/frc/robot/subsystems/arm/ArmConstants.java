@@ -1,5 +1,7 @@
 package frc.robot.subsystems.arm;
 
+import edu.wpi.first.math.util.Units;
+
 public class ArmConstants {
   public static final int LEFT_MOTOR_ID = 9;
   public static final int RIGHT_MOTOR_ID = 10;
@@ -16,7 +18,7 @@ public class ArmConstants {
   public static final int LOWER_LIMIT_SWITCH_PORT = 4;
 
   public static final double MIN_RAD = 0; // todo tune
-  public static final double MAX_RAD = 0.4; // 1.3; // todo tune
+  public static final double MAX_RAD = Units.degreesToRadians(95); // todo tune
   public static final double MAX_ARM_PID_VOLTS = 4.0;
   public static final double MANUAL_ARM_MAX_VOLTS = 5.0;
 
@@ -26,6 +28,6 @@ public class ArmConstants {
   public static class Positions {
     public static final double INTAKE_POS_RAD = -.1; // todo tune
     public static final double SPEAKER_POS_RAD = 0.2; // todo tune
-    public static final double AMP_POS_RAD = 1.2; // todo tune
+    public static final double AMP_POS_RAD = Units.degreesToRadians(90); // todo tune
   }
 }
