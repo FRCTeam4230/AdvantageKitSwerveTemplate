@@ -320,10 +320,13 @@ public class RobotContainer {
             () -> {
               intake.setVoltage(
                   IntakeConstants.INTAKE_VOLTAGE
-                      * MathUtil.clamp(driverController.getLeftTriggerAxis()
-                          - driverController.getRightTriggerAxis()
-                          + secondController.getLeftTriggerAxis()
-                          - secondController.getRightTriggerAxis(), -1, 1));
+                      * MathUtil.clamp(
+                          driverController.getLeftTriggerAxis()
+                              - driverController.getRightTriggerAxis()
+                              + secondController.getLeftTriggerAxis()
+                              - secondController.getRightTriggerAxis(),
+                          -1,
+                          1));
             },
             intake::stop,
             intake));
