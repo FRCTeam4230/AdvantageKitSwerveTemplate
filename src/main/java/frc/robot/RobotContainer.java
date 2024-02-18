@@ -263,7 +263,6 @@ public class RobotContainer {
     autoChooser.addOption(
         "Arm sysid dynamic reverse", arm.sysid.dynamic(SysIdRoutine.Direction.kReverse));
 
-    autoChooser.addOption("AmpTrajTest", new PathPlannerAuto("AmpTrajTest"));
     autoChooser.addOption(
         "shoot auto",
         ArmCommands.autoArmToPosition(arm, () -> Positions.SPEAKER_POS_RAD)
