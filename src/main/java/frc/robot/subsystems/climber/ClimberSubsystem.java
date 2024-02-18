@@ -29,18 +29,24 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   private void checkLimit() {
-    if (climberIOInputs.atBottom
-        && ((climberIOInputs.positionRotations > ClimberConstants.FULL_EXTENSION_ROTATIONS
-                && volts > 0)
-            || (climberIOInputs.positionRotations < ClimberConstants.FULL_EXTENSION_ROTATIONS
-                && volts < 0))) {
+    if (cannotUseVolts(volts)) {
       climberIO.setVoltage(0);
     }
   }
 
+  private boolean cannotUseVolts(double volts) {
+    return (climberIOInputs.atBottom
+        && ((climberIOInputs.positionRotations > ClimberConstants.FULL_EXTENSION_ROTATIONS
+        && volts > 0)
+        || (climberIOInputs.positionRotations < ClimberConstants.FULL_EXTENSION_ROTATIONS
+        && volts < 0)));
+  }
+
   public void setVoltage(double volts) {
-    this.volts = volts;
-    climberIO.setVoltage(volts);
+    if (!cannotUseVolts(volts)) {
+      climberIO.setVoltage(volts);
+      this.volts = volts;
+    }
   }
 
   @AutoLogOutput(key = "Climber/{descriptor}/atBottom")
