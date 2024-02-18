@@ -29,10 +29,11 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   private void checkLimit() {
-    if (climberIOInputs.atBottom && (
-        (climberIOInputs.positionRotations > ClimberConstants.FULL_EXTENSION_ROTATIONS && volts > 0) ||
-            (climberIOInputs.positionRotations < ClimberConstants.FULL_EXTENSION_ROTATIONS && volts < 0)
-    )) {
+    if (climberIOInputs.atBottom
+        && ((climberIOInputs.positionRotations > ClimberConstants.FULL_EXTENSION_ROTATIONS
+                && volts > 0)
+            || (climberIOInputs.positionRotations < ClimberConstants.FULL_EXTENSION_ROTATIONS
+                && volts < 0))) {
       climberIO.setVoltage(0);
     }
   }

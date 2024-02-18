@@ -127,11 +127,12 @@ public class RobotContainer {
                 new ClimberIOSparkMax(
                     ClimberConstants.LEFT_MOTOR_ID, ClimberConstants.LEFT_LIMIT_SWITCH_DIO_PORT),
                 "left");
-//        rightClimber =
-//            new ClimberSubsystem(
-//                new ClimberIOSparkMax(
-//                    ClimberConstants.RIGHT_MOTOR_ID, ClimberConstants.RIGHT_LIMIT_SWITCH_DIO_PORT),
-//                "right");
+        //        rightClimber =
+        //            new ClimberSubsystem(
+        //                new ClimberIOSparkMax(
+        //                    ClimberConstants.RIGHT_MOTOR_ID,
+        // ClimberConstants.RIGHT_LIMIT_SWITCH_DIO_PORT),
+        //                "right");
         rightClimber = new ClimberSubsystem(new ClimberIO() {}, "fake right");
         break;
 
