@@ -176,15 +176,14 @@ public class ArmSubsystem extends SubsystemBase {
 
   public void setManualVoltage(double volts) {
     active = false;
-    limitAndSetVolts(volts);
+    armIO.setVoltage(volts);
+    //    limitAndSetVolts(volts);
   }
 
-  @AutoLogOutput
   public boolean atTop() {
     return armIOInputs.upperLimit;
   }
 
-  @AutoLogOutput
   public boolean atBottom() {
     return armIOInputs.lowerLimit;
   }

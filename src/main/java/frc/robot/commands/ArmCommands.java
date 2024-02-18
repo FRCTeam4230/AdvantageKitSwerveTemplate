@@ -15,12 +15,8 @@ public class ArmCommands {
     return Commands.run(
         () -> {
           double volts = supplier.getAsDouble() * ArmConstants.MANUAL_ARM_MAX_VOLTS;
-          if ((volts > 0) && arm.atTop()) {
-            return;
-          }
-
-          if ((volts < 0) && arm.atBottom()) {
-            return;
+          if (((volts > 0) && arm.atTop()) || (volts < 0) && arm.atBottom()) {
+            volts = 0;
           }
           arm.setManualVoltage(volts);
         },
