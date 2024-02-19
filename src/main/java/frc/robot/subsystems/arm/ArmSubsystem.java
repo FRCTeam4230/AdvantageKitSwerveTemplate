@@ -9,7 +9,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
@@ -45,7 +44,6 @@ public class ArmSubsystem extends SubsystemBase {
 
   public final SysIdRoutine sysid;
 
-
   private final Translation3d ROTATION_POINT = new Translation3d(-.26, 0.0, .273);
 
   @AutoLogOutput
@@ -75,8 +73,6 @@ public class ArmSubsystem extends SubsystemBase {
                 },
                 null,
                 this));
-
-
   }
 
   private void updateControlConstants() {

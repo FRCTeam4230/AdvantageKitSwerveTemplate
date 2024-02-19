@@ -274,8 +274,6 @@ public class RobotContainer {
             .andThen(Commands.runOnce(() -> intake.setVoltage(0), intake))
             .andThen(ArmCommands.autoArmToPosition(arm, () -> Positions.INTAKE_POS_RAD)));
 
-    autoChooser.;
-
     // Configure the button bindings
     aprilTagVision.setDataInterfaces(drive::addVisionData);
     driveMode.setPoseSupplier(drive::getPose);

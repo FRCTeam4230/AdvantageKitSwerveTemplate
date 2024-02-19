@@ -31,7 +31,10 @@ public class ArmConstants {
     public static final double SPEAKER_POS_RAD = 0.2; // todo tune
     public static final double AMP_POS_RAD = Units.degreesToRadians(90); // todo tune
   }
-  public static final InterpolatingDoubleTreeMap angleToHoldVolts = new InterpolatingDoubleTreeMap();
+
+  public static final InterpolatingDoubleTreeMap angleToHoldVolts =
+      new InterpolatingDoubleTreeMap();
+
   static {
     //    angleToHoldVolts.put(0.067593724, 1.204724371);
     angleToHoldVolts.put(-1., 1.);
