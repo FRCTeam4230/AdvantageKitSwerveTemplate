@@ -141,6 +141,13 @@ public class ModuleIOSparkMax implements ModuleIO {
     inputs.turnAppliedVolts = turnSparkMax.getAppliedOutput() * turnSparkMax.getBusVoltage();
     inputs.turnCurrentAmps = new double[] {turnSparkMax.getOutputCurrent()};
 
+    doIt(inputs, timestampQueue, drivePositionQueue, turnPositionQueue);
+
+    inputs.driveMotorTemperatureCelsius = driveSparkMax.getMotorTemperature();
+    inputs.turnMotorTemperatureCelsius = turnSparkMax.getMotorTemperature();
+  }
+
+  static void doIt(ModuleIOInputs inputs, Queue<Double> timestampQueue, Queue<Double> drivePositionQueue, Queue<Double> turnPositionQueue) {
     inputs.odometryTimestamps =
         timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
     inputs.odometryDrivePositionsRad =
@@ -157,9 +164,6 @@ public class ModuleIOSparkMax implements ModuleIO {
     timestampQueue.clear();
     drivePositionQueue.clear();
     turnPositionQueue.clear();
-
-    inputs.driveMotorTemperatureCelsius = driveSparkMax.getMotorTemperature();
-    inputs.turnMotorTemperatureCelsius = turnSparkMax.getMotorTemperature();
   }
 
   @Override
