@@ -8,6 +8,7 @@ import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
+import frc.robot.util.ErrorChecker;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -95,6 +96,8 @@ public class ShooterSubsystem extends SubsystemBase {
     bottomIO.updateInputs(bottomInputs);
     Logger.processInputs("ShooterSubsystem/Top", topInputs);
     Logger.processInputs("ShooterSubsystem/Bottom", bottomInputs);
+    ErrorChecker.checkError(topInputs);
+    ErrorChecker.checkError(bottomInputs);
   }
 
   public void runVelocity(double velocityRPM) {

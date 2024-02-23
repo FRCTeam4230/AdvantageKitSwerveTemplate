@@ -2,6 +2,7 @@ package frc.robot.subsystems.climber;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.climber.ClimberConstants.RotationPositions;
+import frc.robot.util.ErrorChecker;
 import lombok.Getter;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -24,6 +25,7 @@ public class ClimberSubsystem extends SubsystemBase {
   public void periodic() {
     climberIO.updateInputs(climberIOInputs);
     Logger.processInputs("climber/" + descriptor, climberIOInputs);
+    ErrorChecker.checkError(climberIOInputs);
     checkAndStopIfAtBottom();
   }
 
