@@ -158,6 +158,9 @@ public class ModuleIOSparkMax implements ModuleIO {
 
     inputs.driveMotorCANTXError = driveSparkMax.getFault(FaultID.kCANTX);
     inputs.turnMotorCANTXError = turnSparkMax.getFault(FaultID.kCANTX);
+
+    inputs.driveMotorCANID = driveSparkMax.getDeviceId();
+    inputs.turnMotorCANID = turnSparkMax.getDeviceId();
   }
 
   @Override

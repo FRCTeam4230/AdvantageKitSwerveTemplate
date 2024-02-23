@@ -11,6 +11,11 @@ public interface IntakeIO {
     public double appliedVolts = 0.0;
     public double[] currentAmps = new double[] {};
     public double motorTemperatureCelsius = 0.0;
+    public boolean motorSensorFault = false;
+    public boolean motorBrownOut = false;
+    public boolean motorCANRXError = false;
+    public boolean motorCANTXError = false;
+    public int motorCANID = -1;
   }
 
   /** Updates the set of loggable inputs. */
