@@ -6,9 +6,9 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
-import frc.robot.util.ErrorChecker;
 import frc.robot.subsystems.shooter.ShooterConstants.Real.PIDConstants.BottomConstants;
 import frc.robot.subsystems.shooter.ShooterConstants.Real.PIDConstants.TopConstants;
+import frc.robot.util.ErrorChecker;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 

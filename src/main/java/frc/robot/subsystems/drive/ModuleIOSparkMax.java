@@ -152,6 +152,21 @@ public class ModuleIOSparkMax implements ModuleIO {
 
     inputs.driveMotorTemperatureCelsius = driveSparkMax.getMotorTemperature();
     inputs.turnMotorTemperatureCelsius = turnSparkMax.getMotorTemperature();
+
+    inputs.driveMotorSensorFault = driveSparkMax.getFault(FaultID.kSensorFault);
+    inputs.turnMotorSensorFault = turnSparkMax.getFault(FaultID.kSensorFault);
+
+    inputs.driveMotorBrownOut = driveSparkMax.getFault(FaultID.kBrownout);
+    inputs.turnMotorBrownOut = turnSparkMax.getFault(FaultID.kBrownout);
+
+    inputs.driveMotorCANRXError = driveSparkMax.getFault(FaultID.kCANRX);
+    inputs.turnMotorCANRXError = turnSparkMax.getFault(FaultID.kCANRX);
+
+    inputs.driveMotorCANTXError = driveSparkMax.getFault(FaultID.kCANTX);
+    inputs.turnMotorCANTXError = turnSparkMax.getFault(FaultID.kCANTX);
+
+    inputs.driveMotorCANID = driveSparkMax.getDeviceId();
+    inputs.turnMotorCANID = turnSparkMax.getDeviceId();
   }
 
   static void updateQueues(
@@ -175,27 +190,6 @@ public class ModuleIOSparkMax implements ModuleIO {
     timestampQueue.clear();
     drivePositionQueue.clear();
     turnPositionQueue.clear();
-<<<<<<< HEAD
-
-    inputs.driveMotorTemperatureCelsius = driveSparkMax.getMotorTemperature();
-    inputs.turnMotorTemperatureCelsius = turnSparkMax.getMotorTemperature();
-
-    inputs.driveMotorSensorFault = driveSparkMax.getFault(FaultID.kSensorFault);
-    inputs.turnMotorSensorFault = turnSparkMax.getFault(FaultID.kSensorFault);
-
-    inputs.driveMotorBrownOut = driveSparkMax.getFault(FaultID.kBrownout);
-    inputs.turnMotorBrownOut = turnSparkMax.getFault(FaultID.kBrownout);
-
-    inputs.driveMotorCANRXError = driveSparkMax.getFault(FaultID.kCANRX);
-    inputs.turnMotorCANRXError = turnSparkMax.getFault(FaultID.kCANRX);
-
-    inputs.driveMotorCANTXError = driveSparkMax.getFault(FaultID.kCANTX);
-    inputs.turnMotorCANTXError = turnSparkMax.getFault(FaultID.kCANTX);
-
-    inputs.driveMotorCANID = driveSparkMax.getDeviceId();
-    inputs.turnMotorCANID = turnSparkMax.getDeviceId();
-=======
->>>>>>> main
   }
 
   @Override
