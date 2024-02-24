@@ -159,12 +159,6 @@ public class ModuleIOSparkMax implements ModuleIO {
     inputs.driveMotorBrownOut = driveSparkMax.getFault(FaultID.kBrownout);
     inputs.turnMotorBrownOut = turnSparkMax.getFault(FaultID.kBrownout);
 
-    inputs.driveMotorCANRXError = driveSparkMax.getFault(FaultID.kCANRX);
-    inputs.turnMotorCANRXError = turnSparkMax.getFault(FaultID.kCANRX);
-
-    inputs.driveMotorCANTXError = driveSparkMax.getFault(FaultID.kCANTX);
-    inputs.turnMotorCANTXError = turnSparkMax.getFault(FaultID.kCANTX);
-
     inputs.driveMotorCANID = driveSparkMax.getDeviceId();
     inputs.turnMotorCANID = turnSparkMax.getDeviceId();
   }

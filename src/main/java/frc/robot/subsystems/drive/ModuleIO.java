@@ -25,8 +25,6 @@ public interface ModuleIO {
     public double[] driveCurrentAmps = new double[] {};
     public boolean driveMotorSensorFault = false;
     public boolean driveMotorBrownOut = false;
-    public boolean driveMotorCANRXError = false;
-    public boolean driveMotorCANTXError = false;
     public int driveMotorCANID = -1;
 
     public Rotation2d turnAbsolutePosition = new Rotation2d();
@@ -36,8 +34,6 @@ public interface ModuleIO {
     public double[] turnCurrentAmps = new double[] {};
     public boolean turnMotorSensorFault = false;
     public boolean turnMotorBrownOut = false;
-    public boolean turnMotorCANRXError = false;
-    public boolean turnMotorCANTXError = false;
     public int turnMotorCANID = -1;
 
     public double[] odometryTimestamps = new double[] {};

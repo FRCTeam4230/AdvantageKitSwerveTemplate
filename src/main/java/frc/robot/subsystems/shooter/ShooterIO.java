@@ -12,8 +12,6 @@ public interface ShooterIO {
     public double motorTemperatureCelsius = 0.0;
     public boolean motorSensorFault = false;
     public boolean motorBrownOut = false;
-    public boolean motorCANRXError = false;
-    public boolean motorCANTXError = false;
     public int motorCANID = -1;
   }
 
