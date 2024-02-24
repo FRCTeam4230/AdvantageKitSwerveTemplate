@@ -148,6 +148,7 @@ public class ModuleIOTalonFX implements ModuleIO {
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
     inputs.turnCurrentAmps = new double[] {turnCurrent.getValueAsDouble()};
 
+<<<<<<< HEAD
     inputs.odometryTimestamps =
         timestampQueue.stream().mapToDouble((Double value) -> value).toArray();
     inputs.odometryDrivePositionsRad =
@@ -164,6 +165,12 @@ public class ModuleIOTalonFX implements ModuleIO {
     timestampQueue.clear();
     drivePositionQueue.clear();
     turnPositionQueue.clear();
+=======
+    ModuleIOSparkMax.updateQueues(inputs, timestampQueue, drivePositionQueue, turnPositionQueue);
+
+    inputs.driveMotorTemperatureCelsius = 25.0;
+    inputs.turnMotorTemperatureCelsius = 25.0;
+>>>>>>> main
   }
 
   @Override

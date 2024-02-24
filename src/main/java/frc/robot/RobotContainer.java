@@ -30,7 +30,6 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.commands.climber.ManualClimberCommand;
 import frc.robot.commands.climber.ResetClimberBasic;
 import frc.robot.subsystems.arm.*;
-import frc.robot.subsystems.arm.ArmConstants.Positions;
 import frc.robot.subsystems.beamBreak.BeamBreak;
 import frc.robot.subsystems.beamBreak.BeamBreakIO;
 import frc.robot.subsystems.beamBreak.BeamBreakIOReal;
@@ -55,10 +54,10 @@ import frc.robot.subsystems.vision.AprilTagVision;
 import frc.robot.subsystems.vision.AprilTagVisionIO;
 import frc.robot.subsystems.vision.AprilTagVisionIOLimelight;
 import frc.robot.subsystems.vision.AprilTagVisionIOPhotonVisionSIM;
+import frc.robot.util.FieldConstants;
 import frc.robot.util.ShootingBasedOnPoseCalculator;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-import org.littletonrobotics.junction.networktables.LoggedDashboardNumber;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -85,6 +84,8 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
+
+  private final Command resetClimbersCommand;
 
   //   private final LoggedTunableNumber flywheelSpeedInput =
   //       new LoggedTunableNumber("Flywheel Speed", 1500.0);
@@ -183,17 +184,34 @@ public class RobotContainer {
         break;
     }
 
+    configureNamedCommands();
+
+    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+
+    configureAutoChooser();
+
+    resetClimbersCommand =
+        ResetClimberBasic.on(leftClimber).alongWith(ResetClimberBasic.on(rightClimber));
+
+    // Configure the button bindings
+    aprilTagVision.setDataInterfaces(drive::addVisionData);
+    driveMode.setPoseSupplier(drive::getPose);
+    driveMode.disableHeadingControl();
+    configureButtonBindings();
+  }
+
+  private void configureNamedCommands() {
     // Set up auto routines
     // Arm
     NamedCommands.registerCommand(
         "Arm to ground intake position",
-        ArmCommands.autoArmToPosition(arm, () -> ArmConstants.Positions.INTAKE_POS_RAD));
+        ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
     NamedCommands.registerCommand(
         "Arm to amp position",
-        ArmCommands.autoArmToPosition(arm, () -> ArmConstants.Positions.AMP_POS_RAD));
+        ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get));
     NamedCommands.registerCommand(
         "Arm to speaker position",
-        ArmCommands.autoArmToPosition(arm, () -> ArmConstants.Positions.SPEAKER_POS_RAD));
+        ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get));
     NamedCommands.registerCommand(
         "Arm to calculated speaker angle",
         Commands.runOnce(
@@ -214,14 +232,133 @@ public class RobotContainer {
 
     // Shooter
     NamedCommands.registerCommand(
-        "Shoot speaker",
-        ShooterCommands.fullshot(
-            shooter, intake, beamBreak, ShooterConstants.AUTO_SPEAKER_SHOOT_VELOCITY));
+        "shoot speaker",
+        ArmCommands.autoArmToPosition(arm, () -> ArmConstants.Positions.SPEAKER_POS_RAD.get())
+            .andThen(
+                Commands.runOnce(() -> shooter.runVolts(ShooterConstants.RUN_VOLTS.get()), shooter))
+            .andThen(Commands.waitSeconds(1.5))
+            .andThen(
+                Commands.runOnce(
+                    () -> intake.setVoltage(IntakeConstants.INTAKE_VOLTAGE.get()), intake))
+            .andThen(Commands.waitSeconds(0.5))
+            .andThen(Commands.runOnce(() -> shooter.runVolts(0), shooter))
+            .andThen(Commands.runOnce(() -> intake.setVoltage(0), intake))
+            .andThen(
+                ArmCommands.autoArmToPosition(
+                    arm, () -> ArmConstants.Positions.INTAKE_POS_RAD.get())));
+  }
 
-    //    AutoBuilder.buildAuto("MiddleTwoNote");
+  /**
+   * Use this method to define your button->command mappings. Buttons can be created by
+   * instantiating a {@link GenericHID} or one of its subclasses ({@link
+   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
+   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
+   */
+  private Command runShooterVolts;
 
-    autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+  private void configureButtonBindings() {
+    runShooterVolts =
+        Commands.startEnd(
+            () -> {
+              shooter.runVolts(ShooterConstants.RUN_VOLTS.get());
+            },
+            shooter::stop,
+            shooter);
 
+    drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+            drive,
+            driveMode,
+            () -> -driverController.getRightY(),
+            () -> -driverController.getRightX(),
+            () -> -driverController.getLeftX()));
+
+    driverController
+        .leftBumper()
+        .whileTrue(
+            Commands.startEnd(
+                () -> shooter.runVelocity(ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC.get()),
+                shooter::stop,
+                shooter));
+
+    driveMode.setDriveMode(DriveModeType.SPEAKER);
+    driverController
+        .y()
+        .toggleOnTrue(
+            Commands.startEnd(
+                () -> {
+                  driveMode.enableHeadingControl();
+                },
+                () -> {
+                  driveMode.disableHeadingControl();
+                }));
+
+    intake.setDefaultCommand(
+        Commands.runEnd(
+            () -> {
+              intake.setVoltage(
+                  IntakeConstants.INTAKE_VOLTAGE.get()
+                      * MathUtil.clamp(
+                          driverController.getLeftTriggerAxis()
+                              - driverController.getRightTriggerAxis()
+                              + secondController.getLeftTriggerAxis()
+                              - secondController.getRightTriggerAxis(),
+                          -1,
+                          1));
+            },
+            intake::stop,
+            intake));
+
+    driverController.a().onTrue(Commands.runOnce(drive::resetGyro));
+
+    driverController.x().whileTrue(new IntakeUntilNoteCommand(beamBreak, intake));
+
+    driverController
+        .povRight()
+        .whileTrue(
+            new MultiDistanceShot(
+                drive::getPose, FieldConstants.Speaker.centerSpeakerOpening, shooter, arm));
+
+    leftClimber.setDefaultCommand(
+        new ManualClimberCommand(leftClimber, () -> -secondController.getLeftY()));
+    rightClimber.setDefaultCommand(
+        new ManualClimberCommand(rightClimber, () -> -secondController.getRightY()));
+
+    secondController.leftBumper().whileTrue(new IntakeUntilNoteCommand(beamBreak, intake));
+
+    //    secondController
+    //        .a()
+    //        .whileTrue(
+    //            ArmCommands.manualArmCommand(
+    //                arm,
+    //                () ->
+    //                    2
+    //                        * (secondController.getLeftTriggerAxis()
+    //                            - secondController.getRightTriggerAxis())));
+
+    secondController.x().onTrue(ResetClimberBasic.on(leftClimber));
+    secondController.b().onTrue(ResetClimberBasic.on(rightClimber));
+
+    for (var controller : new CommandXboxController[] {driverController, secondController}) {
+      configureUniversalControls(controller);
+    }
+  }
+
+  private void configureUniversalControls(CommandXboxController controller) {
+    controller
+        .povDown()
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
+    controller
+        .povLeft()
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get));
+    controller
+        .povUp()
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get));
+
+    controller.rightBumper().whileTrue(runShooterVolts);
+  }
+
+  private void configureAutoChooser() {
     // Set up SysId routines
     autoChooser.addOption(
         "Drive SysId (Quasistatic Forward)",
@@ -262,127 +399,6 @@ public class RobotContainer {
         "Arm sysid dynamic forward", arm.sysid.dynamic(SysIdRoutine.Direction.kForward));
     autoChooser.addOption(
         "Arm sysid dynamic reverse", arm.sysid.dynamic(SysIdRoutine.Direction.kReverse));
-
-    autoChooser.addOption(
-        "shoot auto",
-        ArmCommands.autoArmToPosition(arm, () -> Positions.SPEAKER_POS_RAD)
-            .andThen(Commands.runOnce(() -> shooter.runVolts(ShooterConstants.RUN_VOLTS), shooter))
-            .andThen(Commands.waitSeconds(2))
-            .andThen(
-                Commands.runOnce(() -> intake.setVoltage(IntakeConstants.INTAKE_VOLTAGE), intake))
-            .andThen(Commands.waitSeconds(1))
-            .andThen(Commands.runOnce(() -> shooter.runVolts(0), shooter))
-            .andThen(Commands.runOnce(() -> intake.setVoltage(0), intake))
-            .andThen(ArmCommands.autoArmToPosition(arm, () -> Positions.INTAKE_POS_RAD)));
-
-    // Configure the button bindings
-    aprilTagVision.setDataInterfaces(drive::addVisionData);
-    driveMode.setPoseSupplier(drive::getPose);
-    driveMode.disableHeadingControl();
-    configureButtonBindings();
-  }
-
-  /**
-   * Use this method to define your button->command mappings. Buttons can be created by
-   * instantiating a {@link GenericHID} or one of its subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
-   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
-   */
-  private final LoggedDashboardNumber intakePos =
-      new LoggedDashboardNumber("ArmSubsystem/intake rad", ArmConstants.Positions.INTAKE_POS_RAD);
-
-  private final LoggedDashboardNumber speakerPos =
-      new LoggedDashboardNumber("ArmSubsystem/speaker rad", ArmConstants.Positions.SPEAKER_POS_RAD);
-  private final LoggedDashboardNumber ampPos =
-      new LoggedDashboardNumber("ArmSubsystem/amp rad", ArmConstants.Positions.AMP_POS_RAD);
-
-  private Command runShooterVolts;
-
-  private void configureButtonBindings() {
-    runShooterVolts =
-        Commands.startEnd(
-            () -> {
-              shooter.runVolts(ShooterConstants.RUN_VOLTS);
-            },
-            shooter::stop,
-            shooter);
-
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive,
-            driveMode,
-            () -> -driverController.getRightY(),
-            () -> -driverController.getRightX(),
-            () -> driverController.getLeftX()));
-
-    driveMode.setDriveMode(DriveModeType.SPEAKER);
-    driverController
-        .y()
-        .toggleOnTrue(
-            Commands.startEnd(
-                () -> {
-                  driveMode.enableHeadingControl();
-                },
-                () -> {
-                  driveMode.disableHeadingControl();
-                }));
-
-    intake.setDefaultCommand(
-        Commands.runEnd(
-            () -> {
-              intake.setVoltage(
-                  IntakeConstants.INTAKE_VOLTAGE
-                      * MathUtil.clamp(
-                          driverController.getLeftTriggerAxis()
-                              - driverController.getRightTriggerAxis()
-                              + secondController.getLeftTriggerAxis()
-                              - secondController.getRightTriggerAxis(),
-                          -1,
-                          1));
-            },
-            intake::stop,
-            intake));
-
-    driverController.a().onTrue(Commands.runOnce(drive::resetGyro));
-
-    driverController.x().whileTrue(new IntakeUntilNoteCommand(beamBreak, intake));
-
-    leftClimber.setDefaultCommand(
-        new ManualClimberCommand(leftClimber, () -> -secondController.getLeftY()));
-    rightClimber.setDefaultCommand(
-        new ManualClimberCommand(rightClimber, () -> -secondController.getRightY()));
-
-    secondController.leftBumper().whileTrue(new IntakeUntilNoteCommand(beamBreak, intake));
-
-    //    secondController
-    //        .a()
-    //        .whileTrue(
-    //            ArmCommands.manualArmCommand(
-    //                arm,
-    //                () ->
-    //                    2
-    //                        * (secondController.getLeftTriggerAxis()
-    //                            - secondController.getRightTriggerAxis())));
-
-    secondController.x().onTrue(ResetClimberBasic.on(leftClimber));
-    secondController.b().onTrue(ResetClimberBasic.on(rightClimber));
-
-    for (var controller : new CommandXboxController[] {driverController, secondController}) {
-      configureUniversalControls(controller);
-    }
-  }
-
-  private void configureUniversalControls(CommandXboxController controller) {
-    controller.povDown().onTrue(ArmCommands.autoArmToPosition(arm, intakePos::get));
-    controller.povLeft().onTrue(ArmCommands.autoArmToPosition(arm, speakerPos::get));
-    controller.povUp().onTrue(ArmCommands.autoArmToPosition(arm, ampPos::get));
-
-    controller.rightBumper().whileTrue(runShooterVolts);
-  }
-
-  // todo for competition - reset climbers in auto instead of teleop
-  private Command getClimberResetCommand() {
-    return ResetClimberBasic.on(leftClimber).alongWith(ResetClimberBasic.on(rightClimber));
   }
 
   /**
@@ -391,10 +407,10 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.get().alongWith(getClimberResetCommand());
+    return resetClimbersCommand.asProxy().alongWith(autoChooser.get().asProxy());
   }
 
   public Command getTeleopCommand() {
-    return getClimberResetCommand();
+    return resetClimbersCommand;
   }
 }

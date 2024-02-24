@@ -3,12 +3,12 @@ package frc.robot.subsystems.shooter;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.util.ErrorChecker;
+import frc.robot.subsystems.shooter.ShooterConstants.Real.PIDConstants.BottomConstants;
+import frc.robot.subsystems.shooter.ShooterConstants.Real.PIDConstants.TopConstants;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -20,6 +20,7 @@ public class ShooterSubsystem extends SubsystemBase {
   private final SimpleMotorFeedforward topFeedForward;
   private final SimpleMotorFeedforward bottomFeedForward;
   public final SysIdRoutine sysid;
+  private double targetVelocityRadPerSec;
 
   public ShooterSubsystem(ShooterIO topIO, ShooterIO bottomIO) {
     this.topIO = topIO;
@@ -32,21 +33,21 @@ public class ShooterSubsystem extends SubsystemBase {
       case REPLAY:
         topFeedForward =
             new SimpleMotorFeedforward(
-                ShooterConstants.Real.FeedForwardConstants.TopConstants.kS,
-                ShooterConstants.Real.FeedForwardConstants.TopConstants.kV);
+                ShooterConstants.Real.FeedForwardConstants.TopConstants.kS.get(),
+                ShooterConstants.Real.FeedForwardConstants.TopConstants.kV.get());
         topIO.configurePID(
-            ShooterConstants.Real.PIDConstants.TopConstants.kP,
-            ShooterConstants.Real.PIDConstants.TopConstants.kI,
-            ShooterConstants.Real.PIDConstants.TopConstants.kD);
+            ShooterConstants.Real.PIDConstants.TopConstants.kP.get(),
+            ShooterConstants.Real.PIDConstants.TopConstants.kI.get(),
+            ShooterConstants.Real.PIDConstants.TopConstants.kD.get());
 
         bottomFeedForward =
             new SimpleMotorFeedforward(
-                ShooterConstants.Real.FeedForwardConstants.BottomConstants.kS,
-                ShooterConstants.Real.FeedForwardConstants.BottomConstants.kV);
+                ShooterConstants.Real.FeedForwardConstants.BottomConstants.kS.get(),
+                ShooterConstants.Real.FeedForwardConstants.BottomConstants.kV.get());
         bottomIO.configurePID(
-            ShooterConstants.Real.PIDConstants.BottomConstants.kP,
-            ShooterConstants.Real.PIDConstants.BottomConstants.kI,
-            ShooterConstants.Real.PIDConstants.BottomConstants.kD);
+            ShooterConstants.Real.PIDConstants.BottomConstants.kP.get(),
+            ShooterConstants.Real.PIDConstants.BottomConstants.kI.get(),
+            ShooterConstants.Real.PIDConstants.BottomConstants.kD.get());
         break;
       case SIM:
         topFeedForward =
@@ -86,6 +87,8 @@ public class ShooterSubsystem extends SubsystemBase {
                 },
                 null,
                 this));
+
+    targetVelocityRadPerSec = 0.0;
   }
 
   @Override
@@ -98,14 +101,29 @@ public class ShooterSubsystem extends SubsystemBase {
     Logger.processInputs("ShooterSubsystem/Bottom", bottomInputs);
     ErrorChecker.checkError(topInputs);
     ErrorChecker.checkError(bottomInputs);
+    updateControlConstants();
   }
 
-  public void runVelocity(double velocityRPM) {
-    double velocityRadPerSec = Units.rotationsPerMinuteToRadiansPerSecond(velocityRPM);
+  private void updateControlConstants() {
+    if (TopConstants.kP.hasChanged(0)
+        || TopConstants.kI.hasChanged(0)
+        || TopConstants.kD.hasChanged(0)) {
+      topIO.configurePID(TopConstants.kP.get(), TopConstants.kI.get(), TopConstants.kD.get());
+    }
+    if (BottomConstants.kP.hasChanged(0)
+        || BottomConstants.kI.hasChanged(0)
+        || BottomConstants.kD.hasChanged(0)) {
+      bottomIO.configurePID(
+          BottomConstants.kP.get(), BottomConstants.kI.get(), BottomConstants.kD.get());
+    }
+  }
+
+  public void runVelocity(double velocityRadPerSec) {
+    targetVelocityRadPerSec = velocityRadPerSec;
     topIO.setVelocity(velocityRadPerSec, topFeedForward.calculate(velocityRadPerSec));
     bottomIO.setVelocity(velocityRadPerSec, bottomFeedForward.calculate(velocityRadPerSec));
 
-    Logger.recordOutput("Shooter Setpoint RPM", velocityRPM);
+    Logger.recordOutput("Shooter Setpoint Rad/s", velocityRadPerSec);
   }
 
   public void runVolts(double volts) {
@@ -119,37 +137,19 @@ public class ShooterSubsystem extends SubsystemBase {
   }
 
   @AutoLogOutput
-  public double getVelocityRPM() {
-    return (Units.radiansPerSecondToRotationsPerMinute(topInputs.velocityRadPerSec)
-            + Units.radiansPerSecondToRotationsPerMinute(bottomInputs.velocityRadPerSec))
-        / 2.0;
-  }
-
-  public double getVelocityRadiansPerSec() {
+  public double getAverageVelocityRadiansPerSec() {
     return (topInputs.velocityRadPerSec + bottomInputs.velocityRadPerSec) / 2.0;
   }
 
-  /** Runs forwards at the commanded voltage. */
-  // Change this to bottomIO when characterizing the bottom wheels
-  public void runCharacterizationVolts(double volts) {
-    topIO.setVoltage(volts);
+  @AutoLogOutput
+  public boolean topShooterNearTargetVelocity() {
+    return Math.abs(topInputs.velocityRadPerSec - targetVelocityRadPerSec)
+        < ShooterConstants.VELOCITY_TOLERANCE.get();
   }
 
-  /** Returns the average drive velocity in radians/sec. */
-  public double getCharacterizationVelocity() {
-    return topInputs.velocityRadPerSec;
-  }
-
-  @Override
-  public void initSendable(SendableBuilder builder) {
-    super.initSendable(builder);
-    builder.addDoubleProperty(
-        "Shooter RPM Top",
-        () -> Units.radiansPerSecondToRotationsPerMinute(topInputs.velocityRadPerSec),
-        null);
-    builder.addDoubleProperty(
-        "Shooter RPM Bottom",
-        () -> Units.radiansPerSecondToRotationsPerMinute(bottomInputs.velocityRadPerSec),
-        null);
+  @AutoLogOutput
+  public boolean bottomShooterNearTargetVelocity() {
+    return Math.abs(topInputs.velocityRadPerSec - targetVelocityRadPerSec)
+        < ShooterConstants.VELOCITY_TOLERANCE.get();
   }
 }
