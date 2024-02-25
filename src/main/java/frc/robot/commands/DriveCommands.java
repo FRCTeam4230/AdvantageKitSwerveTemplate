@@ -16,6 +16,8 @@ package frc.robot.commands;
 import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -24,10 +26,16 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveController;
+import frc.robot.util.AllianceFlipUtil;
+import frc.robot.util.FieldConstants;
+import frc.robot.util.VisionHelpers;
+
+import java.util.List;
 import java.util.function.DoubleSupplier;
 
 public class DriveCommands {
@@ -98,5 +106,25 @@ public class DriveCommands {
                       : drive.getRotation()));
         },
         drive);
+  }
+
+    /**
+     *
+     * @param drive drive subsystem
+     * @return a command to teleport the internal pose to right in front of the speaker,
+     * with a heading of zero (facing forward)
+     */
+  public static Command resetPoseInFrontOfSpeaker(Drive drive) {
+      return Commands.runOnce(
+      () -> {drive.addVisionData(List.of(new VisionHelpers.TimestampedVisionUpdate(
+              Timer.getFPGATimestamp(),
+              AllianceFlipUtil.apply(
+                      new Pose2d(
+                              FieldConstants.Speaker.centerSpeakerOpening
+                                      .getTranslation()
+                                      .plus(new Translation2d(1.5, 0)),
+                              new Rotation2d(0))),
+              new Matrix<>(Nat.N3(), Nat.N1()))));
+      });
   }
 }
