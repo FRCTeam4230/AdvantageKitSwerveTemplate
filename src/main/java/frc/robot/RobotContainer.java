@@ -22,7 +22,6 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -245,29 +244,34 @@ public class RobotContainer {
 
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
-            drive,
-            driveMode,
-            () -> -driverController.getRightY(),
-            () -> -driverController.getRightX(),
-            () -> -driverController.getLeftX()));
+                drive,
+                driveMode,
+                controllerLogic::getDriveSpeedX,
+                controllerLogic::getDriveSpeedY,
+                controllerLogic::getDriveRotationSpeed)
+            .finallyDo(driveMode::disableHeadingControl));
 
-    driveMode.setDriveMode(DriveModeType.SPEAKER);
-    driverController
-        .y()
-        .toggleOnTrue(
-            Commands.startEnd(driveMode::enableHeadingControl, driveMode::disableHeadingControl));
-    driverController
-        .x()
+    controllerLogic
+        .pointAtSpeaker()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  driveMode.setDriveMode(DriveModeType.SPEAKER);
+                  driveMode.enableHeadingControl();
+                }));
+    controllerLogic
+        .driveToAmp()
         .whileTrue(new PathFinderAndFollow(PathPlannerPath.fromPathFile("LineUpAmp")));
-    new Trigger(() -> Math.abs(driverController.getLeftX()) > .1)
+    controllerLogic
+        .disableHeadingControl()
         .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
 
     controllerLogic
-        .getExtakeTrigger()
+        .extakeTrigger()
         .whileTrue(IntakeCommands.manualIntakeCommand(intake, controllerLogic::getIntakeSpeed));
 
     controllerLogic
-        .getIntakeTrigger()
+        .intakeTrigger()
         .whileTrue(
             new ConditionalCommand(
                 Commands.waitUntil(shooterStateHelpers::canShoot)
@@ -285,16 +289,16 @@ public class RobotContainer {
                 beamBreak::detectNote));
 
     // backup in case arm or shooter can't reach setpoint
-    secondController
-        .leftBumper()
+    controllerLogic
+        .forceIntake()
         .whileTrue(
             Commands.startEnd(
                 () -> intake.setVoltage(IntakeConstants.INTAKE_VOLTAGE.get()),
                 intake::stop,
                 intake));
 
-    secondController
-        .start()
+    controllerLogic
+        .setPoseInFrontOfSpeaker()
         .onTrue(
             Commands.runOnce(
                 () ->
@@ -305,103 +309,39 @@ public class RobotContainer {
                                     .getTranslation()
                                     .plus(new Translation2d(1.5, 0)),
                                 new Rotation2d(0))))));
-    secondController
-        .back()
+    controllerLogic
+        .toggleVision()
         .toggleOnTrue(
             Commands.startEnd(
                 () -> aprilTagVision.setEnableVisionUpdates(false),
                 () -> aprilTagVision.setEnableVisionUpdates(true)));
 
-    //    secondController
-    //        .x()
-    //        .onTrue(
-    //            new MultiDistanceShot(
-    //                drive::getPose, FieldConstants.Speaker.centerSpeakerOpening, shooter, arm));
-
-    secondController
-        .y()
-        .whileTrue(
-            Commands.startEnd(
-                    () -> LimelightHelpers.setLEDMode_ForceOn("limelight-two"),
-                    () -> LimelightHelpers.setLEDMode_ForceOff("limelight-two"))
-                .withTimeout(.2)
-                .andThen(Commands.waitSeconds(.1))
-                .repeatedly());
-
-    new Trigger(() -> Math.abs(secondController.getLeftY()) > .1)
-        .onTrue(new ManualClimberCommand(leftClimber, () -> -secondController.getLeftY()));
-    new Trigger(() -> Math.abs(secondController.getRightY()) > .1)
-        .onTrue(new ManualClimberCommand(rightClimber, () -> -secondController.getRightY()));
-
-    // controls on both
-    for (var controller : new CommandXboxController[] {driverController, secondController}) {
-      configureUniversalControls(controller);
-    }
+    controllerLogic
+        .leftClimberActive()
+        .onTrue(new ManualClimberCommand(leftClimber, controllerLogic::getLeftClimberSpeed));
+    controllerLogic
+        .rightClimberActive()
+        .onTrue(new ManualClimberCommand(rightClimber, controllerLogic::getRightClimberSpeed));
 
     //    LoggedDashboardNumber armVolts = new LoggedDashboardNumber("arm volts", 0);
     //    arm.setDefaultCommand(arm.run(() -> arm.setManualVoltage(armVolts.get())));
-  }
 
-  private void configureUniversalControls(CommandXboxController controller) {
-    new Trigger(() -> DriverStation.getMatchTime() < 30)
-        .onTrue(
-            Commands.runOnce(
-                    () -> {
-                      controller.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.5);
-                    })
-                .andThen(Commands.waitSeconds(1))
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          controller.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0);
-                        })));
-
-    new Trigger(() -> DriverStation.getMatchTime() < 15)
-        .onTrue(
-            Commands.runOnce(
-                    () -> {
-                      controller.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0.5);
-                    })
-                .andThen(Commands.waitSeconds(1))
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          controller.getHID().setRumble(GenericHID.RumbleType.kBothRumble, 0);
-                        })));
-
-    controller
-        .povDown()
+    controllerLogic
+        .armDown()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
-    controller
-        .povLeft()
+    controllerLogic
+        .armSpeakerPos()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get));
-    controller
-        .povUp()
+    controllerLogic
+        .armAmpPos()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get));
-    controller
-        .povDown()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
-    controller
-        .povRight()
+    controllerLogic
+        .armPodiumPos()
         .onTrue(
             ArmCommands.autoArmToPosition(
                 arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get));
-    controller
-        .povLeft()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get));
-    controller
-        .povUp()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get));
-
-    controller
-        .b()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.UPPER_DRIVE_RAD::get));
-    controller
-        .a()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.LOWER_DRIVE_RAD::get));
-
-    controller
-        .rightBumper()
+    controllerLogic
+        .runShooter()
         .whileTrue(
             ShooterCommands.runSpeed(
                 shooter,
