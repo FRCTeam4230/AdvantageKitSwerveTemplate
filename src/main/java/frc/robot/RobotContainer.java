@@ -27,13 +27,11 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.*;
 import frc.robot.commands.climber.ManualClimberCommand;
-import frc.robot.commands.climber.MoveClimberToBottom;
 import frc.robot.commands.climber.MoveClimberToTopCommand;
 import frc.robot.commands.climber.ResetClimberBasic;
 import frc.robot.subsystems.arm.*;
@@ -268,12 +266,9 @@ public class RobotContainer {
     //    new Trigger(() -> Math.abs(driverController.getLeftX()) > .1)
     //        .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
     driverController.x().whileTrue(moveClimberToTop);
-    driverController
-        .y()
-        .whileTrue(
-            //            new AutoClimbCommandGroup(leftClimber, rightClimber));
-            new ParallelCommandGroup(
-                new MoveClimberToBottom(leftClimber), new MoveClimberToBottom(rightClimber)));
+    driverController.y().whileTrue(new AutoClimbCommandGroup(leftClimber, rightClimber));
+    //            new ParallelCommandGroup(
+    //                new MoveClimberToBottom(leftClimber), new MoveClimberToBottom(rightClimber)));
 
     controllerLogic
         .getExtakeTrigger()

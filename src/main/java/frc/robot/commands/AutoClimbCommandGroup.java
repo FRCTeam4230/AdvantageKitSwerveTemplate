@@ -12,7 +12,7 @@ public class AutoClimbCommandGroup extends SequentialCommandGroup {
     super(
         new ParallelCommandGroup(
             new MoveClimberToTopCommand(leftClimber, rightClimber),
-            new PathFinderAndFollow(PathPlannerPath.fromPathFile("ampSideChain"))),
+            new PathFinderAndFollow(PathPlannerPath.fromPathFile("LineUpAmpSideChain"))),
         new ParallelCommandGroup(
             new MoveClimberToBottom(leftClimber), new MoveClimberToBottom(rightClimber)));
   }
