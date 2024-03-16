@@ -1,5 +1,6 @@
 package frc.robot.subsystems.climber;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -98,5 +99,13 @@ public class ClimberSubsystem extends SubsystemBase {
     return new Pose3d[] {
       new Pose3d(0, 0, pos / 2, new Rotation3d()), new Pose3d(0, 0, pos, new Rotation3d())
     };
+  }
+
+  @AutoLogOutput(key = "Climber/{descriptor}/climberAtTop")
+  public boolean climberAtTop() {
+    return MathUtil.isNear(
+        RotationPositions.FULL_EXTENSION_MIDDLE,
+        climberIOInputs.positionRotations,
+        RotationPositions.FULL_EXTENSION_WIGGLE_ROOM / 2.0);
   }
 }

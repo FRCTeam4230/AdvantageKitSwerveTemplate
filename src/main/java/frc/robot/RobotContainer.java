@@ -17,7 +17,6 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleConfigs;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -28,11 +27,14 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.*;
 import frc.robot.commands.climber.ManualClimberCommand;
+import frc.robot.commands.climber.MoveClimberToBottom;
+import frc.robot.commands.climber.MoveClimberToTopCommand;
 import frc.robot.commands.climber.ResetClimberBasic;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beamBreak.BeamBreak;
@@ -88,6 +90,7 @@ public class RobotContainer {
   private final Command resetClimbersCommand;
   private final ShooterStateHelpers shooterStateHelpers;
   private final Command idleShooterVolts;
+  private final MoveClimberToTopCommand moveClimberToTop;
 
   //   private final LoggedTunableNumber flywheelSpeedInput =
   //       new LoggedTunableNumber("Flywheel Speed", 1500.0);
@@ -179,6 +182,8 @@ public class RobotContainer {
     idleShooterVolts =
         Commands.runOnce(() -> shooter.runVolts(ShooterConstants.IDLE_VOLTS.get()), shooter);
 
+    moveClimberToTop = new MoveClimberToTopCommand(leftClimber, rightClimber);
+
     configureNamedCommands();
 
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -252,15 +257,23 @@ public class RobotContainer {
             () -> -driverController.getLeftX()));
 
     driveMode.setDriveMode(DriveModeType.SPEAKER);
+    //    driverController
+    //        .y()
+    //        .toggleOnTrue(
+    //            Commands.startEnd(driveMode::enableHeadingControl,
+    // driveMode::disableHeadingControl));
+    //    driverController
+    //        .x()
+    //        .whileTrue(new PathFinderAndFollow(PathPlannerPath.fromPathFile("LineUpAmp")));
+    //    new Trigger(() -> Math.abs(driverController.getLeftX()) > .1)
+    //        .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
+    driverController.x().whileTrue(moveClimberToTop);
     driverController
         .y()
-        .toggleOnTrue(
-            Commands.startEnd(driveMode::enableHeadingControl, driveMode::disableHeadingControl));
-    driverController
-        .x()
-        .whileTrue(new PathFinderAndFollow(PathPlannerPath.fromPathFile("LineUpAmp")));
-    new Trigger(() -> Math.abs(driverController.getLeftX()) > .1)
-        .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
+        .whileTrue(
+            //            new AutoClimbCommandGroup(leftClimber, rightClimber));
+            new ParallelCommandGroup(
+                new MoveClimberToBottom(leftClimber), new MoveClimberToBottom(rightClimber)));
 
     controllerLogic
         .getExtakeTrigger()
