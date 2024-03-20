@@ -38,13 +38,13 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.util.PoseLog;
 import frc.robot.util.VisionHelpers.TimestampedVisionUpdate;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import lombok.Getter;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -53,13 +53,14 @@ public class Drive extends SubsystemBase {
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
-  private final SysIdRoutine sysId;
+  @Getter private final PoseLog poseLogForNoteDetection = new PoseLog();
 
-  private static final ProfiledPIDController thetaController =
+  @Getter
+  private final ProfiledPIDController thetaController =
       new ProfiledPIDController(
-          headingControllerConstants.Kp(),
+          DriveConstants.HeadingControllerConstants.kP.get(),
           0,
-          headingControllerConstants.Kd(),
+          DriveConstants.HeadingControllerConstants.kD.get(),
           new TrapezoidProfile.Constraints(
               drivetrainConfig.maxAngularVelocity(), drivetrainConfig.maxAngularAcceleration()));
 
@@ -126,24 +127,14 @@ public class Drive extends SubsystemBase {
     PathPlannerLogging.setLogTargetPoseCallback(
         targetPose -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
 
-    // Configure SysId
-    sysId =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(
-                null,
-                null,
-                null,
-                state -> Logger.recordOutput("Drive/SysIdState", state.toString())),
-            new SysIdRoutine.Mechanism(
-                voltage -> {
-                  for (Module module : modules) {
-                    module.runCharacterization(voltage.in(Volts));
-                  }
-                },
-                null,
-                this));
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
-    thetaController.setTolerance(Units.degreesToRadians(1.5));
+    thetaController.setTolerance(Units.degreesToRadians(5));
+
+    /*
+     the sim vision starts at 45 deg for some reason,
+     this ensures everything is lined up because I think we will ignore the vision rotation
+    */
+    setAutoStartPose(new Pose2d(8, 5, Rotation2d.fromDegrees(45)));
   }
 
   @Override
@@ -202,7 +193,17 @@ public class Drive extends SubsystemBase {
       // Apply update
       poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
       odometryDrive.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+
+      Logger.recordOutput("pose timestamp", sampleTimestamps[i]);
+      poseLogForNoteDetection.addNewPose(odometryDrive.getEstimatedPosition(), sampleTimestamps[i]);
     }
+
+    updateControllerConstants();
+  }
+
+  private void updateControllerConstants() {
+    thetaController.setP(HeadingControllerConstants.kP.get());
+    thetaController.setD(HeadingControllerConstants.kD.get());
   }
 
   /**
@@ -247,22 +248,10 @@ public class Drive extends SubsystemBase {
     stop();
   }
 
-  /**
-   * Returns a command to run a quasistatic test in the specified direction.
-   *
-   * @param direction The direction to run the quasistatic test.
-   */
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return sysId.quasistatic(direction);
-  }
-
-  /**
-   * Returns a command to run a dynamic test in the specified direction.
-   *
-   * @param direction The direction to run the dynamic test.
-   */
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return sysId.dynamic(direction);
+  public void runCharacterizationVolts(double volts) {
+    for (Module module : modules) {
+      module.runCharacterization(volts);
+    }
   }
 
   /** Returns the module states (turn angles and drive velocities) for all of the modules. */
@@ -341,10 +330,6 @@ public class Drive extends SubsystemBase {
         visionUpdate ->
             addVisionMeasurement(
                 visionUpdate.pose(), visionUpdate.timestamp(), visionUpdate.stdDevs()));
-  }
-
-  public static ProfiledPIDController getThetaController() {
-    return thetaController;
   }
 
   public void resetGyro() {

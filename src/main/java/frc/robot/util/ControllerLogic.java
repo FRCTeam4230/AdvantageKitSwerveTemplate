@@ -83,16 +83,8 @@ public class ControllerLogic {
     return secondController.start().or(driverController.start());
   }
 
-  public Trigger driveToAmp() {
-    return driverController.a();
-  }
-
   public Trigger pointAtSpeaker() {
     return driverController.povLeft();
-  }
-
-  public Trigger climbingAlign() {
-    return driverController.y();
   }
 
   // +x means forward for the robot

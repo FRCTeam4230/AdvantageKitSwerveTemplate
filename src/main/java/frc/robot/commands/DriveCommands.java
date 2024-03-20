@@ -28,7 +28,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveController;
+import java.util.Optional;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 public class DriveCommands {
   private static final double DEADBAND = 0.1;
@@ -61,22 +64,30 @@ public class DriveCommands {
                   DEADBAND);
           Rotation2d linearDirection =
               new Rotation2d(xSupplier.getAsDouble(), ySupplier.getAsDouble());
-          double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
-          if (driveMode.isHeadingControlled()) {
-            final var targetAngle = driveMode.getHeadingAngle();
+          final Optional<Supplier<Rotation2d>> headingSupplier = driveMode.getHeadingSupplier();
+          double omega;
+          Logger.recordOutput("heading control on", headingSupplier.isPresent());
+          if (headingSupplier.isPresent()) {
+            final var targetAngle = headingSupplier.get().get();
+            Logger.recordOutput("drive heading", targetAngle);
             omega =
-                Drive.getThetaController()
+                drive
+                    .getThetaController()
                     .calculate(
-                        drive.getPose().getRotation().getRadians(), targetAngle.get().getRadians());
-            if (Drive.getThetaController().atGoal()) {
+                        drive.getPose().getRotation().getRadians(),
+                        headingSupplier.get().get().getRadians());
+            if (drive.getThetaController().atGoal()) {
               omega = 0;
             }
-            omega = Math.copySign(Math.min(1, Math.abs(omega)), omega);
+            omega = MathUtil.clamp(omega, -1, 1);
+          } else {
+            omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
+            omega = Math.copySign(omega * omega, omega);
           }
+          Logger.recordOutput("omega", omega);
 
           // Square values
           linearMagnitude = linearMagnitude * linearMagnitude;
-          omega = Math.copySign(omega * omega, omega);
 
           // Calcaulate new linear velocity
           Translation2d linearVelocity =
