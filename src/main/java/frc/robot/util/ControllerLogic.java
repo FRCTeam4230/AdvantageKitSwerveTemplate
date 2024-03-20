@@ -79,8 +79,8 @@ public class ControllerLogic {
     return secondController.back();
   }
 
-  public Trigger setPoseInFrontOfSpeaker() {
-    return secondController.start();
+  public Trigger resetRobotPoseAngle() {
+    return secondController.start().or(driverController.start());
   }
 
   public Trigger driveToAmp() {
@@ -113,5 +113,33 @@ public class ControllerLogic {
   public Trigger disableHeadingControl() {
     return new Trigger(
         () -> Math.abs(getDriveRotationSpeed()) > RESTORE_MANUAL_DRIVE_CONTROL_THRESHOLD);
+  }
+
+  public Trigger ampPathFind() {
+    return driverController.rightBumper();
+  }
+
+  public Trigger visionIntake() {
+    return driverController.leftStick();
+  }
+
+  public Trigger leftSpeakerPathFind() {
+    return driverController.leftBumper().and(driverController.rightBumper().negate());
+  }
+
+  public Trigger rightSpeakerPathFind() {
+    return driverController.rightBumper().and(driverController.leftBumper().negate());
+  }
+
+  public Trigger centerSpeakerPathFind() {
+    return driverController.leftBumper().and(driverController.rightBumper());
+  }
+
+  public Trigger lobbing() {
+    return driverController.povUp();
+  }
+
+  public Trigger climbAlign() {
+    return driverController.povLeft();
   }
 }
