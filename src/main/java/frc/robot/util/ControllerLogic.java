@@ -68,7 +68,7 @@ public class ControllerLogic {
   }
 
   public Trigger runShooter() {
-    return driverController.rightBumper().or(secondController.rightBumper());
+    return secondController.rightBumper();
   }
 
   public Trigger forceIntake() {
