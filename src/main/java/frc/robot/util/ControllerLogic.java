@@ -108,7 +108,7 @@ public class ControllerLogic {
   }
 
   public Trigger ampPathFind() {
-    return driverController.rightBumper();
+    return driverController.rightStick();
   }
 
   public Trigger visionIntake() {

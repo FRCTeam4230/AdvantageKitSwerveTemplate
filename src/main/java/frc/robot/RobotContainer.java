@@ -88,8 +88,6 @@ public class RobotContainer {
 
   private final Command resetClimbersCommand;
   private final ShooterStateHelpers shooterStateHelpers;
-  private final DriveToPointBuilder driveToPointBuilder;
-  private final Command idleShooterVolts;
   private final AutoCommandBuilder autoCommandBuilder;
 
   //   private final LoggedTunableNumber flywheelSpeedInput =
@@ -223,9 +221,6 @@ public class RobotContainer {
     }
 
     shooterStateHelpers = new ShooterStateHelpers(shooter, arm, beamBreak);
-    driveToPointBuilder = new DriveToPointBuilder(drive::getPose, arm, shooter);
-    idleShooterVolts =
-        Commands.runOnce(() -> shooter.runVolts(ShooterConstants.IDLE_VOLTS.get()), shooter);
 
     resetClimbersCommand =
         ResetClimberBasic.on(leftClimber).alongWith(ResetClimberBasic.on(rightClimber));
@@ -310,11 +305,15 @@ public class RobotContainer {
         .whileTrue(
             DriveToPointBuilder.driveTo(FieldConstants.ampScoringPose)
                 .alongWith(
-                    driveToPointBuilder.raiseArmAndReadyShooterNearPose(
-                        FieldConstants.ampScoringPose,
-                        1,
-                        ArmConstants.Positions.AMP_POS_RAD::get,
-                        ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get)));
+                    DriveToPointBuilder.waitUntilNearPose(
+                        drive::getPose,
+                        () -> AllianceFlipUtil.apply(FieldConstants.ampScoringPose),
+                        1))
+                .andThen(
+                    ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get)
+                        .alongWith(
+                            ShooterCommands.runSpeed(
+                                shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get))));
     controllerLogic.pointAtSpeaker().onTrue(Commands.runOnce(driveMode::enableSpeakerHeading));
     controllerLogic.climbAlign().onTrue(Commands.runOnce(driveMode::enableStageHeading));
     controllerLogic.lobbing().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));
@@ -323,6 +322,9 @@ public class RobotContainer {
         .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
 
     controllerLogic.visionIntake().whileTrue(autoCommandBuilder.pickupNoteVisibleNote());
+    controllerLogic.leftSpeakerPathFind().whileTrue(DriveToSpeaker.left(drive, shooter, arm));
+    controllerLogic.centerSpeakerPathFind().whileTrue(DriveToSpeaker.center(drive, shooter, arm));
+    controllerLogic.rightSpeakerPathFind().whileTrue(DriveToSpeaker.right(drive, shooter, arm));
 
     controllerLogic
         .extakeTrigger()

@@ -39,6 +39,16 @@ public class AutoConstants {
     public static final Translation2d G = new Translation2d(4.3, 2.3);
   }
 
+  public static Pose2d getShootingPose2dFromTranslation(Translation2d translation) {
+    return new Pose2d(translation, AutoConstants.getShootingAngleFromTranslation(translation));
+  }
+
+  public static Rotation2d getShootingAngleFromTranslation(Translation2d translation) {
+    return translation
+        .minus(AllianceFlipUtil.apply(FieldConstants.Speaker.centerSpeakerOpening.getTranslation()))
+        .getAngle();
+  }
+
   public static class NotePickupLocations {
     public static final Pose2d X =
         new Pose2d(new Translation2d(6.3, 6.5), Rotation2d.fromDegrees(-10));
