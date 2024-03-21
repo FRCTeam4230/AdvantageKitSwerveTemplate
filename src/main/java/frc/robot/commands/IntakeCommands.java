@@ -3,6 +3,7 @@ package frc.robot.commands;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.beamBreak.BeamBreak;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeConstants;
 import java.util.function.BooleanSupplier;
@@ -30,6 +31,19 @@ public class IntakeCommands {
           intake.setVoltage(volts);
         },
         intake::stop,
+        intake);
+  }
+
+  public static Command keepNoteInCenter(
+      Intake intake, BeamBreak topBeamBreak, BeamBreak bottomBeamBreak) {
+    return Commands.run(
+        () -> {
+          if (topBeamBreak.detectNote() && !bottomBeamBreak.detectNote()) {
+            intake.setVoltage(-IntakeConstants.NOTE_CENTERING_VOLTAGE.get());
+          } else if (!bottomBeamBreak.detectNote() && topBeamBreak.detectNote()) {
+            intake.setVoltage(IntakeConstants.NOTE_CENTERING_VOLTAGE.get());
+          }
+        },
         intake);
   }
 }

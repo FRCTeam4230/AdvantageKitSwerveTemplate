@@ -38,10 +38,7 @@ import frc.robot.commands.climber.ManualClimberCommand;
 import frc.robot.commands.climber.ResetClimberBasic;
 import frc.robot.subsystems.RumbleSubsystem;
 import frc.robot.subsystems.arm.*;
-import frc.robot.subsystems.beamBreak.BeamBreak;
-import frc.robot.subsystems.beamBreak.BeamBreakIO;
-import frc.robot.subsystems.beamBreak.BeamBreakIOReal;
-import frc.robot.subsystems.beamBreak.BeamBreakIOSim;
+import frc.robot.subsystems.beamBreak.*;
 import frc.robot.subsystems.climber.ClimberIO;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.drive.*;
@@ -75,7 +72,8 @@ public class RobotContainer {
   private final ArmSubsystem arm;
   private final ClimberSubsystem leftClimber;
   private final ClimberSubsystem rightClimber;
-  private final BeamBreak beamBreak;
+  private final BeamBreak topBeamBreak;
+  private final BeamBreak bottomBeamBreak;
 
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
@@ -116,7 +114,10 @@ public class RobotContainer {
             new AprilTagVision(
                 new AprilTagVisionIOLimelight("limelight"),
                 new AprilTagVisionIOLimelight("limelight-two"));
-        beamBreak = new BeamBreak(new BeamBreakIOReal());
+        topBeamBreak =
+            new BeamBreak(new BeamBreakIOReal(BeamBreakConstants.TOP_BEAM_BREAK_SENSOR_PORT));
+        bottomBeamBreak =
+            new BeamBreak(new BeamBreakIOReal(BeamBreakConstants.BOTTOM_BEAM_BREAK_SENSOR_PORT));
         shooter =
             new ShooterSubsystem(
                 new ShooterIOSparkMax(ShooterConstants.ShooterWheels.TOP),
@@ -176,7 +177,15 @@ public class RobotContainer {
         arm = new ArmSubsystem(new ArmIOSim());
         leftClimber = new ClimberSubsystem(new ClimberIO() {}, "left");
         rightClimber = new ClimberSubsystem(new ClimberIO() {}, "right");
-        beamBreak =
+        topBeamBreak =
+            new BeamBreak(
+                new BeamBreakIOSim(
+                    drive::getDrive,
+                    noteVisionIO::getNoteLocations,
+                    intake::getVoltage,
+                    shooter::getTargetVelocityRadPerSec,
+                    noteVisionIO::removeNote));
+        bottomBeamBreak =
             new BeamBreak(
                 new BeamBreakIOSim(
                     drive::getDrive,
@@ -211,7 +220,8 @@ public class RobotContainer {
         arm = new ArmSubsystem(new ArmIO() {});
         leftClimber = new ClimberSubsystem(new ClimberIO() {}, "left");
         rightClimber = new ClimberSubsystem(new ClimberIO() {}, "right");
-        beamBreak = new BeamBreak(new BeamBreakIO() {});
+        topBeamBreak = new BeamBreak(new BeamBreakIO() {});
+        bottomBeamBreak = new BeamBreak(new BeamBreakIO() {});
         noteVision =
             new NoteVisionSubsystem(
                 new NoteVisionIO() {},
@@ -222,7 +232,8 @@ public class RobotContainer {
       }
     }
 
-    shooterStateHelpers = new ShooterStateHelpers(shooter, arm, beamBreak);
+    shooterStateHelpers =
+        new ShooterStateHelpers(shooter, arm, bottomBeamBreak); // Change to use both beam breaks
     driveToPointBuilder = new DriveToPointBuilder(drive::getPose, arm, shooter);
     idleShooterVolts =
         Commands.runOnce(() -> shooter.runVolts(ShooterConstants.IDLE_VOLTS.get()), shooter);
@@ -240,7 +251,13 @@ public class RobotContainer {
     drive.setPose(new Pose2d(1, 1, new Rotation2d(1, 1)));
     autoCommandBuilder =
         new AutoCommandBuilder(
-            drive, noteVision, shooter, intake, arm, beamBreak::detectNote, shooterStateHelpers);
+            drive,
+            noteVision,
+            shooter,
+            intake,
+            arm,
+            bottomBeamBreak::detectNote,
+            shooterStateHelpers);
 
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
     configureAutoChooser();
@@ -251,7 +268,7 @@ public class RobotContainer {
   }
 
   private void setupLimelightFlashing() {
-    new Trigger(beamBreak::detectNote)
+    new Trigger(bottomBeamBreak::detectNote)
         .whileTrue(
             Commands.startEnd(
                     () -> LimelightHelpers.setLEDMode_ForceOn("limelight"),
@@ -261,7 +278,7 @@ public class RobotContainer {
 
   private void configureNamedCommands() {
     NamedCommands.registerCommand(
-        "Intake until note", IntakeCommands.untilNote(intake, beamBreak::detectNote));
+        "Intake until note", IntakeCommands.untilNote(intake, bottomBeamBreak::detectNote));
 
     NamedCommands.registerCommand(
         "ready shooter",
@@ -293,6 +310,9 @@ public class RobotContainer {
             () -> -driverController.getRightY(),
             () -> -driverController.getRightX(),
             () -> -driverController.getLeftX()));
+
+    intake.setDefaultCommand(
+        IntakeCommands.keepNoteInCenter(intake, topBeamBreak, bottomBeamBreak));
 
     driverController.x().whileTrue(autoCommandBuilder.pickupNoteVisibleNote());
     driverController
@@ -331,14 +351,14 @@ public class RobotContainer {
                         IntakeCommands.manualIntakeCommand(
                             intake, controllerLogic::getIntakeSpeed)),
                 IntakeCommands.manualIntakeCommand(intake, controllerLogic::getIntakeSpeed)
-                    .until(beamBreak::detectNote)
+                    .until(bottomBeamBreak::detectNote)
                     .andThen(
                         ArmCommands.autoArmToPosition(
                             arm, ArmConstants.Positions.SPEAKER_POS_RAD::get))
                 // arm, ArmConstants.Positions.LOWER_DRIVE_RAD::get))
                 //                    .andThen(Commands.run(() -> shooter.runVolts(1), shooter)),
                 ,
-                beamBreak::detectNote));
+                bottomBeamBreak::detectNote));
 
     // backup in case arm or shooter can't reach setpoint
     secondController

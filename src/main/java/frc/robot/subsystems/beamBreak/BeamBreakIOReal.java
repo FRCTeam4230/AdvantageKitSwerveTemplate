@@ -5,8 +5,8 @@ import edu.wpi.first.wpilibj.DigitalInput;
 public class BeamBreakIOReal implements BeamBreakIO {
   private final DigitalInput beamBreakSensor;
 
-  public BeamBreakIOReal() {
-    beamBreakSensor = new DigitalInput(BeamBreakConstants.BEAM_BREAK_SENSOR_PORT);
+  public BeamBreakIOReal(int port) {
+    beamBreakSensor = new DigitalInput(port);
   }
 
   @Override
