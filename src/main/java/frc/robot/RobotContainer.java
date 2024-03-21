@@ -115,9 +115,11 @@ public class RobotContainer {
                 new AprilTagVisionIOLimelight("limelight"),
                 new AprilTagVisionIOLimelight("limelight-two"));
         topBeamBreak =
-            new BeamBreak(new BeamBreakIOReal(BeamBreakConstants.TOP_BEAM_BREAK_SENSOR_PORT));
+            new BeamBreak(
+                new BeamBreakIOReal(BeamBreakConstants.TOP_BEAM_BREAK_SENSOR_PORT), "top");
         bottomBeamBreak =
-            new BeamBreak(new BeamBreakIOReal(BeamBreakConstants.BOTTOM_BEAM_BREAK_SENSOR_PORT));
+            new BeamBreak(
+                new BeamBreakIOReal(BeamBreakConstants.BOTTOM_BEAM_BREAK_SENSOR_PORT), "bottom");
         shooter =
             new ShooterSubsystem(
                 new ShooterIOSparkMax(ShooterConstants.ShooterWheels.TOP),
@@ -184,7 +186,8 @@ public class RobotContainer {
                     noteVisionIO::getNoteLocations,
                     intake::getVoltage,
                     shooter::getTargetVelocityRadPerSec,
-                    noteVisionIO::removeNote));
+                    noteVisionIO::removeNote),
+                "top");
         bottomBeamBreak =
             new BeamBreak(
                 new BeamBreakIOSim(
@@ -192,7 +195,8 @@ public class RobotContainer {
                     noteVisionIO::getNoteLocations,
                     intake::getVoltage,
                     shooter::getTargetVelocityRadPerSec,
-                    noteVisionIO::removeNote));
+                    noteVisionIO::removeNote),
+                "bottom");
         noteVision =
             new NoteVisionSubsystem(
                 noteVisionIO,
@@ -220,8 +224,8 @@ public class RobotContainer {
         arm = new ArmSubsystem(new ArmIO() {});
         leftClimber = new ClimberSubsystem(new ClimberIO() {}, "left");
         rightClimber = new ClimberSubsystem(new ClimberIO() {}, "right");
-        topBeamBreak = new BeamBreak(new BeamBreakIO() {});
-        bottomBeamBreak = new BeamBreak(new BeamBreakIO() {});
+        topBeamBreak = new BeamBreak(new BeamBreakIO() {}, "top");
+        bottomBeamBreak = new BeamBreak(new BeamBreakIO() {}, "bottom");
         noteVision =
             new NoteVisionSubsystem(
                 new NoteVisionIO() {},

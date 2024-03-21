@@ -15,7 +15,7 @@ public final class IntakeConstants {
   public static final LoggedTunableNumber INTAKE_VOLTAGE =
       tunableTable.makeField("intake volts", 11.99);
   public static final LoggedTunableNumber NOTE_CENTERING_VOLTAGE =
-      tunableTable.makeField("note centering voltage", 7.0);
+      tunableTable.makeField("note centering voltage", 5.0);
 
   public static final LoggedTunableNumber INTAKE_SPEED_THRESHOLD =
       tunableTable.makeField("intake speed threshold", .2);

@@ -40,8 +40,10 @@ public class IntakeCommands {
         () -> {
           if (topBeamBreak.detectNote() && !bottomBeamBreak.detectNote()) {
             intake.setVoltage(-IntakeConstants.NOTE_CENTERING_VOLTAGE.get());
-          } else if (!bottomBeamBreak.detectNote() && topBeamBreak.detectNote()) {
+          } else if (!topBeamBreak.detectNote() && bottomBeamBreak.detectNote()) {
             intake.setVoltage(IntakeConstants.NOTE_CENTERING_VOLTAGE.get());
+          } else {
+            intake.setVoltage(0);
           }
         },
         intake);

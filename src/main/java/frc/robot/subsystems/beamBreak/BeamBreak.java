@@ -7,15 +7,17 @@ public class BeamBreak extends SubsystemBase {
 
   private final BeamBreakIO beamBreakIO;
   private final BeamBreakIOInputsAutoLogged beamBreakInputs = new BeamBreakIOInputsAutoLogged();
+  private final String descriptor;
 
-  public BeamBreak(BeamBreakIO beamBreakIO) {
+  public BeamBreak(BeamBreakIO beamBreakIO, String descriptor) {
     this.beamBreakIO = beamBreakIO;
+    this.descriptor = descriptor;
   }
 
   @Override
   public void periodic() {
     beamBreakIO.updateInputs(beamBreakInputs);
-    Logger.processInputs("BeamBreak", beamBreakInputs);
+    Logger.processInputs("BeamBreak/" + descriptor, beamBreakInputs);
   }
 
   public boolean detectNote() {
