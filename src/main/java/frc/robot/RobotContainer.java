@@ -246,6 +246,7 @@ public class RobotContainer {
     configureAutoChooser();
     configureButtonBindings();
     configureNamedCommands();
+    configureRumble();
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
   }
@@ -257,6 +258,17 @@ public class RobotContainer {
                     () -> LimelightHelpers.setLEDMode_ForceOn("limelight"),
                     () -> LimelightHelpers.setLEDMode_ForceOff("limelight"))
                 .ignoringDisable(true));
+  }
+
+  private void configureRumble() {
+    rumbleSubsystem.setRumbleTimes(40, 10);
+
+    rumbleSubsystem.setDefaultCommand(
+        rumbleSubsystem.noteMonitoring(
+            beamBreak::detectNote,
+            () ->
+                noteVision.getCurrentNote().stream()
+                    .anyMatch(note -> note.getNorm() < NoteVisionConstants.DISTANCE_TO_RUMBLE)));
   }
 
   private void configureNamedCommands() {
@@ -282,8 +294,6 @@ public class RobotContainer {
    * XboxController}), and then passing it to a {@link JoystickButton}.
    */
   private void configureButtonBindings() {
-    rumbleSubsystem.setRumbleTimes(40, 10);
-
     final ControllerLogic controllerLogic = new ControllerLogic(driverController, secondController);
 
     drive.setDefaultCommand(
