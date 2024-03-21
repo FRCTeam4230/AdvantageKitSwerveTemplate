@@ -38,10 +38,7 @@ import frc.robot.commands.climber.ManualClimberCommand;
 import frc.robot.commands.climber.ResetClimberBasic;
 import frc.robot.subsystems.RumbleSubsystem;
 import frc.robot.subsystems.arm.*;
-import frc.robot.subsystems.beamBreak.BeamBreak;
-import frc.robot.subsystems.beamBreak.BeamBreakIO;
-import frc.robot.subsystems.beamBreak.BeamBreakIOReal;
-import frc.robot.subsystems.beamBreak.BeamBreakIOSim;
+import frc.robot.subsystems.beamBreak.*;
 import frc.robot.subsystems.climber.ClimberIO;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.drive.*;
@@ -116,7 +113,10 @@ public class RobotContainer {
             new AprilTagVision(
                 new AprilTagVisionIOLimelight("limelight"),
                 new AprilTagVisionIOLimelight("limelight-two"));
-        beamBreak = new BeamBreak(new BeamBreakIOReal());
+        beamBreak =
+            new BeamBreak(
+                new BeamBreakIOReal(BeamBreakConstants.LOWER_BEAM_BREAK_SENSOR_PORT),
+                new BeamBreakIOReal(BeamBreakConstants.UPPER_BEAM_BREAK_SENSOR_PORT));
         shooter =
             new ShooterSubsystem(
                 new ShooterIOSparkMax(ShooterConstants.ShooterWheels.TOP),
@@ -176,14 +176,16 @@ public class RobotContainer {
         arm = new ArmSubsystem(new ArmIOSim());
         leftClimber = new ClimberSubsystem(new ClimberIO() {}, "left");
         rightClimber = new ClimberSubsystem(new ClimberIO() {}, "right");
+        final var beamBreakIOMain =
+            new BeamBreakIOSim(
+                drive::getDrive,
+                noteVisionIO::getNoteLocations,
+                intake::getVoltage,
+                shooter::getTargetVelocityRadPerSec,
+                noteVisionIO::removeNote);
         beamBreak =
             new BeamBreak(
-                new BeamBreakIOSim(
-                    drive::getDrive,
-                    noteVisionIO::getNoteLocations,
-                    intake::getVoltage,
-                    shooter::getTargetVelocityRadPerSec,
-                    noteVisionIO::removeNote));
+                beamBreakIOMain, new BeamBreakIOSimFollower(beamBreakIOMain::isTriggered));
         noteVision =
             new NoteVisionSubsystem(
                 noteVisionIO,
@@ -211,7 +213,7 @@ public class RobotContainer {
         arm = new ArmSubsystem(new ArmIO() {});
         leftClimber = new ClimberSubsystem(new ClimberIO() {}, "left");
         rightClimber = new ClimberSubsystem(new ClimberIO() {}, "right");
-        beamBreak = new BeamBreak(new BeamBreakIO() {});
+        beamBreak = new BeamBreak(new BeamBreakIO() {}, new BeamBreakIO() {});
         noteVision =
             new NoteVisionSubsystem(
                 new NoteVisionIO() {},
@@ -247,6 +249,8 @@ public class RobotContainer {
     configureButtonBindings();
     configureNamedCommands();
     configureRumble();
+
+    intake.setDefaultCommand(intake.centerNote(beamBreak));
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
   }
