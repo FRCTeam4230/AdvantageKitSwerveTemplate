@@ -89,8 +89,6 @@ public class RobotContainer {
 
   private final Command resetClimbersCommand;
   private final ShooterStateHelpers shooterStateHelpers;
-  private final DriveToPointBuilder driveToPointBuilder;
-  private final Command idleShooterVolts;
   private final AutoCommandBuilder autoCommandBuilder;
 
   //   private final LoggedTunableNumber flywheelSpeedInput =
@@ -231,9 +229,6 @@ public class RobotContainer {
     }
 
     shooterStateHelpers = new ShooterStateHelpers(shooter, arm, beamBreak);
-    driveToPointBuilder = new DriveToPointBuilder(drive::getPose, arm, shooter);
-    idleShooterVolts =
-        Commands.runOnce(() -> shooter.runVolts(ShooterConstants.IDLE_VOLTS.get()), shooter);
 
     resetClimbersCommand =
         ResetClimberBasic.on(leftClimber).alongWith(ResetClimberBasic.on(rightClimber));
@@ -254,6 +249,7 @@ public class RobotContainer {
     configureAutoChooser();
     configureButtonBindings();
     configureNamedCommands();
+    configureRumble();
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
   }
@@ -265,6 +261,17 @@ public class RobotContainer {
                     () -> LimelightHelpers.setLEDMode_ForceOn("limelight"),
                     () -> LimelightHelpers.setLEDMode_ForceOff("limelight"))
                 .ignoringDisable(true));
+  }
+
+  private void configureRumble() {
+    rumbleSubsystem.setRumbleTimes(40, 10);
+
+    rumbleSubsystem.setDefaultCommand(
+        rumbleSubsystem.noteMonitoring(
+            beamBreak::detectNote,
+            () ->
+                noteVision.getCurrentNote().stream()
+                    .anyMatch(note -> note.getNorm() < NoteVisionConstants.DISTANCE_TO_RUMBLE)));
   }
 
   private void configureNamedCommands() {
@@ -290,48 +297,49 @@ public class RobotContainer {
    * XboxController}), and then passing it to a {@link JoystickButton}.
    */
   private void configureButtonBindings() {
-    rumbleSubsystem.setRumbleTimes(40, 10);
-
     final ControllerLogic controllerLogic = new ControllerLogic(driverController, secondController);
 
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
-            drive,
-            driveMode,
-            () -> -driverController.getRightY(),
-            () -> -driverController.getRightX(),
-            () -> -driverController.getLeftX()));
-
-    driverController.x().whileTrue(autoCommandBuilder.pickupNoteVisibleNote());
-    driverController
-        .y()
-        .toggleOnTrue(
-            Commands.startEnd(
-                () -> {
-                  driveMode.setHeadingSupplier(
-                      () -> {
-                        var closestNote = noteVision.getCurrentNote();
-
-                        if (closestNote.isEmpty()) {
-                          return drive.getRotation();
-                        }
-
-                        return closestNote.get().getAngle().plus(drive.getRotation());
-                      });
-                },
-                driveMode::disableHeadingControl));
-    //    driverController
-    //        .x()
-    //        .whileTrue(new PathFinderAndFollow(PathPlannerPath.fromPathFile("LineUpAmp")));
-    new Trigger(() -> Math.abs(driverController.getLeftX()) > .1)
-        .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
+                drive,
+                driveMode,
+                controllerLogic::getDriveSpeedX,
+                controllerLogic::getDriveSpeedY,
+                controllerLogic::getDriveRotationSpeed)
+            .finallyDo(driveMode::disableHeadingControl));
 
     controllerLogic
-        .getExtakeTrigger()
+        .ampPathFind()
+        .whileTrue(
+            DriveToPointBuilder.driveTo(FieldConstants.ampScoringPose)
+                .alongWith(
+                    DriveToPointBuilder.waitUntilNearPose(
+                        drive::getPose,
+                        () -> AllianceFlipUtil.apply(FieldConstants.ampScoringPose),
+                        1))
+                .andThen(
+                    ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get)
+                        .alongWith(
+                            ShooterCommands.runSpeed(
+                                shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get))));
+    controllerLogic.pointAtSpeaker().onTrue(Commands.runOnce(driveMode::enableSpeakerHeading));
+    controllerLogic.climbAlign().onTrue(Commands.runOnce(driveMode::enableStageHeading));
+    controllerLogic.lobbing().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));
+    controllerLogic
+        .disableHeadingControl()
+        .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
+
+    controllerLogic.visionIntake().whileTrue(autoCommandBuilder.pickupNoteVisibleNote());
+    controllerLogic.leftSpeakerPathFind().whileTrue(DriveToSpeaker.left(drive, shooter, arm));
+    controllerLogic.centerSpeakerPathFind().whileTrue(DriveToSpeaker.center(drive, shooter, arm));
+    controllerLogic.rightSpeakerPathFind().whileTrue(DriveToSpeaker.right(drive, shooter, arm));
+
+    controllerLogic
+        .extakeTrigger()
         .whileTrue(IntakeCommands.manualIntakeCommand(intake, controllerLogic::getIntakeSpeed));
 
     controllerLogic
-        .getIntakeTrigger()
+        .intakeTrigger()
         .whileTrue(
             new ConditionalCommand(
                 Commands.waitUntil(shooterStateHelpers::canShoot)
@@ -342,96 +350,55 @@ public class RobotContainer {
                     .until(beamBreak::detectNote)
                     .andThen(
                         ArmCommands.autoArmToPosition(
-                            arm, ArmConstants.Positions.SPEAKER_POS_RAD::get))
-                // arm, ArmConstants.Positions.LOWER_DRIVE_RAD::get))
-                //                    .andThen(Commands.run(() -> shooter.runVolts(1), shooter)),
-                ,
+                            arm, ArmConstants.Positions.SPEAKER_POS_RAD::get)),
                 beamBreak::detectNote));
 
     // backup in case arm or shooter can't reach setpoint
-    secondController
-        .leftBumper()
+    controllerLogic
+        .forceIntake()
         .whileTrue(
             Commands.startEnd(
                 () -> intake.setVoltage(IntakeConstants.INTAKE_VOLTAGE.get()),
                 intake::stop,
                 intake));
 
-    secondController
-        .start()
+    controllerLogic
+        .resetRobotPoseAngle()
         .onTrue(AdjustPositionCommands.setRotation(drive, () -> new Rotation2d(0)));
-    secondController
-        .back()
+    controllerLogic
+        .toggleVision()
         .toggleOnTrue(
             Commands.startEnd(
-                () -> aprilTagVision.setEnableVisionUpdates(false),
-                () -> aprilTagVision.setEnableVisionUpdates(true)));
+                    () -> aprilTagVision.setEnableVisionUpdates(false),
+                    () -> aprilTagVision.setEnableVisionUpdates(true))
+                .ignoringDisable(true));
 
-    //    secondController
-    //        .x()
-    //        .onTrue(
-    //            new MultiDistanceShot(
-    //                drive::getPose, FieldConstants.Speaker.centerSpeakerOpening, shooter, arm));
-
-    secondController
-        .y()
-        .whileTrue(
-            Commands.startEnd(
-                    () -> LimelightHelpers.setLEDMode_ForceOn("limelight-two"),
-                    () -> LimelightHelpers.setLEDMode_ForceOff("limelight-two"))
-                .withTimeout(.2)
-                .andThen(Commands.waitSeconds(.1))
-                .repeatedly());
-
-    new Trigger(() -> Math.abs(secondController.getLeftY()) > .1)
-        .onTrue(new ManualClimberCommand(leftClimber, () -> -secondController.getLeftY()));
-    new Trigger(() -> Math.abs(secondController.getRightY()) > .1)
-        .onTrue(new ManualClimberCommand(rightClimber, () -> -secondController.getRightY()));
-
-    // controls on both
-    for (var controller : new CommandXboxController[] {driverController, secondController}) {
-      configureUniversalControls(controller);
-    }
+    controllerLogic
+        .leftClimberActive()
+        .onTrue(new ManualClimberCommand(leftClimber, controllerLogic::getLeftClimberSpeed));
+    controllerLogic
+        .rightClimberActive()
+        .onTrue(new ManualClimberCommand(rightClimber, controllerLogic::getRightClimberSpeed));
 
     //    LoggedDashboardNumber armVolts = new LoggedDashboardNumber("arm volts", 0);
     //    arm.setDefaultCommand(arm.run(() -> arm.setManualVoltage(armVolts.get())));
-  }
 
-  private void configureUniversalControls(CommandXboxController controller) {
-    controller
-        .povDown()
+    controllerLogic
+        .armDown()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
-    controller
-        .povLeft()
+    controllerLogic
+        .armSpeakerPos()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get));
-    controller
-        .povUp()
+    controllerLogic
+        .armAmpPos()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get));
-    controller
-        .povDown()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
-    controller
-        .povRight()
+    controllerLogic
+        .armPodiumPos()
         .onTrue(
             ArmCommands.autoArmToPosition(
                 arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get));
-    controller
-        .povLeft()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get));
-    controller
-        .povUp()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get));
-
-    controller
-        .b()
-        .onTrue(
-            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_LOB_VELOCITY_RAD_PER_SEC::get));
-    controller
-        .a()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.LOWER_DRIVE_RAD::get));
-
-    controller
-        .rightBumper()
+    controllerLogic
+        .runShooter()
         .whileTrue(
             ShooterCommands.runSpeed(
                 shooter,

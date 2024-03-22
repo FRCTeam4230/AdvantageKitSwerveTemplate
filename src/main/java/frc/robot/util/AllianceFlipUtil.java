@@ -23,6 +23,11 @@ public class AllianceFlipUtil {
     }
   }
 
+  /** like .apply but ignores ds state */
+  public static double convertToRed(double xCoordinate) {
+    return FieldConstants.fieldLength - xCoordinate;
+  }
+
   /**
    * Flips a translation to the correct side of the field based on the current alliance color.
    *
@@ -35,6 +40,11 @@ public class AllianceFlipUtil {
     } else {
       return translation;
     }
+  }
+
+  /** like .apply but ignores ds state */
+  public static Translation2d convertToRed(Translation2d translation) {
+    return new Translation2d(convertToRed(translation.getX()), translation.getY());
   }
 
   /**
@@ -51,6 +61,11 @@ public class AllianceFlipUtil {
     }
   }
 
+  /** like .apply but ignores ds state */
+  public static Rotation2d convertToRed(Rotation2d rotation) {
+    return new Rotation2d(-rotation.getCos(), rotation.getSin());
+  }
+
   /**
    * Flips a pose to the correct side of the field based on the current alliance color.
    *
@@ -63,6 +78,11 @@ public class AllianceFlipUtil {
     } else {
       return pose;
     }
+  }
+
+  /** like .apply but ignores ds state */
+  public static Pose2d convertToRed(Pose2d pose) {
+    return new Pose2d(convertToRed(pose.getTranslation()), convertToRed(pose.getRotation()));
   }
 
   /**

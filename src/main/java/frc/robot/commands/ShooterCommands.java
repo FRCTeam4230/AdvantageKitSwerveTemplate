@@ -15,8 +15,7 @@ public class ShooterCommands {
   private ShooterCommands() {}
 
   public static Command runSpeed(ShooterSubsystem shooter, DoubleSupplier speed) {
-    return Commands.startEnd(
-        () -> shooter.runVelocity(speed.getAsDouble()), shooter::stop, shooter);
+    return Commands.runEnd(() -> shooter.runVelocity(speed.getAsDouble()), shooter::stop, shooter);
   }
 
   /** assumes the shooter is at the correct speed and the arm is in the correct position */

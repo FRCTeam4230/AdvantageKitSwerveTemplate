@@ -53,7 +53,7 @@ public class DriveController {
                         .getY()));
   }
 
-  private void enableStageHeading() {
+  public void enableStageHeading() {
     setHeadingSupplier(
         () -> {
           int closestChainAprilTagID;
