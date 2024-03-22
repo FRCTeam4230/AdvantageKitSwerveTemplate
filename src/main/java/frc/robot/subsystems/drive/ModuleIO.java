@@ -14,6 +14,7 @@
 package frc.robot.subsystems.drive;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface ModuleIO {
@@ -57,5 +58,8 @@ public interface ModuleIO {
 
   /** Enable or disable brake mode on the turn motor. */
   public default void setTurnBrakeMode(boolean enable) {}
-  public default double getWheelRadius() {return 2.0;}
+
+  public default double getWheelRadius() {
+    return Units.inchesToMeters(2.0);
+  }
 }
