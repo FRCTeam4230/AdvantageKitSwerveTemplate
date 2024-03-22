@@ -250,7 +250,7 @@ public class RobotContainer {
     configureNamedCommands();
     configureRumble();
 
-    intake.setDefaultCommand(intake.centerNote(beamBreak));
+    intake.setDefaultCommand(IntakeCommands.keepNoteInCenter(intake, beamBreak));
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
   }
