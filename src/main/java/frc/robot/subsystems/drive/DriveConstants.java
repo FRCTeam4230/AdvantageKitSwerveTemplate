@@ -35,7 +35,6 @@ public final class DriveConstants {
       switch (Constants.getRobot()) {
         default ->
             new DrivetrainConfig(
-                Units.inchesToMeters(2.0), // Wheel radius
                 Units.inchesToMeters(29.0), // Track width x
                 Units.inchesToMeters(29.0), // Track width y
                 Units.feetToMeters(12.5), // Max linear velocity
@@ -43,7 +42,6 @@ public final class DriveConstants {
                 7.93, // Max angular velocity
                 29.89); // Max angular acceleration
       };
-  public static final double wheelRadius = Units.inchesToMeters(2.0);
   public static final Translation2d[] moduleTranslations =
       new Translation2d[] {
         new Translation2d(
@@ -87,18 +85,23 @@ public final class DriveConstants {
         case COMPBOT ->
             new ModuleConfig[] {
               // Front left
-              new ModuleConfig(6, 5, 9, Rotation2d.fromRadians(3.10227562), true),
+              new ModuleConfig(6, 5, 9, Rotation2d.fromRadians(3.10227562),
+                      true, 2.0),
               // Front right
-              new ModuleConfig(8, 7, 7, Rotation2d.fromRadians(3.0796856053 + Math.PI), true),
+              new ModuleConfig(8, 7, 7, Rotation2d.fromRadians(3.0796856053 + Math.PI),
+                      true, 2.0),
               // Back left
-              new ModuleConfig(4, 3, 8, Rotation2d.fromRadians(-2.88248123), true),
+              new ModuleConfig(4, 3, 8, Rotation2d.fromRadians(-2.88248123),
+                      true, 2.0),
               // Back right
-              new ModuleConfig(2, 1, 6, Rotation2d.fromRadians(-0.7425938249 + Math.PI), true)
+              new ModuleConfig(2, 1, 6, Rotation2d.fromRadians(-0.7425938249 + Math.PI),
+                      true, 2.0)
             };
         case SIMBOT -> {
           ModuleConfig[] configs = new ModuleConfig[4];
           for (int i = 0; i < configs.length; i++)
-            configs[i] = new ModuleConfig(0, 0, 0, new Rotation2d(0), false);
+            configs[i] = new ModuleConfig(0, 0, 0, new Rotation2d(0),
+                    false, 2.0);
           yield configs;
         }
       };
@@ -130,7 +133,6 @@ public final class DriveConstants {
       };
 
   public record DrivetrainConfig(
-      double wheelRadius,
       double trackwidthX,
       double trackwidthY,
       double maxLinearVelocity,
@@ -147,7 +149,8 @@ public final class DriveConstants {
       int turnID,
       int absoluteEncoderChannel,
       Rotation2d absoluteEncoderOffset,
-      boolean turnMotorInverted) {}
+      boolean turnMotorInverted,
+      double wheelRadius) {}
 
   public record ModuleConstants(double driveReduction, double turnReduction) {}
 
