@@ -3,12 +3,12 @@ package frc.robot.util;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.intake.IntakeConstants;
 
 public class ControllerLogic {
   private final CommandXboxController driverController;
   private final CommandXboxController secondController;
   private final double CLIMBER_DEADBAND = 0.3;
+  private final double INTAKE_DEADBAND = 0.2;
   private final double RESTORE_MANUAL_DRIVE_CONTROL_THRESHOLD = 0.3;
 
   public ControllerLogic(
@@ -28,11 +28,11 @@ public class ControllerLogic {
   }
 
   public Trigger extakeTrigger() {
-    return new Trigger(() -> getIntakeSpeed() < -IntakeConstants.INTAKE_SPEED_THRESHOLD.get());
+    return new Trigger(() -> getIntakeSpeed() < -INTAKE_DEADBAND);
   }
 
   public Trigger intakeTrigger() {
-    return new Trigger(() -> getIntakeSpeed() > IntakeConstants.INTAKE_SPEED_THRESHOLD.get());
+    return new Trigger(() -> getIntakeSpeed() > INTAKE_DEADBAND);
   }
 
   public Trigger armDown() {

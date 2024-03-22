@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntConsumer;
 import java.util.function.Supplier;
+import lombok.Getter;
 import org.littletonrobotics.junction.Logger;
 
 public class BeamBreakIOSim implements BeamBreakIO {
@@ -14,6 +15,7 @@ public class BeamBreakIOSim implements BeamBreakIO {
   private final DoubleSupplier intakeSpeedSupplier;
   private final DoubleSupplier shooterSpeedSupplier;
   private final IntConsumer remoteNote;
+  @Getter private boolean isTriggered = false;
 
   public BeamBreakIOSim(
       Supplier<Pose2d> robotPoseSupplier,
@@ -58,6 +60,7 @@ public class BeamBreakIOSim implements BeamBreakIO {
       Logger.recordOutput(logPrefix + "shooting", isShooterSpinning);
       if (isExtaking || (isIntaking && isShooterSpinning)) {
         inputs.triggered = false;
+        isTriggered = false;
       }
     } else {
       final Pose2d robotPose = robotPoseSupplier.get();
@@ -81,6 +84,7 @@ public class BeamBreakIOSim implements BeamBreakIO {
           robotPose.getTranslation().getDistance(notes[closestNoteIndex.get()]));
       if (inRangeOfNote && isIntaking) {
         inputs.triggered = true;
+        isTriggered = true;
         remoteNote.accept(closestNoteIndex.get());
       }
     }
