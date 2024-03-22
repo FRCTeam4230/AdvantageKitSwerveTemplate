@@ -18,23 +18,22 @@ public class NoteVisionConstants {
         new Transform3d(
             new Translation3d(0.4, 0, 0.45), new Rotation3d(0, Units.degreesToRadians(20), 0)),
         0.7,
-        "lefty" // todo fix
-        ),
-    // center
-    new CameraConfig(
-        // left TODO: find measure position
-        new Transform3d(
-            new Translation3d(0.15, 0.2, 0.45),
-            new Rotation3d(0, Units.degreesToRadians(20), Units.degreesToRadians(60))),
-        0.7, // todo measure
-        "left"),
-    new CameraConfig(
-        // right TODO: find measure position
-        new Transform3d(
-            new Translation3d(-0.15, 0.2, 0.45),
-            new Rotation3d(0, Units.degreesToRadians(20), Units.degreesToRadians(-60))),
-        0.7, // todo measure
-        "right"),
+        "center"),
+    //    // center
+    //    new CameraConfig(
+    //        // left TODO: find measure position
+    //        new Transform3d(
+    //            new Translation3d(0.15, 0.2, 0.45),
+    //            new Rotation3d(0, Units.degreesToRadians(20), Units.degreesToRadians(60))),
+    //        0.7, // todo measure
+    //        "left"),
+    //    new CameraConfig(
+    //        // right TODO: find measure position
+    //        new Transform3d(
+    //            new Translation3d(-0.15, 0.2, 0.45),
+    //            new Rotation3d(0, Units.degreesToRadians(20), Units.degreesToRadians(-60))),
+    //        0.7, // todo measure
+    //        "right"),
   };
   public static final double LIFECAM_3000_HFOV = 55;
   public static final double LIFECAM_3000_VFOV = 35;
