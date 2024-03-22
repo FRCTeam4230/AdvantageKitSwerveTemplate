@@ -135,14 +135,7 @@ public class AutoCommandBuilder {
         .andThen(
             DriveToPointBuilder.driveToAndAlignNoFlip(
                     drive,
-                    new Pose2d(
-                        autoPart.shootingTranslation(),
-                        autoPart
-                            .shootingTranslation()
-                            .minus(
-                                AllianceFlipUtil.apply(
-                                    FieldConstants.Speaker.centerSpeakerOpening.getTranslation()))
-                            .getAngle()),
+                    AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation()),
                     AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE,
                     AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE)
                 .asProxy())

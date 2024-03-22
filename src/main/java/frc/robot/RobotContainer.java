@@ -50,6 +50,7 @@ import frc.robot.subsystems.intake.IntakeIOSparkMax;
 import frc.robot.subsystems.shooter.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.*;
+import java.util.Arrays;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardString;
 import org.photonvision.simulation.VisionSystemSim;
@@ -85,8 +86,6 @@ public class RobotContainer {
 
   private final Command resetClimbersCommand;
   private final ShooterStateHelpers shooterStateHelpers;
-  private final DriveToPointBuilder driveToPointBuilder;
-  private final Command idleShooterVolts;
   private final AutoCommandBuilder autoCommandBuilder;
 
   //   private final LoggedTunableNumber flywheelSpeedInput =
@@ -139,7 +138,9 @@ public class RobotContainer {
                 "right");
         noteVision =
             new NoteVisionSubsystem(
-                new NoteVisionIOPhotonVision("lefty"),
+                Arrays.stream(NoteVisionConstants.CAMERA_CONFIGS)
+                    .map(NoteVisionConstants.CameraConfig::makePhotonVision)
+                    .toArray(NoteVisionIO[]::new),
                 drive.getPoseLogForNoteDetection(),
                 drive::getDrive,
                 drive::getPose,
@@ -170,7 +171,10 @@ public class RobotContainer {
             .schedule();
 
         aprilTagVision = new AprilTagVision(simApriltagVisionIO);
-        final var noteVisionIO = new NoteVisionIOSim(noteVisionSimSystem);
+        final NoteVisionIOSim[] noteVisionIOs =
+            Arrays.stream(NoteVisionConstants.CAMERA_CONFIGS)
+                .map(config -> new NoteVisionIOSim(noteVisionSimSystem, config))
+                .toArray(NoteVisionIOSim[]::new);
         shooter = new ShooterSubsystem(new ShooterIOSim(), new ShooterIOSim());
         intake = new Intake(new IntakeIO() {});
         arm = new ArmSubsystem(new ArmIOSim());
@@ -179,23 +183,23 @@ public class RobotContainer {
         final var beamBreakIOMain =
             new BeamBreakIOSim(
                 drive::getDrive,
-                noteVisionIO::getNoteLocations,
+                noteVisionIOs[0]::getNoteLocations,
                 intake::getVoltage,
                 shooter::getTargetVelocityRadPerSec,
-                noteVisionIO::removeNote);
+                noteVisionIOs[0]::removeNote);
         beamBreak =
             new BeamBreak(
                 beamBreakIOMain, new BeamBreakIOSimFollower(beamBreakIOMain::isTriggered));
         noteVision =
             new NoteVisionSubsystem(
-                noteVisionIO,
+                noteVisionIOs,
                 drive.getPoseLogForNoteDetection(),
                 drive::getDrive,
                 drive::getPose,
                 arm::getPositionRad);
 
         new Trigger(DriverStation::isAutonomousEnabled)
-            .onTrue(Commands.runOnce(noteVisionIO::resetNotePoses));
+            .onTrue(Commands.runOnce(noteVisionIOs[0]::resetNotePoses));
       }
       default -> {
         // Replayed robot, disable IO implementations
@@ -216,7 +220,9 @@ public class RobotContainer {
         beamBreak = new BeamBreak(new BeamBreakIO() {}, new BeamBreakIO() {});
         noteVision =
             new NoteVisionSubsystem(
-                new NoteVisionIO() {},
+                Arrays.stream(NoteVisionConstants.CAMERA_CONFIGS)
+                    .map(config -> new NoteVisionIO() {})
+                    .toArray(NoteVisionIO[]::new),
                 drive.getPoseLogForNoteDetection(),
                 drive::getDrive,
                 drive::getPose,
@@ -225,9 +231,6 @@ public class RobotContainer {
     }
 
     shooterStateHelpers = new ShooterStateHelpers(shooter, arm, beamBreak);
-    driveToPointBuilder = new DriveToPointBuilder(drive::getPose, arm, shooter);
-    idleShooterVolts =
-        Commands.runOnce(() -> shooter.runVolts(ShooterConstants.IDLE_VOLTS.get()), shooter);
 
     resetClimbersCommand =
         ResetClimberBasic.on(leftClimber).alongWith(ResetClimberBasic.on(rightClimber));
@@ -314,11 +317,15 @@ public class RobotContainer {
         .whileTrue(
             DriveToPointBuilder.driveTo(FieldConstants.ampScoringPose)
                 .alongWith(
-                    driveToPointBuilder.raiseArmAndReadyShooterNearPose(
-                        FieldConstants.ampScoringPose,
-                        1,
-                        ArmConstants.Positions.AMP_POS_RAD::get,
-                        ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get)));
+                    DriveToPointBuilder.waitUntilNearPose(
+                        drive::getPose,
+                        () -> AllianceFlipUtil.apply(FieldConstants.ampScoringPose),
+                        1))
+                .andThen(
+                    ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get)
+                        .alongWith(
+                            ShooterCommands.runSpeed(
+                                shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get))));
     controllerLogic.pointAtSpeaker().onTrue(Commands.runOnce(driveMode::enableSpeakerHeading));
     controllerLogic.climbAlign().onTrue(Commands.runOnce(driveMode::enableStageHeading));
     controllerLogic.lobbing().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));
@@ -327,6 +334,9 @@ public class RobotContainer {
         .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
 
     controllerLogic.visionIntake().whileTrue(autoCommandBuilder.pickupNoteVisibleNote());
+    controllerLogic.leftSpeakerPathFind().whileTrue(DriveToSpeaker.left(drive, shooter, arm));
+    controllerLogic.centerSpeakerPathFind().whileTrue(DriveToSpeaker.center(drive, shooter, arm));
+    controllerLogic.rightSpeakerPathFind().whileTrue(DriveToSpeaker.right(drive, shooter, arm));
 
     controllerLogic
         .extakeTrigger()
