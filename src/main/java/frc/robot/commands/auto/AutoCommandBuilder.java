@@ -69,7 +69,8 @@ public class AutoCommandBuilder {
                 note ->
                     AllianceFlipUtil.apply(note).getX()
                         < FieldConstants.StagingLocations.centerlineX
-                            + AutoConstants.AutoNoteOffsetThresholds.FALLBACK_MAX_PAST_CENTER));
+                            + AutoConstants.AutoNoteOffsetThresholds.FALLBACK_MAX_PAST_CENTER
+                                .get()));
   }
 
   private Optional<Translation2d> getVisionNoteByTranslation(Translation2d note, double threshold) {
@@ -86,7 +87,7 @@ public class AutoCommandBuilder {
 
   public Command pickupNoteAtTranslation(Translation2d note, double timeout) {
     return Commands.runOnce(
-            () -> noteVision.setVirtualAutoNote(note, AutoConstants.DISTANCE_TO_TRUST_CAMERA),
+            () -> noteVision.setVirtualAutoNote(note, AutoConstants.DISTANCE_TO_TRUST_CAMERA.get()),
             noteVision)
         .andThen(
             pickupSuppliedNote(
@@ -96,7 +97,8 @@ public class AutoCommandBuilder {
                   if (trackedNote.isEmpty()) {
                     trackedNote =
                         getVisionNoteByTranslation(
-                            note, AutoConstants.AutoNoteOffsetThresholds.WHILE_ATTEMPTING_PICKUP);
+                            note,
+                            AutoConstants.AutoNoteOffsetThresholds.WHILE_ATTEMPTING_PICKUP.get());
                   }
 
                   return trackedNote.map(
@@ -114,9 +116,9 @@ public class AutoCommandBuilder {
             .until(
                 () ->
                     drive.getPose().getTranslation().getDistance(pickupLocation.getTranslation())
-                            < AutoConstants.DRIVE_TO_PICKUP_INTERRUPT_DISTANCE
+                            < AutoConstants.DRIVE_TO_PICKUP_INTERRUPT_DISTANCE.get()
                         && getVisionNoteByTranslation(
-                                note, AutoConstants.AutoNoteOffsetThresholds.WHILE_ROUTING)
+                                note, AutoConstants.AutoNoteOffsetThresholds.WHILE_ROUTING.get())
                             .isPresent());
     return driveToPickup.andThen(pickupNoteAtTranslation(note, pickupTimeout));
   }
@@ -124,22 +126,23 @@ public class AutoCommandBuilder {
   public Command autoFromConfigPart(AutoConfigParser.AutoPart autoPart) {
     final Command pickupCommand =
         (autoPart.notePickupPose().isEmpty()
-                ? pickupNoteAtTranslation(autoPart.note(), AutoConstants.PICKUP_TIMEOUT)
+                ? pickupNoteAtTranslation(autoPart.note(), AutoConstants.PICKUP_TIMEOUT.get())
                 : driveAndPickupNoteAuto(
-                    autoPart.note(), autoPart.notePickupPose().get(), AutoConstants.PICKUP_TIMEOUT))
+                    autoPart.note(),
+                    autoPart.notePickupPose().get(),
+                    AutoConstants.PICKUP_TIMEOUT.get()))
             .andThen(fallbackPickup().onlyIf(() -> !hasNote.getAsBoolean()));
 
     return pickupCommand
-        .asProxy()
-        .andThen(readyShooter().asProxy())
+        .andThen(readyShooter())
         .andThen(
-            DriveToPointBuilder.driveToAndAlignNoFlip(
-                    drive,
-                    AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation()),
-                    AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE,
-                    AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE)
-                .asProxy())
-        .andThen(autoShoot().asProxy());
+            DriveToPointBuilder.driveToAndAlign(
+                drive,
+                AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation()),
+                AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE.get(),
+                AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get(),
+                false))
+        .andThen(autoShoot());
   }
 
   public Command autoFromConfigString(Supplier<String> configStringSupplier) {
@@ -149,7 +152,6 @@ public class AutoCommandBuilder {
   public Command autoFromConfig(
       Supplier<Optional<List<AutoConfigParser.AutoPart>>> configSupplier) {
     return initialFullShot()
-        .asProxy()
         .andThen(
             new DeferredCommand(
                 () -> {

@@ -77,16 +77,14 @@ public class DriveToPointBuilder {
             });
   }
 
-  public static Command driveToAndAlignWithFlipping(
-      Drive drive, Pose2d targetPose, double distanceTolerance, double angleToleranceRad) {
-    return driveTo(targetPose)
-        .andThen(align(drive, targetPose, distanceTolerance, angleToleranceRad, true));
-  }
-
-  public static Command driveToAndAlignNoFlip(
-      Drive drive, Pose2d targetPose, double distanceTolerance, double angleToleranceRad) {
+  public static Command driveToAndAlign(
+      Drive drive,
+      Pose2d targetPose,
+      double distanceTolerance,
+      double angleToleranceRad,
+      boolean flip) {
     return driveToNoFlip(targetPose)
-        .andThen(align(drive, targetPose, distanceTolerance, angleToleranceRad, false));
+        .andThen(align(drive, targetPose, distanceTolerance, angleToleranceRad, flip));
   }
 
   public static Command waitUntilNearPose(

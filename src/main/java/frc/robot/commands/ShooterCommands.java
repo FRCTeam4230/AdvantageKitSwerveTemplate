@@ -29,7 +29,7 @@ public class ShooterCommands {
         .andThen(
             Commands.runOnce(() -> intake.setVoltage(IntakeConstants.INTAKE_VOLTAGE.get()), intake))
         .andThen(Commands.waitUntil(() -> !hasNote.getAsBoolean()).withTimeout(1))
-        .andThen(Commands.waitSeconds(.3))
+        //        .andThen(Commands.waitSeconds(.3))
         .andThen(Commands.runOnce(() -> intake.setVoltage(0), intake))
         .andThen(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
   }

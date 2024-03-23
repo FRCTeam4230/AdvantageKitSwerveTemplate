@@ -43,11 +43,12 @@ public class DriveToSpeaker {
   }
 
   private static Command gotoShootingPose(Drive drive, Pose2d pose) {
-    return DriveToPointBuilder.driveToAndAlignNoFlip(
+    return DriveToPointBuilder.driveToAndAlign(
         drive,
         pose,
-        AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE,
-        AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE);
+        AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE.get(),
+        AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get(),
+        false);
   }
 
   public static Command left(Drive drive, ShooterSubsystem shooter, ArmSubsystem arm) {
@@ -69,9 +70,6 @@ public class DriveToSpeaker {
             gotoShootingPose(drive, bluePose),
             AllianceFlipUtil::shouldFlip)
         .alongWith(
-            DriveToPointBuilder.waitUntilNearPose(
-                drive::getPose, () -> AllianceFlipUtil.shouldFlip() ? redPose : bluePose, 1))
-        .andThen(
             ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get)
                 .alongWith(
                     ShooterCommands.runSpeed(

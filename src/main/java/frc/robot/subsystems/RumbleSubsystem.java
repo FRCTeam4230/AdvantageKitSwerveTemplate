@@ -51,13 +51,15 @@ public class RumbleSubsystem extends SubsystemBase {
     return Commands.parallel(
             this.run(
                 () -> {
-                  set(GenericHID.RumbleType.kLeftRumble, visionHasNote.getAsBoolean() ? 0.2 : 0);
+                  set(
+                      GenericHID.RumbleType.kLeftRumble,
+                      visionHasNote.getAsBoolean() && !hasNote.getAsBoolean() ? 0.05 : 0);
                 }),
             Commands.repeatingSequence(
+                Commands.waitUntil(() -> !hasNote.getAsBoolean()),
                 Commands.waitUntil(hasNote)
-                    .finallyDo(() -> set(GenericHID.RumbleType.kRightRumble, 0.3))),
-            Commands.waitUntil(() -> !hasNote.getAsBoolean())
-                .finallyDo(() -> set(GenericHID.RumbleType.kRightRumble, 0)))
+                    .finallyDo(() -> set(GenericHID.RumbleType.kRightRumble, 0.1))),
+            Commands.waitSeconds(1).finallyDo(() -> set(GenericHID.RumbleType.kRightRumble, 0)))
         .finallyDo(this::stop);
   }
 }

@@ -6,14 +6,24 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.FieldConstants;
+import frc.robot.util.LoggedTunableNumber;
+import frc.robot.util.TunableNumberWrapper;
+import java.lang.invoke.MethodHandles;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 public class AutoConstants {
-  public static final double DISTANCE_TO_TRUST_CAMERA = 3;
-  public static final double DRIVE_TO_PICKUP_INTERRUPT_DISTANCE = 0.8;
-  public static final double SHOOTING_DISTANCE_OFFSET_TOLERANCE = 0.5;
-  public static final double SHOOTING_ANGLE_OFFSET_TOLERANCE = Units.degreesToRadians(5);
+  private static final TunableNumberWrapper tunableTable =
+      new TunableNumberWrapper(MethodHandles.lookup().lookupClass());
+  public static final LoggedTunableNumber DISTANCE_TO_TRUST_CAMERA =
+      tunableTable.makeField("camera trust m", 3);
+  ;
+  public static final LoggedTunableNumber DRIVE_TO_PICKUP_INTERRUPT_DISTANCE =
+      tunableTable.makeField("drive to pickup interupt m", 0.8);
+  public static final LoggedTunableNumber SHOOTING_DISTANCE_OFFSET_TOLERANCE =
+      tunableTable.makeField("align distance tolerance m", 0.1);
+  public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_TOLERANCE =
+      tunableTable.makeField("align angle tolerance deg", Units.degreesToRadians(5));
   public static final Translation2d[] AUTO_NOTES =
       Stream.concat(
               Stream.of(FieldConstants.StagingLocations.spikeTranslations),
@@ -21,12 +31,15 @@ public class AutoConstants {
           .toArray(Translation2d[]::new);
 
   public static class AutoNoteOffsetThresholds {
-    public static final double WHILE_ROUTING = 0.5;
-    public static final double WHILE_ATTEMPTING_PICKUP = 1;
-    public static final double FALLBACK_MAX_PAST_CENTER = 1;
+    public static final LoggedTunableNumber WHILE_ROUTING =
+        tunableTable.makeField("auto note tolerance while routing", 0.5);
+    public static final LoggedTunableNumber WHILE_ATTEMPTING_PICKUP =
+        tunableTable.makeField("auto note tolerance while pickup", 1);
+    public static final LoggedTunableNumber FALLBACK_MAX_PAST_CENTER =
+        tunableTable.makeField("auto fallback past middle tolerance m", 1);
   }
 
-  public static final double PICKUP_TIMEOUT = 3;
+  public static final LoggedTunableNumber PICKUP_TIMEOUT = tunableTable.makeField("pickup time", 3);
 
   public static class ShootingTranslations {
     public static final Translation2d A = new Translation2d(1, 6.7);
