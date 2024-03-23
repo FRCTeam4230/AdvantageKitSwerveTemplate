@@ -17,6 +17,7 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleConfigs;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.pathfinding.Pathfinding;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -51,6 +52,7 @@ import frc.robot.subsystems.shooter.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.*;
 import java.util.Arrays;
+import java.util.List;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardString;
 import org.photonvision.simulation.VisionSystemSim;
@@ -252,10 +254,15 @@ public class RobotContainer {
     configureButtonBindings();
     configureNamedCommands();
     configureRumble();
+    configureTeleopCommands();
 
     intake.setDefaultCommand(IntakeCommands.keepNoteInCenter(intake, beamBreak));
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
+    Pathfinding.setDynamicObstacles(
+        AutoConstants.createDynamicObstaclesList(
+            List.of(AutoConstants.AvoidanceZones.STAGE, AutoConstants.AvoidanceZones.CLOSE_NOTES)),
+        drive.getPose().getTranslation());
   }
 
   private void setupLimelightFlashing() {
@@ -265,6 +272,12 @@ public class RobotContainer {
                     () -> LimelightHelpers.setLEDMode_ForceOn("limelight"),
                     () -> LimelightHelpers.setLEDMode_ForceOff("limelight"))
                 .ignoringDisable(true));
+  }
+
+  private void configureTeleopCommands() {
+    new Trigger(DriverStation::isTeleopEnabled)
+        .onTrue(resetClimbersCommand)
+        .onTrue(Commands.runOnce(autoCommandBuilder::clearObstacles));
   }
 
   private void configureRumble() {
@@ -462,9 +475,5 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return resetClimbersCommand.asProxy().alongWith(autoChooser.get().asProxy());
-  }
-
-  public Command getTeleopCommand() {
-    return resetClimbersCommand;
   }
 }

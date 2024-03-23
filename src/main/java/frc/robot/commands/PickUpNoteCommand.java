@@ -42,7 +42,7 @@ public class PickUpNoteCommand extends Command {
     var currentNote = relativeNoteSupplier.get();
 
     if (currentNote.isEmpty()) {
-      drive.runVelocity(ChassisSpeeds.fromRobotRelativeSpeeds(0, 0, 1, new Rotation2d()));
+      drive.runVelocity(ChassisSpeeds.fromRobotRelativeSpeeds(0, 0, 4, new Rotation2d()));
       intake.stop();
       return;
     }
@@ -66,7 +66,8 @@ public class PickUpNoteCommand extends Command {
 
     if (distanceToNote < 1
         && Math.abs(drive.getThetaController().getPositionError())
-            > Units.degreesToRadians(DriveConstants.HeadingControllerConstants.NOTE_PICKUP_TOLERANCE.get())) {
+            > Units.degreesToRadians(
+                DriveConstants.HeadingControllerConstants.NOTE_PICKUP_TOLERANCE.get())) {
       speed = 0;
     }
 

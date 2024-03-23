@@ -1,5 +1,7 @@
 package frc.robot.commands.auto;
 
+import com.pathplanner.lib.pathfinding.Pathfinding;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -121,6 +123,13 @@ public class AutoCommandBuilder {
   }
 
   public Command autoFromConfigPart(AutoConfigParser.AutoPart autoPart) {
+    final Command setObstacles =
+        Commands.runOnce(
+            () -> {
+              if (autoPart.obstacles().isPresent()) {
+                setObstacles(autoPart.obstacles().get());
+              }
+            });
     final Command pickupCommand =
         (autoPart.notePickupPose().isEmpty()
                 ? pickupNoteAtTranslation(autoPart.note(), AutoConstants.PICKUP_TIMEOUT.get())
@@ -129,17 +138,16 @@ public class AutoCommandBuilder {
                     autoPart.notePickupPose().get(),
                     AutoConstants.PICKUP_TIMEOUT.get()))
             .andThen(fallbackPickup().onlyIf(() -> !hasNote.getAsBoolean()));
+    final Command returnCommand =
+        DriveToPointBuilder.driveToAndAlign(
+            drive,
+            AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation()),
+            AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE.get(),
+            AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get(),
+            false);
 
-    return pickupCommand
-        .andThen(readyShooter())
-        .andThen(
-            DriveToPointBuilder.driveToAndAlign(
-                drive,
-                AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation()),
-                AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE.get(),
-                AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get(),
-                false))
-        .andThen(autoShoot());
+    return Commands.sequence(
+        setObstacles, pickupCommand, readyShooter(), returnCommand, autoShoot());
   }
 
   public Command autoFromConfigString(Supplier<String> configStringSupplier) {
@@ -148,7 +156,8 @@ public class AutoCommandBuilder {
 
   public Command autoFromConfig(
       Supplier<Optional<List<AutoConfigParser.AutoPart>>> configSupplier) {
-    return initialFullShot()
+    return Commands.runOnce(this::clearObstacles)
+        .andThen(initialFullShot())
         .andThen(
             new DeferredCommand(
                 () -> {
@@ -180,5 +189,15 @@ public class AutoCommandBuilder {
             Commands.runOnce(
                 () -> shooter.runVelocity(ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC.get()),
                 shooter));
+  }
+
+  private void setObstacles(List<Pair<Translation2d, Translation2d>> zones) {
+    Pathfinding.setDynamicObstacles(
+        AutoConstants.createDynamicObstaclesList(zones), drive.getPose().getTranslation());
+  }
+
+  public void clearObstacles() {
+    Pathfinding.setDynamicObstacles(
+        AutoConstants.createDynamicObstaclesList(List.of()), drive.getPose().getTranslation());
   }
 }

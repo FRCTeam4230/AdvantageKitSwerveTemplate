@@ -10,7 +10,6 @@ import frc.robot.util.FieldConstants;
 import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.TunableNumberWrapper;
 import java.lang.invoke.MethodHandles;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -22,7 +21,7 @@ public class AutoConstants {
       tunableTable.makeField("camera trust m", 3);
   ;
   public static final LoggedTunableNumber DRIVE_TO_PICKUP_INTERRUPT_DISTANCE =
-      tunableTable.makeField("drive to pickup interupt m", 0.8);
+      tunableTable.makeField("drive to pickup interupt m", 0);
   public static final LoggedTunableNumber SHOOTING_DISTANCE_OFFSET_TOLERANCE =
       tunableTable.makeField("align distance tolerance m", 0.1);
   public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_TOLERANCE =
@@ -67,15 +66,15 @@ public class AutoConstants {
 
   public static class NotePickupLocations {
     public static final Pose2d X =
-        new Pose2d(new Translation2d(6.3, 6.5), Rotation2d.fromDegrees(-10));
+        new Pose2d(new Translation2d(5.9, 6.5), Rotation2d.fromDegrees(-10));
     public static final Pose2d Y =
         new Pose2d(
-            new Translation2d(6.3, FieldConstants.fieldWidth / 2), Rotation2d.fromDegrees(0));
+            new Translation2d(5.9, FieldConstants.fieldWidth / 2), Rotation2d.fromDegrees(0));
     public static final Pose2d Z =
-        new Pose2d(new Translation2d(6.3, 1.7), Rotation2d.fromDegrees(10));
+        new Pose2d(new Translation2d(5.9, 1.7), Rotation2d.fromDegrees(10));
   }
 
-  private class AvoidanceZones {
+  public static class AvoidanceZones {
     public static final Pair<Translation2d, Translation2d> STAGE =
         new Pair<>(new Translation2d(4.3, 4.7), new Translation2d(5.3, 3.7));
     public static final Pair<Translation2d, Translation2d> SOURCE_SIDE_NEXT_TO_STAGE =
@@ -85,13 +84,13 @@ public class AutoConstants {
   }
 
   public static List<Pair<Translation2d, Translation2d>> createDynamicObstaclesList(
-      Pair<Translation2d, Translation2d>... zones) {
+      List<Pair<Translation2d, Translation2d>> zones) {
     return Stream.concat(
-            Arrays.stream(zones),
-            Arrays.stream(zones)
+            zones.stream(),
+            zones.stream()
                 .map(
                     zone ->
-                        new Pair<Translation2d, Translation2d>(
+                        new Pair<>(
                             AllianceFlipUtil.convertToRed(zone.getFirst()),
                             AllianceFlipUtil.convertToRed(zone.getSecond()))))
         .toList();
