@@ -79,10 +79,10 @@ public class DriveCommands {
             if (drive.getThetaController().atGoal()) {
               omega = 0;
             }
-            omega = MathUtil.clamp(omega, -1, 1);
           } else {
             omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
             omega = Math.copySign(omega * omega, omega);
+            omega *= drivetrainConfig.maxAngularVelocity();
           }
           Logger.recordOutput("omega", omega);
 
@@ -103,7 +103,7 @@ public class DriveCommands {
               ChassisSpeeds.fromFieldRelativeSpeeds(
                   linearVelocity.getX() * drivetrainConfig.maxLinearVelocity(),
                   linearVelocity.getY() * drivetrainConfig.maxLinearVelocity(),
-                  omega * drivetrainConfig.maxAngularVelocity(),
+                  omega,
                   isFlipped
                       ? drive.getRotation().plus(new Rotation2d(Math.PI))
                       : drive.getRotation()));

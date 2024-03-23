@@ -18,7 +18,7 @@ public final class IntakeConstants {
   public static final double NOTE_CENTERING_DELAY_SECONDS = 0.5;
 
   public static final LoggedTunableNumber NOTE_CENTERING_VOLTS =
-      tunableTable.makeField("intake centering volts", 5);
+      tunableTable.makeField("intake centering volts", 4);
 
   public static final class FeedForwardConstants {
     public static final LoggedTunableNumber kS = tunableTable.makeField("ks", 0.0);

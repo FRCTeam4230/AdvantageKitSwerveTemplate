@@ -11,8 +11,10 @@ import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import frc.robot.commands.*;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.arm.ArmSubsystem;
+import frc.robot.subsystems.beamBreak.BeamBreak;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.ShooterSubsystem;
 import frc.robot.subsystems.vision.NoteVisionSubsystem;
@@ -23,7 +25,6 @@ import frc.robot.util.ShooterStateHelpers;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -33,7 +34,7 @@ public class AutoCommandBuilder {
   private final ShooterSubsystem shooter;
   private final Intake intake;
   private final ArmSubsystem arm;
-  private final BooleanSupplier hasNote;
+  private final BeamBreak beamBreak;
   private final ShooterStateHelpers shooterStateHelpers;
 
   public AutoCommandBuilder(
@@ -42,23 +43,38 @@ public class AutoCommandBuilder {
       ShooterSubsystem shooter,
       Intake intake,
       ArmSubsystem arm,
-      BooleanSupplier hasNote,
+      BeamBreak beamBreak,
       ShooterStateHelpers shooterStateHelpers) {
     this.drive = drive;
     this.noteVision = noteVision;
     this.shooter = shooter;
     this.intake = intake;
     this.arm = arm;
-    this.hasNote = hasNote;
+    this.beamBreak = beamBreak;
     this.shooterStateHelpers = shooterStateHelpers;
   }
 
-  public Command pickupNoteVisibleNote() {
-    return new PickUpNoteCommand(drive, intake, noteVision::getCurrentNote, hasNote);
+  public Command driveIntoVisibleNote() {
+    return new DriveIntoNoteCommand(drive, noteVision::getCurrentNote, beamBreak::detectNote);
+  }
+
+  public Command intakeByVisionNote(Supplier<Optional<Translation2d>> noteSupplier) {
+    return IntakeCommands.manualIntakeCommand(
+        intake,
+        () -> {
+          final var targetNote = noteVision.getCurrentNote();
+          return (targetNote.isEmpty() || targetNote.get().getNorm() > 2)
+              ? IntakeConstants.INTAKE_VOLTAGE.get()
+              : 0;
+        });
+  }
+
+  public Command pickupVisibleNote() {
+    return driveIntoVisibleNote().alongWith(intakeByVisionNote(noteVision::getCurrentNote));
   }
 
   public Command pickupSuppliedNote(Supplier<Optional<Translation2d>> relativeNoteSupplier) {
-    return new PickUpNoteCommand(drive, intake, relativeNoteSupplier, hasNote);
+    return new DriveIntoNoteCommand(drive, relativeNoteSupplier, beamBreak::detectNote);
   }
 
   public Command fallbackPickup() {
@@ -137,14 +153,15 @@ public class AutoCommandBuilder {
                     autoPart.note(),
                     autoPart.notePickupPose().get(),
                     AutoConstants.PICKUP_TIMEOUT.get()))
-            .andThen(fallbackPickup().onlyIf(() -> !hasNote.getAsBoolean()));
+            .andThen(fallbackPickup().onlyIf(() -> !beamBreak.detectNote()));
     final Command returnCommand =
         DriveToPointBuilder.driveToAndAlign(
-            drive,
-            AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation()),
-            AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE.get(),
-            AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get(),
-            false);
+                drive,
+                AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation()),
+                AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE.get(),
+                AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get(),
+                false)
+            .alongWith(IntakeCommands.keepNoteInCenter(intake, beamBreak));
 
     return Commands.sequence(
         setObstacles, pickupCommand, readyShooter(), returnCommand, autoShoot());
@@ -180,7 +197,7 @@ public class AutoCommandBuilder {
 
   /** assumes the shooter is at the correct speed and the arm is in the correct position */
   public Command autoShoot() {
-    return ShooterCommands.autoShoot(shooterStateHelpers, intake, hasNote, arm);
+    return ShooterCommands.autoShoot(shooterStateHelpers, intake, beamBreak::detectNote, arm);
   }
 
   public Command readyShooter() {

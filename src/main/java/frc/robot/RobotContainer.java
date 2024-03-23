@@ -247,7 +247,7 @@ public class RobotContainer {
     drive.setPose(new Pose2d(1, 1, new Rotation2d(1, 1)));
     autoCommandBuilder =
         new AutoCommandBuilder(
-            drive, noteVision, shooter, intake, arm, beamBreak::detectNote, shooterStateHelpers);
+            drive, noteVision, shooter, intake, arm, beamBreak, shooterStateHelpers);
 
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
     configureAutoChooser();
@@ -303,7 +303,7 @@ public class RobotContainer {
                     () -> shooter.runVelocity(ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC.get()),
                     shooter)));
 
-    NamedCommands.registerCommand("pickup note", autoCommandBuilder.pickupNoteVisibleNote());
+    NamedCommands.registerCommand("pickup note", autoCommandBuilder.pickupVisibleNote());
 
     NamedCommands.registerCommand("shoot auto", autoCommandBuilder.autoShoot());
   }
@@ -346,7 +346,7 @@ public class RobotContainer {
         .disableHeadingControl()
         .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
 
-    controllerLogic.visionIntake().whileTrue(autoCommandBuilder.pickupNoteVisibleNote());
+    controllerLogic.visionIntake().whileTrue(autoCommandBuilder.driveIntoVisibleNote());
     controllerLogic.leftSpeakerPathFind().whileTrue(DriveToSpeaker.left(drive, shooter, arm));
     controllerLogic.centerSpeakerPathFind().whileTrue(DriveToSpeaker.center(drive, shooter, arm));
     controllerLogic.rightSpeakerPathFind().whileTrue(DriveToSpeaker.right(drive, shooter, arm));
@@ -458,7 +458,7 @@ public class RobotContainer {
                     })
                 .ignoringDisable(true));
 
-    autoChooser.addOption("test note pickup", autoCommandBuilder.pickupNoteVisibleNote());
+    autoChooser.addOption("test note pickup", autoCommandBuilder.pickupVisibleNote());
 
     final SysIdBuilder sysIdBuilder = new SysIdBuilder(autoChooser);
 

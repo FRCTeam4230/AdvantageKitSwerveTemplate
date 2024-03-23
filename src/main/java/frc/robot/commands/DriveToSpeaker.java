@@ -6,10 +6,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import frc.robot.commands.auto.AutoConstants;
-import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.arm.ArmSubsystem;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.ShooterSubsystem;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.FieldConstants;
@@ -66,13 +64,13 @@ public class DriveToSpeaker {
   private static Command builder(
       Drive drive, ShooterSubsystem shooter, ArmSubsystem arm, Pose2d redPose, Pose2d bluePose) {
     return new ConditionalCommand(
-            gotoShootingPose(drive, redPose),
-            gotoShootingPose(drive, bluePose),
-            AllianceFlipUtil::shouldFlip)
-        .alongWith(
-            ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get)
-                .alongWith(
-                    ShooterCommands.runSpeed(
-                        shooter, ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC::get)));
+        gotoShootingPose(drive, redPose),
+        gotoShootingPose(drive, bluePose),
+        AllianceFlipUtil::shouldFlip);
+    //        .alongWith(
+    //            ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get)
+    //                .alongWith(
+    //                    ShooterCommands.runSpeed(
+    //                        shooter, ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC::get)));
   }
 }

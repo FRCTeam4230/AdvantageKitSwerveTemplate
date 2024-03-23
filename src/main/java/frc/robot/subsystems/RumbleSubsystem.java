@@ -11,9 +11,9 @@ import java.util.function.BooleanSupplier;
 public class RumbleSubsystem extends SubsystemBase {
   private record RumblePulse(double durationSeconds, double strength) {}
 
-  private static final RumblePulse TIME = new RumblePulse(1, 0.5);
-  private static final RumblePulse BEAM_BREAM = new RumblePulse(0.3, 0.8);
-  private static final double NOTE_VISION_STRENGTH = 0.05;
+  private static final RumblePulse TIME = new RumblePulse(1, 1);
+  private static final RumblePulse BEAM_BREAM = new RumblePulse(0.3, 1);
+  private static final double NOTE_VISION_STRENGTH = 0.03;
 
   private final XboxController[] controllers;
 
