@@ -417,6 +417,14 @@ public class RobotContainer {
             ArmCommands.autoArmToPosition(
                 arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get));
     controllerLogic
+        .multiDistanceShot()
+        .whileTrue(
+            new MultiDistanceShot(
+                drive::getPose,
+                FieldConstants.Speaker.centerSpeakerOpening.getTranslation(),
+                shooter,
+                arm));
+    controllerLogic
         .runShooter()
         .whileTrue(
             ShooterCommands.runSpeed(

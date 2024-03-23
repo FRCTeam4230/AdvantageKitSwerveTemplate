@@ -48,7 +48,7 @@ public class ControllerLogic {
   }
 
   public Trigger armPodiumPos() {
-    return secondController.povRight();
+    return new Trigger(() -> false);
   }
 
   public double getLeftClimberSpeed() {
@@ -132,6 +132,10 @@ public class ControllerLogic {
   }
 
   public Trigger climbAlign() {
-    return driverController.povLeft();
+    return driverController.povRight();
+  }
+
+  public Trigger multiDistanceShot() {
+    return secondController.povRight();
   }
 }

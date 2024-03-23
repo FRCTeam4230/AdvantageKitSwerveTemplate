@@ -41,7 +41,7 @@ public final class ShooterConstants {
 
   public static final ShooterTune CURRENT_TUNE =
       new ShooterTune(
-          new FlywheelConstants(0.0508, 0.0196, 1E-5), new FlywheelConstants(0.1828, 0.0209, 1E-5));
+          new FlywheelConstants(0.0508, 0.0196, 5E-6), new FlywheelConstants(0.1828, 0.0207, 5E-6));
 
   public static final class FlywheelModelConstants {
     public static final class Top {
