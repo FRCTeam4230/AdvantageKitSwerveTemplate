@@ -368,7 +368,9 @@ public class RobotContainer {
 
     controllerLogic
         .resetRobotPoseAngle()
-        .onTrue(AdjustPositionCommands.setRotation(drive, () -> new Rotation2d(0)));
+        .onTrue(
+            AdjustPositionCommands.setRotation(
+                drive, () -> AllianceFlipUtil.apply(new Rotation2d(0))));
     controllerLogic
         .toggleVision()
         .toggleOnTrue(

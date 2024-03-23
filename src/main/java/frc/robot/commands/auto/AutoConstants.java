@@ -10,7 +10,6 @@ import frc.robot.util.FieldConstants;
 import frc.robot.util.LoggedTunableNumber;
 import frc.robot.util.TunableNumberWrapper;
 import java.lang.invoke.MethodHandles;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -80,14 +79,22 @@ public class AutoConstants {
     public static final Pair<Translation2d, Translation2d> STAGE =
         new Pair<>(new Translation2d(4.3, 4.7), new Translation2d(5.3, 3.7));
     public static final Pair<Translation2d, Translation2d> SOURCE_SIDE_NEXT_TO_STAGE =
-            new Pair<>(new Translation2d(5.7, 1.8), new Translation2d(2.1, 3.8));
+        new Pair<>(new Translation2d(5.7, 1.8), new Translation2d(2.1, 3.8));
     public static final Pair<Translation2d, Translation2d> CLOSE_NOTES =
         new Pair<>(new Translation2d(2, 9), new Translation2d(3.2, 3.8));
   }
 
-  public static List<Pair<Translation2d, Translation2d>> createDynamicObstaclesList(Pair<Translation2d, Translation2d>... zones) {
-    return Stream.concat(Arrays.stream(zones),
-      Arrays.stream(zones).map(zone -> new Pair<Translation2d, Translation2d>(AllianceFlipUtil.convertToRed(zone.getFirst()), AllianceFlipUtil.convertToRed(zone.getSecond())))).toList();
+  public static List<Pair<Translation2d, Translation2d>> createDynamicObstaclesList(
+      Pair<Translation2d, Translation2d>... zones) {
+    return Stream.concat(
+            Arrays.stream(zones),
+            Arrays.stream(zones)
+                .map(
+                    zone ->
+                        new Pair<Translation2d, Translation2d>(
+                            AllianceFlipUtil.convertToRed(zone.getFirst()),
+                            AllianceFlipUtil.convertToRed(zone.getSecond()))))
+        .toList();
   }
 
   private static final Pose2d[] startingPoses = {

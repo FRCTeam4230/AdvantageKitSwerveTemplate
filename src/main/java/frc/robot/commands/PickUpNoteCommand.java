@@ -4,6 +4,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -63,7 +64,9 @@ public class PickUpNoteCommand extends Command {
             DriveConstants.NOTE_PICKUP_MIN_SPEED.get(),
             DriveConstants.NOTE_PICKUP_MAX_SPEED.get());
 
-    if (distanceToNote < 1 && !drive.getThetaController().atGoal()) {
+    if (distanceToNote < 1
+        && Math.abs(drive.getThetaController().getPositionError())
+            > Units.degreesToRadians(DriveConstants.HeadingControllerConstants.NOTE_PICKUP_TOLERANCE.get())) {
       speed = 0;
     }
 

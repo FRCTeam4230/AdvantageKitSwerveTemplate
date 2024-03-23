@@ -128,7 +128,8 @@ public class Drive extends SubsystemBase {
         targetPose -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
 
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
-    thetaController.setTolerance(Units.degreesToRadians(5));
+    thetaController.setTolerance(
+        Units.degreesToRadians(HeadingControllerConstants.TOLERANCE.get()));
 
     /*
      the sim vision starts at 45 deg for some reason,
@@ -204,6 +205,8 @@ public class Drive extends SubsystemBase {
   private void updateControllerConstants() {
     thetaController.setP(HeadingControllerConstants.kP.get());
     thetaController.setD(HeadingControllerConstants.kD.get());
+    thetaController.setTolerance(
+        Units.degreesToRadians(HeadingControllerConstants.TOLERANCE.get()));
   }
 
   /**
