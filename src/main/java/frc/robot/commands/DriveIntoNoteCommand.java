@@ -17,14 +17,28 @@ public class DriveIntoNoteCommand extends Command {
   private final Drive drive;
   private final Supplier<Optional<Translation2d>> relativeNoteSupplier;
   private final BooleanSupplier hasNote;
+  private final BooleanSupplier armDown;
+  private final double scanRadPerSec;
 
   public DriveIntoNoteCommand(
       Drive drive,
       Supplier<Optional<Translation2d>> relativeNoteSupplier,
-      BooleanSupplier hasNote) {
+      BooleanSupplier hasNote,
+      BooleanSupplier armDown) {
+    this(drive, relativeNoteSupplier, hasNote, armDown, 0);
+  }
+
+  public DriveIntoNoteCommand(
+      Drive drive,
+      Supplier<Optional<Translation2d>> relativeNoteSupplier,
+      BooleanSupplier hasNote,
+      BooleanSupplier armDown,
+      double scanRadPerSec) {
     this.drive = drive;
     this.relativeNoteSupplier = relativeNoteSupplier;
     this.hasNote = hasNote;
+    this.armDown = armDown;
+    this.scanRadPerSec = scanRadPerSec;
     // each subsystem used by the command must be passed into the
     // addRequirements() method (which takes a vararg of Subsystem)
     addRequirements(this.drive);
@@ -38,19 +52,15 @@ public class DriveIntoNoteCommand extends Command {
     var currentNote = relativeNoteSupplier.get();
 
     if (currentNote.isEmpty()) {
-      drive.runVelocity(ChassisSpeeds.fromRobotRelativeSpeeds(0, 0, 4, new Rotation2d()));
+      drive.runVelocity(
+          ChassisSpeeds.fromRobotRelativeSpeeds(0, 0, scanRadPerSec, new Rotation2d()));
       return;
     }
 
     var angle = currentNote.get().getAngle();
     double distanceToNote = currentNote.get().getNorm();
 
-    var omega =
-        drive
-            .getThetaController()
-            .calculate(
-                drive.getPose().getRotation().getRadians(),
-                drive.getPose().getRotation().getRadians() + angle.getRadians());
+    var omega = drive.getThetaController().calculate(0, angle.getRadians());
     if (drive.getThetaController().atGoal()) {
       omega = 0;
     }
@@ -61,10 +71,12 @@ public class DriveIntoNoteCommand extends Command {
             DriveConstants.NOTE_PICKUP_MIN_SPEED.get(),
             DriveConstants.NOTE_PICKUP_MAX_SPEED.get());
 
-    if (distanceToNote < 1.2
-        && Math.abs(drive.getThetaController().getPositionError())
-            > Units.degreesToRadians(
-                DriveConstants.HeadingControllerConstants.NOTE_PICKUP_TOLERANCE.get())) {
+    final boolean nearNote = distanceToNote < 1.2;
+    final boolean pointedAtNote =
+        Math.abs(drive.getThetaController().getPositionError())
+            < Units.degreesToRadians(
+                DriveConstants.HeadingControllerConstants.NOTE_PICKUP_TOLERANCE.get());
+    if (nearNote && (!armDown.getAsBoolean() || !pointedAtNote)) {
       speed = 0;
     }
 
@@ -73,6 +85,7 @@ public class DriveIntoNoteCommand extends Command {
 
     var speeds = ChassisSpeeds.fromRobotRelativeSpeeds(speedx, speedy, omega, new Rotation2d());
     Logger.recordOutput("note pickup/omega", omega);
+    Logger.recordOutput("note pickup/pid offset", drive.getThetaController().getPositionError());
     Logger.recordOutput("note pickup/speed", speed);
 
     drive.runVelocity(speeds);

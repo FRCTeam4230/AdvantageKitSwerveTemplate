@@ -286,11 +286,17 @@ public class NoteVisionSubsystem extends SubsystemBase {
     return new Pose2d(noteInRobotSpace, new Rotation2d()).relativeTo(robotPose).getTranslation();
   }
 
-  public static Optional<Translation2d> getClosestNote(Translation2d[] notes) {
+  public static double closenessRating(Translation2d note) {
+    return note.getNorm()
+        + Math.abs(note.getAngle().getRadians())
+            * NoteVisionConstants.ROTATION_CLOSENESS_WEIGHT_RAD_TO_M;
+  }
+
+  public static Optional<Translation2d> getTargetNote(Translation2d[] notes) {
     Optional<Translation2d> closest = Optional.empty();
 
     for (Translation2d note : notes) {
-      if (closest.isEmpty() || note.getNorm() < closest.get().getNorm()) {
+      if (closest.isEmpty() || closenessRating(note) < closenessRating(closest.get())) {
         closest = Optional.of(note);
       }
     }
@@ -344,7 +350,7 @@ public class NoteVisionSubsystem extends SubsystemBase {
   }
 
   public Optional<Translation2d> getCurrentNote() {
-    return NoteVisionSubsystem.getClosestNote(getNotesInRelativeSpace());
+    return NoteVisionSubsystem.getTargetNote(getNotesInRelativeSpace());
   }
 
   /**

@@ -27,11 +27,11 @@ public class DriveToSpeaker {
     }
 
     private static final Pose2d LEFT =
-        getShootingPose2dFromTranslation(AutoConstants.ShootingTranslations.A);
+        getShootingPose2dFromTranslation(AutoConstants.ShootingTranslations.SPEAKER_AMP_SIDE);
     private static final Pose2d CENTER =
-        getShootingPose2dFromTranslation(AutoConstants.ShootingTranslations.B);
+        getShootingPose2dFromTranslation(AutoConstants.ShootingTranslations.SPEAKER_CENTER);
     private static final Pose2d RIGHT =
-        getShootingPose2dFromTranslation(AutoConstants.ShootingTranslations.C);
+        getShootingPose2dFromTranslation(AutoConstants.ShootingTranslations.SPEAKER_SOURCE_SIDE);
   }
 
   private class Red {

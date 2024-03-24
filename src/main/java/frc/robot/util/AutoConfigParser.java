@@ -8,7 +8,7 @@ import java.util.*;
 
 public class AutoConfigParser {
   public record AutoPart(
-      Translation2d note,
+      Optional<Translation2d> note,
       Translation2d shootingTranslation,
       Optional<Pose2d> notePickupPose,
       Optional<List<Pair<Translation2d, Translation2d>>> obstacles) {}
@@ -24,13 +24,13 @@ public class AutoConfigParser {
   public static final Map<Character, Translation2d> shootingPoseMap = new HashMap<>();
 
   static {
-    shootingPoseMap.put('a', AutoConstants.ShootingTranslations.A);
-    shootingPoseMap.put('b', AutoConstants.ShootingTranslations.B);
-    shootingPoseMap.put('c', AutoConstants.ShootingTranslations.C);
-    shootingPoseMap.put('d', AutoConstants.ShootingTranslations.D);
-    shootingPoseMap.put('e', AutoConstants.ShootingTranslations.E);
-    shootingPoseMap.put('f', AutoConstants.ShootingTranslations.F);
-    shootingPoseMap.put('g', AutoConstants.ShootingTranslations.G);
+    shootingPoseMap.put('a', AutoConstants.ShootingTranslations.SPEAKER_AMP_SIDE);
+    shootingPoseMap.put('b', AutoConstants.ShootingTranslations.SPEAKER_CENTER);
+    shootingPoseMap.put('c', AutoConstants.ShootingTranslations.SPEAKER_SOURCE_SIDE);
+    shootingPoseMap.put('d', AutoConstants.ShootingTranslations.BETWEEN_0_1);
+    shootingPoseMap.put('e', AutoConstants.ShootingTranslations.BETWEEN_1_2);
+    shootingPoseMap.put('f', AutoConstants.ShootingTranslations.STAGE_AMP_SIDE);
+    shootingPoseMap.put('g', AutoConstants.ShootingTranslations.STAGE_SOURCE_SIDE);
   }
 
   public static final Map<Character, Pair<Translation2d, Translation2d>> obstacleMap =
@@ -73,17 +73,23 @@ public class AutoConfigParser {
         if (shootingPose.isEmpty()) {
           return Optional.empty();
         }
-        for (Translation2d note :
-            part.substring(1, part.length() - 1)
-                .chars()
-                .map(Character::getNumericValue)
-                .mapToObj(i -> AutoConstants.AUTO_NOTES[i])
-                .toList()) {
+        for (int noteCharInt : part.substring(1, part.length() - 1).chars().toArray()) {
           final var finalCurrentObstacles = currentObstacles;
+
+          Optional<Translation2d> note;
+
+          if (noteCharInt == '?') {
+            note = Optional.empty();
+          } else {
+            note =
+                Optional.of(
+                    AllianceFlipUtil.apply(
+                        AutoConstants.AUTO_NOTES[Character.getNumericValue(noteCharInt)]));
+          }
 
           output.add(
               new AutoPart(
-                  AllianceFlipUtil.apply(note),
+                  note,
                   AllianceFlipUtil.apply(shootingPose.get()),
                   pickupPose.map(AllianceFlipUtil::apply),
                   finalCurrentObstacles));

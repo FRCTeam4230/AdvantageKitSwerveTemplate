@@ -22,6 +22,7 @@ import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
@@ -161,7 +162,9 @@ public class RobotContainer {
         var simApriltagVisionIO =
             new AprilTagVisionIOPhotonVisionSIM(
                 "photonCamera1",
-                new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0)),
+                new Transform3d(
+                    new Translation3d(-0.5, 0.0, 0.5),
+                    new Rotation3d(0, 0, Units.degreesToRadians(180))),
                 drive::getDrive);
 
         VisionSystemSim noteVisionSimSystem = new VisionSystemSim("notes");
@@ -328,17 +331,8 @@ public class RobotContainer {
     controllerLogic
         .ampPathFind()
         .whileTrue(
-            DriveToPointBuilder.driveTo(FieldConstants.ampScoringPose)
-                .alongWith(
-                    DriveToPointBuilder.waitUntilNearPose(
-                        drive::getPose,
-                        () -> AllianceFlipUtil.apply(FieldConstants.ampScoringPose),
-                        1))
-                .andThen(
-                    ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get)
-                        .alongWith(
-                            ShooterCommands.runSpeed(
-                                shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get))));
+            DriveToPointBuilder.driveToAndAlign(
+                drive, FieldConstants.ampScoringPose, 0.05, Units.degreesToRadians(3), true));
     controllerLogic.pointAtSpeaker().onTrue(Commands.runOnce(driveMode::enableSpeakerHeading));
     controllerLogic.climbAlign().onTrue(Commands.runOnce(driveMode::enableStageHeading));
     controllerLogic.lobbing().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));

@@ -41,9 +41,9 @@ public class DriveToPointBuilder {
       double distanceTolerance,
       double angleToleranceRad,
       boolean flip) {
-    final var flippedTargetPose = flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
     return Commands.runEnd(
             () -> {
+              final var flippedTargetPose = flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
               final var pos = drive.getPose();
 
               final var translationOffset =
@@ -69,6 +69,7 @@ public class DriveToPointBuilder {
             drive)
         .until(
             () -> {
+              final var flippedTargetPose = flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
               final var pos = drive.getPose();
               return pos.getTranslation().getDistance(flippedTargetPose.getTranslation())
                       < distanceTolerance
@@ -83,8 +84,9 @@ public class DriveToPointBuilder {
       double distanceTolerance,
       double angleToleranceRad,
       boolean flip) {
-    return driveToNoFlip(targetPose)
-        .andThen(align(drive, targetPose, distanceTolerance, angleToleranceRad, flip));
+    final Command pathfindingPart = flip ? driveTo(targetPose) : driveToNoFlip(targetPose);
+    return pathfindingPart.andThen(
+        align(drive, targetPose, distanceTolerance, angleToleranceRad, flip));
   }
 
   public static Command waitUntilNearPose(
