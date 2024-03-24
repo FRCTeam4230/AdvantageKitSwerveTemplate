@@ -120,11 +120,14 @@ public class NoteVisionSubsystem extends SubsystemBase {
   private void expireNotes() {
     notesInOdometrySpace =
         Arrays.stream(notesInOdometrySpace)
-            .filter(
-                note ->
-                    note.timestamp
-                        > Logger.getTimestamp() / 1e6 - NoteVisionConstants.NOTE_EXPIRATION)
+            .filter(note -> note.timestamp > Logger.getTimestamp() / 1e6 - getCurrentExpiration())
             .toArray(TimestampedNote[]::new);
+  }
+
+  private double getCurrentExpiration() {
+    return Optional.ofNullable(getCurrentCommand()).isPresent()
+        ? NoteVisionConstants.NOTE_EXPIRATION
+        : NoteVisionConstants.IDLE_NOTE_EXPIRATION;
   }
 
   private static void splitOldNotesInCameraView(

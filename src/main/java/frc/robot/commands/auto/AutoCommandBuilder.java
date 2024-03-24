@@ -56,11 +56,14 @@ public class AutoCommandBuilder {
   }
 
   public Command driveIntoVisibleNote() {
-    return new DriveIntoNoteCommand(
-        drive,
-        noteVision::getCurrentNote,
-        beamBreak::detectNote,
-        () -> arm.getPositionRad() < NoteVisionConstants.MAX_ARM_POS_RAD);
+    final Command output =
+        new DriveIntoNoteCommand(
+            drive,
+            noteVision::getCurrentNote,
+            beamBreak::detectNote,
+            () -> arm.getPositionRad() < NoteVisionConstants.MAX_ARM_POS_RAD);
+    output.addRequirements(noteVision);
+    return output;
   }
 
   public Command intakeByVisionNote(Supplier<Optional<Translation2d>> noteSupplier) {
@@ -83,15 +86,24 @@ public class AutoCommandBuilder {
     return pickupSuppliedNote(relativeNoteSupplier, 0);
   }
 
+  public Command pickupSuppliedNoteFailWithNoNote(
+      Supplier<Optional<Translation2d>> relativeNoteSupplier) {
+    return pickupSuppliedNote(relativeNoteSupplier)
+        .until(() -> relativeNoteSupplier.get().isEmpty());
+  }
+
   public Command pickupSuppliedNote(
       Supplier<Optional<Translation2d>> relativeNoteSupplier, double scanRadPerSec) {
-    return new DriveIntoNoteCommand(
-            drive,
-            relativeNoteSupplier,
-            beamBreak::detectNote,
-            () -> arm.getPositionRad() < NoteVisionConstants.MAX_ARM_POS_RAD,
-            scanRadPerSec)
-        .alongWith(intakeByVisionNote(relativeNoteSupplier));
+    final Command out =
+        new DriveIntoNoteCommand(
+                drive,
+                relativeNoteSupplier,
+                beamBreak::detectNote,
+                () -> arm.getPositionRad() < NoteVisionConstants.MAX_ARM_POS_RAD,
+                scanRadPerSec)
+            .alongWith(intakeByVisionNote(relativeNoteSupplier));
+    out.addRequirements(noteVision);
+    return out;
   }
 
   public Command fallbackPickup() {
@@ -102,7 +114,8 @@ public class AutoCommandBuilder {
                     AllianceFlipUtil.apply(note).getX()
                         < FieldConstants.StagingLocations.centerlineX
                             + AutoConstants.AutoNoteOffsetThresholds.FALLBACK_MAX_PAST_CENTER
-                                .get()), 2);
+                                .get()),
+        2);
   }
 
   private Optional<Translation2d> getVisionNoteByTranslation(Translation2d note, double threshold) {
@@ -122,7 +135,7 @@ public class AutoCommandBuilder {
             () -> noteVision.setVirtualAutoNote(note, AutoConstants.DISTANCE_TO_TRUST_CAMERA.get()),
             noteVision)
         .andThen(
-            pickupSuppliedNote(
+            pickupSuppliedNoteFailWithNoNote(
                 () -> {
                   var trackedNote = noteVision.getVirtualAutoNote();
 
@@ -229,11 +242,7 @@ public class AutoCommandBuilder {
   }
 
   public Command readyShooterDistance(Pose2d shootingPose) {
-    return new MultiDistanceShot(
-        () -> shootingPose,
-        FieldConstants.Speaker.centerSpeakerOpening.getTranslation(),
-        shooter,
-        arm);
+    return MultiDistanceShot.forSpeaker(() -> shootingPose, shooter, arm);
   }
 
   private void setObstacles(List<Pair<Translation2d, Translation2d>> zones) {

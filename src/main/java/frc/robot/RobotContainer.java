@@ -333,17 +333,21 @@ public class RobotContainer {
         .whileTrue(
             DriveToPointBuilder.driveToAndAlign(
                 drive, FieldConstants.ampScoringPose, 0.05, Units.degreesToRadians(3), true));
-    controllerLogic.pointAtSpeaker().onTrue(Commands.runOnce(driveMode::enableSpeakerHeading));
+    controllerLogic
+        .pointAtSpeaker()
+        .whileTrue(
+            Commands.startEnd(driveMode::enableSpeakerHeading, driveMode::disableHeadingControl));
+    controllerLogic.pointAtSource().onTrue(Commands.runOnce(driveMode::enableSourceHeading));
     controllerLogic.climbAlign().onTrue(Commands.runOnce(driveMode::enableStageHeading));
-    controllerLogic.lobbing().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));
+    controllerLogic.lobbingAlign().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));
     controllerLogic
         .disableHeadingControl()
         .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
 
-    controllerLogic.visionIntake().whileTrue(autoCommandBuilder.driveIntoVisibleNote());
-    controllerLogic.leftSpeakerPathFind().whileTrue(DriveToSpeaker.left(drive, shooter, arm));
-    controllerLogic.centerSpeakerPathFind().whileTrue(DriveToSpeaker.center(drive, shooter, arm));
-    controllerLogic.rightSpeakerPathFind().whileTrue(DriveToSpeaker.right(drive, shooter, arm));
+    controllerLogic
+        .visionIntake()
+        .and(new Trigger(() -> noteVision.getCurrentNote().isPresent()))
+        .whileTrue(autoCommandBuilder.driveIntoVisibleNote());
 
     controllerLogic
         .extakeTrigger()
@@ -358,10 +362,7 @@ public class RobotContainer {
                         IntakeCommands.manualIntakeCommand(
                             intake, controllerLogic::getIntakeSpeed)),
                 IntakeCommands.manualIntakeCommand(intake, controllerLogic::getIntakeSpeed)
-                    .until(beamBreak::detectNote)
-                    .andThen(
-                        ArmCommands.autoArmToPosition(
-                            arm, ArmConstants.Positions.SPEAKER_POS_RAD::get)),
+                    .until(beamBreak::detectNote),
                 beamBreak::detectNote));
 
     // backup in case arm or shooter can't reach setpoint
@@ -401,23 +402,29 @@ public class RobotContainer {
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
     controllerLogic
         .armSpeakerPos()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get));
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get))
+        .whileTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC::get));
+    controllerLogic
+        .armSourcePos()
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SOURCE_POS_RAD::get));
     controllerLogic
         .armAmpPos()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get));
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get))
+        .whileTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .armPodiumPos()
         .onTrue(
             ArmCommands.autoArmToPosition(
-                arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get));
+                arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get))
+        .whileTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.PODIUM_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .multiDistanceShot()
-        .whileTrue(
-            new MultiDistanceShot(
-                drive::getPose,
-                FieldConstants.Speaker.centerSpeakerOpening.getTranslation(),
-                shooter,
-                arm));
+        .whileTrue(MultiDistanceShot.forSpeaker(drive::getPose, shooter, arm));
+    controllerLogic.runShooterForLobbing()
+        .whileTrue(ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_LOB_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .runShooter()
         .whileTrue(

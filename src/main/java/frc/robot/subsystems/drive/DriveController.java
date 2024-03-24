@@ -120,4 +120,8 @@ public class DriveController {
                 poseSupplier.get().getY()
                     - AllianceFlipUtil.apply(FieldConstants.ampLobbingTarget).getY()));
   }
+
+  public void enableSourceHeading() {
+    setHeadingSupplier(() -> AllianceFlipUtil.apply(Rotation2d.fromDegrees(-60)));
+  }
 }

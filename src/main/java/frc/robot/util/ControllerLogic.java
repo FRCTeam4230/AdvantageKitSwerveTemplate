@@ -47,6 +47,10 @@ public class ControllerLogic {
     return secondController.povLeft();
   }
 
+  public Trigger armSourcePos() {
+    return secondController.a();
+  }
+
   public Trigger armPodiumPos() {
     return new Trigger(() -> false);
   }
@@ -68,7 +72,11 @@ public class ControllerLogic {
   }
 
   public Trigger runShooter() {
-    return secondController.rightBumper();
+    return new Trigger(() -> false);
+  }
+
+  public Trigger runShooterForLobbing() {
+    return secondController.b();
   }
 
   public Trigger forceIntake() {
@@ -84,7 +92,11 @@ public class ControllerLogic {
   }
 
   public Trigger pointAtSpeaker() {
-    return driverController.povLeft();
+    return driverController.rightStick();
+  }
+
+  public Trigger pointAtSource() {
+    return driverController.povRight();
   }
 
   // +x means forward for the robot
@@ -108,34 +120,22 @@ public class ControllerLogic {
   }
 
   public Trigger ampPathFind() {
-    return driverController.rightStick();
+    return driverController.y();
   }
 
   public Trigger visionIntake() {
-    return driverController.leftStick();
+    return driverController.x();
   }
 
-  public Trigger leftSpeakerPathFind() {
-    return driverController.leftBumper().and(driverController.rightBumper().negate());
-  }
-
-  public Trigger rightSpeakerPathFind() {
-    return driverController.rightBumper().and(driverController.leftBumper().negate());
-  }
-
-  public Trigger centerSpeakerPathFind() {
-    return driverController.leftBumper().and(driverController.rightBumper());
-  }
-
-  public Trigger lobbing() {
+  public Trigger lobbingAlign() {
     return driverController.povUp();
   }
 
   public Trigger climbAlign() {
-    return driverController.povRight();
+    return driverController.povLeft();
   }
 
   public Trigger multiDistanceShot() {
-    return secondController.povRight();
+    return secondController.rightBumper();
   }
 }
