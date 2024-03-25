@@ -71,12 +71,12 @@ MINIMUM_CONTOUR_AREA = 500
 # The threshold for a contour to be considered a disk
 CONTOUR_DISK_THRESHOLD = 0.9
 
-NT_SERVER_MODE = True
+NT_SERVER_MODE = False
 
 NT_CONNECT_TO_SIM = True
 
 if NT_CONNECT_TO_SIM:
-    NetworkTableInstance.getDefault().setServer("172.29.176.1")
+    NetworkTableInstance.getDefault().setServer("192.168.7.233")
 else:
     NetworkTableInstance.getDefault().setServerTeam(4230)
 
@@ -150,7 +150,7 @@ def get_yaw_and_pitch_from_contour(contour: np.ndarray) -> (float, float):
     center_y = int(moment["m01"] / moment["m00"])
 
     yaw = math.atan((CENTER_FRAME[0] - center_x) / PIXEL_DISTANCE[0])
-    pitch = math.atan((CENTER_FRAME[1] - center_y) / PIXEL_DISTANCE[1])
+    pitch = math.atan((center_y - CENTER_FRAME[1]) / PIXEL_DISTANCE[1])
 
     return yaw, pitch
 
@@ -218,17 +218,17 @@ def contour_is_note(contour: np.ndarray) -> bool:
 def handle_camera(config: CameraConfig, output_entry: ntcore.NetworkTableEntry):
     print("making streams: " + config.name)
     raw_output_stream = CameraServer.putVideo(
-        config.name + "-raw",
+        f"notes-{config.name}-raw",
         STREAM_RESOLUTION[1],
         STREAM_RESOLUTION[0]
     )
     filtered_output_stream = CameraServer.putVideo(
-        config.name + "-filtered",
+        f"notes-{config.name}-filtered",
         STREAM_RESOLUTION[1],
         STREAM_RESOLUTION[0]
     )
     processed_output_stream = CameraServer.putVideo(
-        config.name + "-processed",
+        f"notes-{config.name}-processed",
         STREAM_RESOLUTION[1],
         STREAM_RESOLUTION[0]
     )

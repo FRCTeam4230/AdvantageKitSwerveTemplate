@@ -40,7 +40,6 @@ public class NoteVisionConstants {
 
   public static final double NOTE_GROUPING_TOLERANCE = 0.5;
 
-  public static final double MIN_CAMERA_DISTANCE = 0.7;
   public static final double MAX_CAMERA_DISTANCE = 5;
 
   public static final double NOTE_EXPIRATION = 2;
