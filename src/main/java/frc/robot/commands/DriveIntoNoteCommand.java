@@ -45,7 +45,9 @@ public class DriveIntoNoteCommand extends Command {
   }
 
   @Override
-  public void initialize() {}
+  public void initialize() {
+    drive.resetThetaController();
+  }
 
   @Override
   public void execute() {
@@ -60,7 +62,13 @@ public class DriveIntoNoteCommand extends Command {
     var angle = currentNote.get().getAngle();
     double distanceToNote = currentNote.get().getNorm();
 
-    var omega = drive.getThetaController().calculate(0, angle.getRadians());
+    var omega =
+        drive
+                .getThetaController()
+                .calculate(
+                    drive.getRotation().getRadians(),
+                    drive.getRotation().getRadians() + angle.getRadians())
+            + drive.getThetaController().getSetpoint().velocity;
     if (drive.getThetaController().atGoal()) {
       omega = 0;
     }
@@ -86,7 +94,14 @@ public class DriveIntoNoteCommand extends Command {
     var speeds = ChassisSpeeds.fromRobotRelativeSpeeds(speedx, speedy, omega, new Rotation2d());
     Logger.recordOutput("note pickup/omega", omega);
     Logger.recordOutput("note pickup/pid offset", drive.getThetaController().getPositionError());
+    Logger.recordOutput(
+        "note pickup/pid setpoint", drive.getThetaController().getSetpoint().position);
+    Logger.recordOutput(
+        "note pickup/pid target", drive.getRotation().getRadians() + angle.getRadians());
     Logger.recordOutput("note pickup/speed", speed);
+    Logger.recordOutput("note pickup/note angle", angle);
+    Logger.recordOutput(
+        "note pickup/note distance", currentNote.map(Translation2d::getNorm).orElse(0.));
 
     drive.runVelocity(speeds);
   }

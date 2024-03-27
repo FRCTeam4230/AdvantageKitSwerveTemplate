@@ -41,41 +41,52 @@ public class DriveToPointBuilder {
       double distanceTolerance,
       double angleToleranceRad,
       boolean flip) {
-    return Commands.runEnd(
-            () -> {
-              final var flippedTargetPose = flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
-              final var pos = drive.getPose();
+    return Commands.sequence(
+        Commands.runOnce(drive::resetThetaController),
+        Commands.runEnd(
+                () -> {
+                  final var flippedTargetPose =
+                      flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
+                  final var pos = drive.getPose();
 
-              final var translationOffset =
-                  flippedTargetPose.getTranslation().minus(pos.getTranslation());
-              final var rotationOffset = flippedTargetPose.getRotation().minus(drive.getRotation());
+                  final var translationOffset =
+                      flippedTargetPose.getTranslation().minus(pos.getTranslation());
 
-              var omega = drive.getThetaController().calculate(0, rotationOffset.getRadians());
-              final var speedX =
-                  DriveConstants.PPtranslationConstants.kP * translationOffset.getX();
-              final var speedY =
-                  DriveConstants.PPtranslationConstants.kP * translationOffset.getY();
+                  var omega =
+                      drive
+                              .getThetaController()
+                              .calculate(
+                                  drive.getRotation().getRadians(),
+                                  flippedTargetPose.getRotation().getRadians())
+                          + drive.getThetaController().getSetpoint().velocity;
+                  final var speedX =
+                      DriveConstants.PPtranslationConstants.kP * translationOffset.getX();
+                  final var speedY =
+                      DriveConstants.PPtranslationConstants.kP * translationOffset.getY();
 
-              if (drive.getThetaController().atGoal()) {
-                omega = 0;
-              }
+                  if (drive.getThetaController().atGoal()) {
+                    omega = 0;
+                  }
 
-              final var chassisSpeeds =
-                  ChassisSpeeds.fromFieldRelativeSpeeds(speedX, speedY, omega, pos.getRotation());
+                  final var chassisSpeeds =
+                      ChassisSpeeds.fromFieldRelativeSpeeds(
+                          speedX, speedY, omega, pos.getRotation());
 
-              drive.runVelocity(chassisSpeeds);
-            },
-            drive::stop,
-            drive)
-        .until(
-            () -> {
-              final var flippedTargetPose = flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
-              final var pos = drive.getPose();
-              return pos.getTranslation().getDistance(flippedTargetPose.getTranslation())
-                      < distanceTolerance
-                  && Math.abs(pos.getRotation().minus(flippedTargetPose.getRotation()).getRadians())
-                      < angleToleranceRad;
-            });
+                  drive.runVelocity(chassisSpeeds);
+                },
+                drive::stop,
+                drive)
+            .until(
+                () -> {
+                  final var flippedTargetPose =
+                      flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
+                  final var pos = drive.getPose();
+                  return pos.getTranslation().getDistance(flippedTargetPose.getTranslation())
+                          < distanceTolerance
+                      && Math.abs(
+                              pos.getRotation().minus(flippedTargetPose.getRotation()).getRadians())
+                          < angleToleranceRad;
+                }));
   }
 
   public static Command driveToAndAlign(

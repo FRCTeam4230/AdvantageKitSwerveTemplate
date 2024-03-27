@@ -20,6 +20,7 @@ import lombok.Setter;
 public class DriveController {
   @Getter private Optional<Supplier<Rotation2d>> headingSupplier = Optional.empty();
   @Setter private Supplier<Pose2d> poseSupplier = Pose2d::new;
+  @Setter private Runnable headingControlEnabledCallback = () -> {};
 
   /**
    * Sets the heading supplier that provides the desired heading for the robot.
@@ -27,6 +28,7 @@ public class DriveController {
    * @param headingSupplier The supplier that provides the desired heading.
    */
   public void setHeadingSupplier(Supplier<Rotation2d> headingSupplier) {
+    headingControlEnabledCallback.run();
     this.headingSupplier = Optional.of(headingSupplier);
   }
 
