@@ -64,15 +64,18 @@ CAMERA_CONFIGS = [
 
 HUE_SHIFT = 10
 # Define lower and upper bounds for orange color in HSV
-LOWER_ORANGE_HSV = [5, 150, 120]
-UPPER_ORANGE_HSV = [20, 255, 255]
+lower_orange_hsv = np.array([5, 150, 120])
+upper_orange_hsv = np.array([20, 255, 255])
 # The minimum contour area to detect a note
 MINIMUM_CONTOUR_AREA = 500
 # The threshold for a contour to be considered a disk
 CONTOUR_DISK_THRESHOLD = 0.9
+# how far down the image the contour would have to be in order to accept it if it is touching an edge
+EDGE_Y_THRESHOLD = 0.30 * RESOLUTION[1]
+# how many pixels the note can occupy
+MAX_CONTOUR_AREA = 0.20 * RESOLUTION[0] * RESOLUTION[1]
 
 NT_SERVER_MODE = False
-
 NT_CONNECT_TO_SIM = True
 
 if NT_CONNECT_TO_SIM:
@@ -87,16 +90,23 @@ upper_config_table = config_table.getSubTable("max")
 
 
 def publish_default_configs():
-    lower_config_table.getEntry("h").setInteger(LOWER_ORANGE_HSV[0]),
-    lower_config_table.getEntry("s").setInteger(LOWER_ORANGE_HSV[1]),
-    lower_config_table.getEntry("v").setInteger(LOWER_ORANGE_HSV[2]),
+    lower_config_table.getEntry("h").setInteger(lower_orange_hsv[0]),
+    lower_config_table.getEntry("s").setInteger(lower_orange_hsv[1]),
+    lower_config_table.getEntry("v").setInteger(lower_orange_hsv[2]),
 
-    upper_config_table.getEntry("h").setInteger(UPPER_ORANGE_HSV[0]),
-    upper_config_table.getEntry("s").setInteger(UPPER_ORANGE_HSV[1]),
-    upper_config_table.getEntry("v").setInteger(UPPER_ORANGE_HSV[2]),
+    upper_config_table.getEntry("h").setInteger(upper_orange_hsv[0]),
+    upper_config_table.getEntry("s").setInteger(upper_orange_hsv[1]),
+    upper_config_table.getEntry("v").setInteger(upper_orange_hsv[2]),
 
     config_table.getEntry("ellipse threshold").setDouble(CONTOUR_DISK_THRESHOLD)
     config_table.getEntry("exposure").setInteger(EXPOSURE_INDEX)
+
+
+
+
+def setup_nt_listeners():
+    listen_for_exposure()
+    listen_for_hsv()
 
 
 def listen_for_exposure():
@@ -114,20 +124,26 @@ def listen_for_exposure():
     )
 
 
-def get_lower_hsv():
-    return np.array([
-        lower_config_table.getEntry("h").getInteger(LOWER_ORANGE_HSV[0]),
-        lower_config_table.getEntry("s").getInteger(LOWER_ORANGE_HSV[1]),
-        lower_config_table.getEntry("v").getInteger(LOWER_ORANGE_HSV[2]),
-    ])
+def listen_for_hsv():
+    def update_thresholds(_, __, ___):
+        global lower_orange_hsv
+        lower_orange_hsv = np.array([
+            lower_config_table.getEntry("h").getInteger(lower_orange_hsv[0]),
+            lower_config_table.getEntry("s").getInteger(lower_orange_hsv[1]),
+            lower_config_table.getEntry("v").getInteger(lower_orange_hsv[2]),
+        ])
+
+        global upper_orange_hsv
+        upper_orange_hsv = np.array([
+            upper_config_table.getEntry("h").getInteger(upper_orange_hsv[0]),
+            upper_config_table.getEntry("s").getInteger(upper_orange_hsv[1]),
+            upper_config_table.getEntry("v").getInteger(upper_orange_hsv[2]),
+        ])
+
+    lower_config_table.addListener(ntcore.EventFlags.kValueAll, update_thresholds)
+    upper_config_table.addListener(ntcore.EventFlags.kValueAll, update_thresholds)
 
 
-def get_upper_hsv():
-    return np.array([
-        upper_config_table.getEntry("h").getInteger(UPPER_ORANGE_HSV[0]),
-        upper_config_table.getEntry("s").getInteger(UPPER_ORANGE_HSV[1]),
-        upper_config_table.getEntry("v").getInteger(UPPER_ORANGE_HSV[2]),
-    ])
 
 
 def set_exposure(path: str, exposure_index: int):
@@ -189,15 +205,40 @@ def is_contour_on_edge(contour: np.ndarray) -> bool:
 
     x, y, w, h = cv2.boundingRect(contour)
 
-    return x == 0 or x + w == RESOLUTION[0] or y + h == RESOLUTION[1]
+    below_edge_y_threshold = y > EDGE_Y_THRESHOLD
+
+    return (
+            below_edge_y_threshold and (
+            x == 0 or
+            x + w == RESOLUTION[0]
+    ) or y + h == RESOLUTION[1]
+    )
 
 
-def contour_is_note(contour: np.ndarray) -> bool:
+def get_contour_area(contour: np.ndarray, filtered_frame: np.ndarray) -> int:
+    contour_mask = np.zeros_like(filtered_frame)
+
+    cv2.drawContours(contour_mask, [contour], -1, (1,), thickness=cv2.FILLED)
+
+    contour_pixels = cv2.bitwise_and(filtered_frame, contour_mask)
+
+    return np.count_nonzero(contour_pixels)
+
+
+def is_contour_too_large(contour: np.ndarray, filtered_frame: np.ndarray) -> bool:
+    return get_contour_area(contour, filtered_frame) > MAX_CONTOUR_AREA
+
+
+def contour_is_note(contour: np.ndarray, filtered_frame: np.ndarray) -> bool:
     """
     Checks if the contour is shaped like a note
     :param contour: the contour to check
+    :param filtered_frame: the thresholded image that the contour came from
     :return: True if the contour is shaped like a note
     """
+
+    if is_contour_too_large(contour, filtered_frame):
+        return False
 
     if is_contour_on_edge(contour):
         return True
@@ -259,20 +300,22 @@ def handle_camera(config: CameraConfig, output_entry: ntcore.NetworkTableEntry):
             # Converts from BGR to HSV
             frame_hsv = rotate_hue(cv2.cvtColor(frame, cv2.COLOR_BGR2HSV))
             # Threshold the HSV image to get only orange colors
-            mask = cv2.inRange(frame_hsv, get_lower_hsv(), get_upper_hsv())
+            mask = cv2.inRange(frame_hsv, lower_orange_hsv, upper_orange_hsv)
             contours = find_contours(mask)
 
             angles = []
 
             if contours is not None:
                 contours = list(filter(is_contour_large_enough, contours))
-                for contour in filter(contour_is_note, contours):
-                    cv2.ellipse(frame, cv2.fitEllipse(contour), (255, 0, 255), 5)
-                    angles.append(get_yaw_and_pitch_from_contour(contour))
+                for contour in contours:
+                    if contour_is_note(contour, frame):
+                        cv2.ellipse(frame, cv2.fitEllipse(contour), (255, 0, 255), 5)
+                        angles.append(get_yaw_and_pitch_from_contour(contour))
+
                 cv2.drawContours(frame, contours, -1, (0, 255, 0), 4)
                 cv2.drawContours(frame, [cv2.convexHull(contour) for contour in contours], -1, (255, 0, 0), 3)
 
-            # format for n detections, [n pitches..., n yaws..., latency]
+            # format for n detections, [n pitches..., n yaws..., latency s]
             output_entry.setDoubleArray(
                 [a[1] for a in angles] +
                 [a[0] for a in angles] +
@@ -292,7 +335,7 @@ def main():
         NetworkTableInstance.getDefault().startClient4("note-vision-main")
 
     publish_default_configs()
-    listen_for_exposure()
+    setup_nt_listeners()
 
     print('making threads')
     threads = []
