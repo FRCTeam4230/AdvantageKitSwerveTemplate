@@ -56,7 +56,7 @@ public class InterpolationData {
     {12, 0.63, 320},
     {13, 0.66, 330},
     {13.1, 0.3, 280},
-          {100, 0.3, 280},
+    {100, 0.3, 280},
   };
 
   /** distance to speaker m, angle rad, velocity rad/s */
@@ -70,9 +70,9 @@ public class InterpolationData {
               })
           .toArray(double[][]::new);
 
-    public static final double[][] lobbingDistanceData = {
-            /* distance m to lobbing target, angle rad, velocity rad/s */
-            {0, 0, 350},
-            {100, 0, 350},
-    };
+  public static final double[][] lobbingDistanceData = {
+    /* distance m to lobbing target, angle rad, velocity rad/s */
+    {0, 0, 350},
+    {100, 0, 350},
+  };
 }

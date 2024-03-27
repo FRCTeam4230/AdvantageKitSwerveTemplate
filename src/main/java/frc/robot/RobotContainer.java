@@ -423,8 +423,10 @@ public class RobotContainer {
     controllerLogic
         .multiDistanceShot()
         .whileTrue(MultiDistanceShot.forSpeaker(drive::getPose, shooter, arm));
-    controllerLogic.runShooterForLobbing()
-        .whileTrue(ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_LOB_VELOCITY_RAD_PER_SEC::get));
+    controllerLogic
+        .runShooterForLobbing()
+        .whileTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_LOB_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .runShooter()
         .whileTrue(
