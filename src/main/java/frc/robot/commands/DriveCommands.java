@@ -72,12 +72,10 @@ public class DriveCommands {
             Logger.recordOutput("drive heading", targetAngle);
             omega =
                 drive
-                        .getThetaController()
-                        .calculate(
-                            drive.getPose().getRotation().getRadians(),
-                            headingSupplier.get().get().getRadians())
-                    + drive.getThetaController().getSetpoint().velocity;
-
+                    .getThetaController()
+                    .calculate(
+                        drive.getPose().getRotation().getRadians(),
+                        headingSupplier.get().get().getRadians());
             if (drive.getThetaController().atGoal()) {
               omega = 0;
             }

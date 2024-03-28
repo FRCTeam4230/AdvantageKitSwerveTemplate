@@ -243,7 +243,6 @@ public class RobotContainer {
     // Configure the button bindings
     aprilTagVision.setDataInterfaces(drive::addVisionData);
     driveMode.setPoseSupplier(drive::getPose);
-    driveMode.setHeadingControlEnabledCallback(drive::resetThetaController);
     driveMode.disableHeadingControl();
 
     setupLimelightFlashing();

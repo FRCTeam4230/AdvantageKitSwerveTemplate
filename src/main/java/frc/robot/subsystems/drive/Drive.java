@@ -58,9 +58,9 @@ public class Drive extends SubsystemBase {
   @Getter
   private final ProfiledPIDController thetaController =
       new ProfiledPIDController(
-          PProtationConstants.kP,
-          PProtationConstants.kI,
-          PProtationConstants.kD,
+          DriveConstants.HeadingControllerConstants.kP.get(),
+          0,
+          DriveConstants.HeadingControllerConstants.kD.get(),
           new TrapezoidProfile.Constraints(
               drivetrainConfig.maxAngularVelocity(), drivetrainConfig.maxAngularAcceleration()));
 
@@ -200,11 +200,6 @@ public class Drive extends SubsystemBase {
     }
 
     updateControllerConstants();
-    Logger.recordOutput("theta controller/setpoint p", thetaController.getSetpoint().position);
-    Logger.recordOutput("theta controller/setpoint v", thetaController.getSetpoint().velocity);
-    Logger.recordOutput("theta controller/goal", thetaController.getGoal().position);
-    Logger.recordOutput("theta controller/at goal", thetaController.atGoal());
-    Logger.recordOutput("theta controller/at setpoint", thetaController.atSetpoint());
   }
 
   private void updateControllerConstants() {
@@ -338,12 +333,6 @@ public class Drive extends SubsystemBase {
         visionUpdate ->
             addVisionMeasurement(
                 visionUpdate.pose(), visionUpdate.timestamp(), visionUpdate.stdDevs()));
-  }
-
-  public void resetThetaController() {
-    thetaController.reset(
-        getRotation().getRadians(),
-        kinematics.toChassisSpeeds(getModuleStates()).omegaRadiansPerSecond);
   }
 
   public void resetGyro() {
