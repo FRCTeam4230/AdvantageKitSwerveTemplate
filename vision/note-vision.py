@@ -58,8 +58,22 @@ class CameraConfig:
     name: str
 
 
+CAMERA_PORT_PATHS = {
+    'usb3': {
+        'top': '/dev/v4l/by-path/platform-xhci-hcd.1-usb-0:1:1.0-video-index0',
+        'bottom': '/dev/v4l/by-path/platform-xhci-hcd.0-usb-0:1:1.0-video-index0',
+    },
+    'usb2': {
+        'top': '/dev/v4l/by-path/platform-xhci-hcd.0-usb-0:2:1.0-video-index0',
+        'bottom': '/dev/v4l/by-path/platform-xhci-hcd.1-usb-0:2:1.0-video-index0',
+    },
+}
+
+
 CAMERA_CONFIGS = [
-    CameraConfig(path="/dev/video0", name="center")
+    CameraConfig(path=CAMERA_PORT_PATHS['usb3']['bottom'], name="center"),
+    CameraConfig(path=CAMERA_PORT_PATHS['usb2']['bottom'], name="left"),
+    CameraConfig(path=CAMERA_PORT_PATHS['usb2']['top'], name="right"),
 ]
 
 HUE_SHIFT = 10
@@ -76,7 +90,7 @@ EDGE_Y_THRESHOLD = 0.30 * RESOLUTION[1]
 MAX_CONTOUR_AREA = 0.20 * RESOLUTION[0] * RESOLUTION[1]
 
 NT_SERVER_MODE = False
-NT_CONNECT_TO_SIM = True
+NT_CONNECT_TO_SIM = False
 
 if NT_CONNECT_TO_SIM:
     NetworkTableInstance.getDefault().setServer("192.168.7.233")
