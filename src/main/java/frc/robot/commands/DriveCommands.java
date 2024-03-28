@@ -76,7 +76,7 @@ public class DriveCommands {
                     .calculate(
                         drive.getPose().getRotation().getRadians(),
                         headingSupplier.get().get().getRadians());
-            if (drive.getThetaController().atGoal()) {
+            if (drive.getThetaController().atSetpoint()) {
               omega = 0;
             }
           } else {

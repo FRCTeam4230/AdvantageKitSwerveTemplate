@@ -60,8 +60,10 @@ public class DriveIntoNoteCommand extends Command {
     var angle = currentNote.get().getAngle();
     double distanceToNote = currentNote.get().getNorm();
 
-    var omega = drive.getThetaController().calculate(0, angle.getRadians());
-    if (drive.getThetaController().atGoal()) {
+    var omega =
+        drive.getThetaController().calculate(0, angle.getRadians())
+            * DriveConstants.HeadingControllerConstants.NOTE_PICKUP_MULT.get();
+    if (drive.getThetaController().atSetpoint()) {
       omega = 0;
     }
 

@@ -56,7 +56,7 @@ public class DriveToPointBuilder {
               final var speedY =
                   DriveConstants.PPtranslationConstants.kP * translationOffset.getY();
 
-              if (drive.getThetaController().atGoal()) {
+              if (drive.getThetaController().atSetpoint()) {
                 omega = 0;
               }
 

@@ -116,9 +116,11 @@ public final class DriveConstants {
       };
 
   public static class HeadingControllerConstants {
-    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 4);
+    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 10);
     public static final LoggedTunableNumber kD =
-        tunableTable.makeField("headingController/kd", 0.05);
+        tunableTable.makeField("headingController/kd", 0.0);
+    public static final LoggedTunableNumber NOTE_PICKUP_MULT =
+        tunableTable.makeField("headingController/note pickup mult", 1.3);
     public static final LoggedTunableNumber TOLERANCE =
         tunableTable.makeField("headingController/tolerance deg", 3);
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
