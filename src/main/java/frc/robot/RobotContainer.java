@@ -421,9 +421,18 @@ public class RobotContainer {
                 arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get))
         .whileTrue(
             ShooterCommands.runSpeed(shooter, ShooterConstants.PODIUM_VELOCITY_RAD_PER_SEC::get));
-    controllerLogic
-        .multiDistanceShot()
+
+    final Trigger multiDistance = controllerLogic.multiDistanceShot();
+    final Trigger inAllianceWing =
+        new Trigger(() -> AllianceFlipUtil.apply(drive.getPose()).getX() < FieldConstants.wingX);
+
+    multiDistance
+        .and(inAllianceWing)
         .whileTrue(MultiDistanceShot.forSpeaker(drive::getPose, shooter, arm));
+    multiDistance
+        .and(inAllianceWing.negate())
+        .whileTrue(MultiDistanceShot.forLobbing(drive::getPose, shooter, arm));
+
     controllerLogic
         .runShooterForLobbing()
         .whileTrue(
