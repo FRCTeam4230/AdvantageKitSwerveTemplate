@@ -139,7 +139,8 @@ public class RobotContainer {
         noteVision =
             new NoteVisionSubsystem(
                 Arrays.stream(NoteVisionConstants.CAMERA_CONFIGS)
-                    .map(NoteVisionConstants.CameraConfig::makePhotonVision)
+                    .map(NoteVisionConstants.CameraConfig::name)
+                    .map(NoteVisionIOPython::new)
                     .toArray(NoteVisionIO[]::new),
                 drive.getPoseLogForNoteDetection(),
                 drive::getDrive,

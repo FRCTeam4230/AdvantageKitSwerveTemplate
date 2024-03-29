@@ -7,14 +7,11 @@ import java.util.Optional;
 public class PoseLog {
   private final ArrayList<Double> timestamps = new ArrayList<>();
   private final ArrayList<Pose2d> poses = new ArrayList<>();
-  private final double secondsToRetain = 0.2;
+  private static final double SECONDS_TO_RETAIN = 0.3;
 
   public PoseLog() {}
 
   /**
-   * this removes all recorded poses before the time provided
-   *
-   * @param timeInSeconds
    * @return what the pose is interpolated to be at the provided time
    */
   public Pose2d getPoseAtTime(double timeInSeconds) {
@@ -38,20 +35,11 @@ public class PoseLog {
     Pose2d poseAfterTime = poses.get(timestampIndex.get() + 1);
     double afterTimestamp = timestamps.get(timestampIndex.get() + 1);
 
-    Pose2d output =
-        poseBeforeTime.interpolate(
-            poseAfterTime, (timeInSeconds - prevTimestamp) / (afterTimestamp - prevTimestamp));
-
-    for (int i = 0; i < timestampIndex.get(); i++) {
-      timestamps.remove(0);
-      poses.remove(0);
-    }
-
-    return output;
+    return poseBeforeTime.interpolate(
+        poseAfterTime, (timeInSeconds - prevTimestamp) / (afterTimestamp - prevTimestamp));
   }
 
   /**
-   * @param timeInSeconds
    * @return the index of the time before the time provided
    */
   private Optional<Integer> binarySearchClosestTimeIndex(double timeInSeconds) {
@@ -93,7 +81,7 @@ public class PoseLog {
     timestamps.add(timeInSeconds);
     poses.add(pose);
 
-    while (!timestamps.isEmpty() && timestamps.get(0) < timeInSeconds - secondsToRetain) {
+    while (!timestamps.isEmpty() && timestamps.get(0) < timeInSeconds - SECONDS_TO_RETAIN) {
       timestamps.remove(0);
       poses.remove(0);
     }
