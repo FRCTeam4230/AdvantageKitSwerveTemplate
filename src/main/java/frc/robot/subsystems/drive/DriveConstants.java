@@ -63,7 +63,7 @@ public final class DriveConstants {
       new SwerveDriveKinematics(moduleTranslations);
   public static final double odometryFrequency =
       switch (Constants.getRobot()) {
-        case SIMBOT -> 50.0;
+        case SIMBOT -> 100;
         case COMPBOT -> 50.0;
       };
   public static final Matrix<N3, N1> stateStdDevs =
@@ -84,20 +84,20 @@ public final class DriveConstants {
   public static final int gyroID = 13;
 
   // Turn to "" for no canbus name
-  public static final String canbus = "chassis";
+  public static final String canbus = "drive";
 
   public static ModuleConfig[] moduleConfigs =
       switch (Constants.getRobot()) {
         case COMPBOT ->
             new ModuleConfig[] {
               // Front left
-              new ModuleConfig(6, 5, 9, Rotation2d.fromRadians(3.10227562), true),
+              new ModuleConfig(6, 5, 25, Rotation2d.fromRotations(-0.249268 + 0.5), true),
               // Front right
-              new ModuleConfig(8, 7, 7, Rotation2d.fromRadians(3.0796856053 + Math.PI), true),
+              new ModuleConfig(8, 7, 27, Rotation2d.fromRotations(-0.262695), true),
               // Back left
-              new ModuleConfig(4, 3, 8, Rotation2d.fromRadians(-2.88248123), true),
+              new ModuleConfig(4, 3, 23, Rotation2d.fromRotations(-0.381592 + 0.5), true),
               // Back right
-              new ModuleConfig(2, 1, 6, Rotation2d.fromRadians(-0.7425938249 + Math.PI), true)
+              new ModuleConfig(2, 1, 21, Rotation2d.fromRotations(0.138672), true)
             };
         case SIMBOT -> {
           ModuleConfig[] configs = new ModuleConfig[4];
