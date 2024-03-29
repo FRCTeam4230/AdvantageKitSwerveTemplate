@@ -55,7 +55,8 @@ public class ArmSubsystem extends SubsystemBase {
       if (pidController.getSetpoint() < 0.05
           && armIOInputs.positionRad < 0.05
           && Math.abs(armIOInputs.velocityRadPerSec) < 0.05) {
-        positionControlActive = false;
+        stop();
+        return;
       }
 
       double pidVolts = pidController.calculate(armIOInputs.positionRad);
