@@ -116,7 +116,7 @@ public final class DriveConstants {
       };
 
   public static class HeadingControllerConstants {
-    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 10);
+    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 3);
     public static final LoggedTunableNumber kD =
         tunableTable.makeField("headingController/kd", 0.0);
     public static final LoggedTunableNumber NOTE_PICKUP_MULT =
