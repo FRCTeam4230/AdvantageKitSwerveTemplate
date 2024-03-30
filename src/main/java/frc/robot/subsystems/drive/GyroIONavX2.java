@@ -6,6 +6,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.SPI;
 import java.util.OptionalDouble;
 import java.util.Queue;
+import org.littletonrobotics.junction.Logger;
 
 public class GyroIONavX2 implements GyroIO {
   private final AHRS navx = new AHRS(SPI.Port.kMXP);
@@ -36,6 +37,8 @@ public class GyroIONavX2 implements GyroIO {
     inputs.yawVelocityRadPerSec = Units.degreesToRadians(-navx.getRawGyroZ());
     inputs.odometryYawPositions =
         yawPositionQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
+
+    Logger.recordOutput("gyro/velocity", navx.getRawGyroZ());
 
     yawPositionQueue.clear();
   }

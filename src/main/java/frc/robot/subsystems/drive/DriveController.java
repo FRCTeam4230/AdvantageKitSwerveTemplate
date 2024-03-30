@@ -3,6 +3,8 @@ package frc.robot.subsystems.drive;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.FieldConstants;
@@ -45,7 +47,9 @@ public class DriveController {
             new Rotation2d(
                 poseSupplier.get().getX()
                     - AllianceFlipUtil.apply(
-                            FieldConstants.Speaker.centerSpeakerOpening.getTranslation())
+                            FieldConstants.Speaker.centerSpeakerOpening
+                                .getTranslation()
+                                .plus(new Translation2d(Units.inchesToMeters(8), 0)))
                         .getX(),
                 poseSupplier.get().getY()
                     - AllianceFlipUtil.apply(
@@ -115,5 +119,9 @@ public class DriveController {
                     - AllianceFlipUtil.apply(FieldConstants.ampLobbingTarget).getX(),
                 poseSupplier.get().getY()
                     - AllianceFlipUtil.apply(FieldConstants.ampLobbingTarget).getY()));
+  }
+
+  public void enableSourceHeading() {
+    setHeadingSupplier(() -> AllianceFlipUtil.apply(Rotation2d.fromDegrees(-60)));
   }
 }

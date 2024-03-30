@@ -4,33 +4,44 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.intake.IntakeConstants;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
-public class PickUpNoteCommand extends Command {
+public class DriveIntoNoteCommand extends Command {
   private final Drive drive;
-  private final Intake intake;
   private final Supplier<Optional<Translation2d>> relativeNoteSupplier;
   private final BooleanSupplier hasNote;
+  private final BooleanSupplier armDown;
+  private final double scanRadPerSec;
 
-  public PickUpNoteCommand(
+  public DriveIntoNoteCommand(
       Drive drive,
-      Intake intake,
       Supplier<Optional<Translation2d>> relativeNoteSupplier,
-      BooleanSupplier hasNote) {
+      BooleanSupplier hasNote,
+      BooleanSupplier armDown) {
+    this(drive, relativeNoteSupplier, hasNote, armDown, 0);
+  }
+
+  public DriveIntoNoteCommand(
+      Drive drive,
+      Supplier<Optional<Translation2d>> relativeNoteSupplier,
+      BooleanSupplier hasNote,
+      BooleanSupplier armDown,
+      double scanRadPerSec) {
     this.drive = drive;
-    this.intake = intake;
     this.relativeNoteSupplier = relativeNoteSupplier;
     this.hasNote = hasNote;
+    this.armDown = armDown;
+    this.scanRadPerSec = scanRadPerSec;
     // each subsystem used by the command must be passed into the
     // addRequirements() method (which takes a vararg of Subsystem)
-    addRequirements(this.drive, this.intake);
+    addRequirements(this.drive);
   }
 
   @Override
@@ -41,21 +52,20 @@ public class PickUpNoteCommand extends Command {
     var currentNote = relativeNoteSupplier.get();
 
     if (currentNote.isEmpty()) {
-      drive.runVelocity(ChassisSpeeds.fromRobotRelativeSpeeds(0, 0, 1, new Rotation2d()));
-      intake.stop();
+      drive.runVelocity(
+          ChassisSpeeds.fromRobotRelativeSpeeds(0, 0, scanRadPerSec, new Rotation2d()));
       return;
     }
 
     var angle = currentNote.get().getAngle();
     double distanceToNote = currentNote.get().getNorm();
 
-    var omega = drive.getThetaController().calculate(0, angle.getRadians());
-    if (drive.getThetaController().atGoal()) {
+    var omega =
+        drive.getThetaController().calculate(0, angle.getRadians())
+            * DriveConstants.HeadingControllerConstants.NOTE_PICKUP_MULT.get();
+    if (drive.getThetaController().atSetpoint()) {
       omega = 0;
     }
-    omega =
-        Math.copySign(
-            Math.min(DriveConstants.NOTE_PICKUP_MAX_TURN_SPEED.get(), Math.abs(omega)), omega);
 
     double speed =
         MathUtil.clamp(
@@ -63,7 +73,12 @@ public class PickUpNoteCommand extends Command {
             DriveConstants.NOTE_PICKUP_MIN_SPEED.get(),
             DriveConstants.NOTE_PICKUP_MAX_SPEED.get());
 
-    if (distanceToNote < 1 && !drive.getThetaController().atGoal()) {
+    final boolean nearNote = distanceToNote < 1.2;
+    final boolean pointedAtNote =
+        Math.abs(drive.getThetaController().getPositionError())
+            < Units.degreesToRadians(
+                DriveConstants.HeadingControllerConstants.NOTE_PICKUP_TOLERANCE.get());
+    if (nearNote && (!armDown.getAsBoolean() || !pointedAtNote)) {
       speed = 0;
     }
 
@@ -71,14 +86,11 @@ public class PickUpNoteCommand extends Command {
     double speedy = speed * angle.getSin();
 
     var speeds = ChassisSpeeds.fromRobotRelativeSpeeds(speedx, speedy, omega, new Rotation2d());
+    Logger.recordOutput("note pickup/omega", omega);
+    Logger.recordOutput("note pickup/pid offset", drive.getThetaController().getPositionError());
+    Logger.recordOutput("note pickup/speed", speed);
 
     drive.runVelocity(speeds);
-
-    if (distanceToNote < 2) {
-      intake.setVoltage(IntakeConstants.INTAKE_VOLTAGE.get());
-    } else {
-      intake.stop();
-    }
   }
 
   @Override
@@ -88,7 +100,6 @@ public class PickUpNoteCommand extends Command {
 
   @Override
   public void end(boolean interrupted) {
-    intake.stop();
     drive.stop();
   }
 }

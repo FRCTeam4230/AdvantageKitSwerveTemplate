@@ -1,21 +1,23 @@
 package frc.robot.commands.auto;
 
+import com.pathplanner.lib.pathfinding.Pathfinding;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
-import frc.robot.commands.ArmCommands;
-import frc.robot.commands.DriveToPointBuilder;
-import frc.robot.commands.PickUpNoteCommand;
-import frc.robot.commands.ShooterCommands;
+import frc.robot.commands.*;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.arm.ArmSubsystem;
+import frc.robot.subsystems.beamBreak.BeamBreak;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.shooter.ShooterConstants;
 import frc.robot.subsystems.shooter.ShooterSubsystem;
+import frc.robot.subsystems.vision.NoteVisionConstants;
 import frc.robot.subsystems.vision.NoteVisionSubsystem;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.AutoConfigParser;
@@ -24,7 +26,6 @@ import frc.robot.util.ShooterStateHelpers;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -34,7 +35,7 @@ public class AutoCommandBuilder {
   private final ShooterSubsystem shooter;
   private final Intake intake;
   private final ArmSubsystem arm;
-  private final BooleanSupplier hasNote;
+  private final BeamBreak beamBreak;
   private final ShooterStateHelpers shooterStateHelpers;
 
   public AutoCommandBuilder(
@@ -43,23 +44,66 @@ public class AutoCommandBuilder {
       ShooterSubsystem shooter,
       Intake intake,
       ArmSubsystem arm,
-      BooleanSupplier hasNote,
+      BeamBreak beamBreak,
       ShooterStateHelpers shooterStateHelpers) {
     this.drive = drive;
     this.noteVision = noteVision;
     this.shooter = shooter;
     this.intake = intake;
     this.arm = arm;
-    this.hasNote = hasNote;
+    this.beamBreak = beamBreak;
     this.shooterStateHelpers = shooterStateHelpers;
   }
 
-  public Command pickupNoteVisibleNote() {
-    return new PickUpNoteCommand(drive, intake, noteVision::getCurrentNote, hasNote);
+  public Command driveIntoVisibleNote() {
+    final Command output =
+        new DriveIntoNoteCommand(
+            drive,
+            noteVision::getCurrentNote,
+            beamBreak::detectNote,
+            () -> arm.getPositionRad() < NoteVisionConstants.MAX_ARM_POS_RAD);
+    output.addRequirements(noteVision);
+    return output;
+  }
+
+  public Command intakeByVisionNote(Supplier<Optional<Translation2d>> noteSupplier) {
+    return IntakeCommands.manualIntakeCommand(
+            intake,
+            () -> {
+              final var targetNote = noteSupplier.get();
+              return (targetNote.isEmpty() || targetNote.get().getNorm() > 2)
+                  ? 0
+                  : IntakeConstants.INTAKE_VOLTAGE.get();
+            })
+        .until(beamBreak::detectNote);
+  }
+
+  public Command pickupVisibleNote() {
+    return driveIntoVisibleNote().alongWith(intakeByVisionNote(noteVision::getCurrentNote));
   }
 
   public Command pickupSuppliedNote(Supplier<Optional<Translation2d>> relativeNoteSupplier) {
-    return new PickUpNoteCommand(drive, intake, relativeNoteSupplier, hasNote);
+    return pickupSuppliedNote(relativeNoteSupplier, 0);
+  }
+
+  public Command pickupSuppliedNoteFailWithNoNote(
+      Supplier<Optional<Translation2d>> relativeNoteSupplier) {
+    return pickupSuppliedNote(relativeNoteSupplier)
+        .until(() -> relativeNoteSupplier.get().isEmpty());
+  }
+
+  public Command pickupSuppliedNote(
+      Supplier<Optional<Translation2d>> relativeNoteSupplier, double scanRadPerSec) {
+    final Command out =
+        new DriveIntoNoteCommand(
+                drive,
+                relativeNoteSupplier,
+                beamBreak::detectNote,
+                () -> arm.getPositionRad() < NoteVisionConstants.MAX_ARM_POS_RAD,
+                scanRadPerSec)
+            .alongWith(intakeByVisionNote(relativeNoteSupplier));
+    out.addRequirements(noteVision);
+    return out;
   }
 
   public Command fallbackPickup() {
@@ -69,7 +113,9 @@ public class AutoCommandBuilder {
                 note ->
                     AllianceFlipUtil.apply(note).getX()
                         < FieldConstants.StagingLocations.centerlineX
-                            + AutoConstants.AutoNoteOffsetThresholds.FALLBACK_MAX_PAST_CENTER));
+                            + AutoConstants.AutoNoteOffsetThresholds.FALLBACK_MAX_PAST_CENTER
+                                .get()),
+        2);
   }
 
   private Optional<Translation2d> getVisionNoteByTranslation(Translation2d note, double threshold) {
@@ -86,17 +132,18 @@ public class AutoCommandBuilder {
 
   public Command pickupNoteAtTranslation(Translation2d note, double timeout) {
     return Commands.runOnce(
-            () -> noteVision.setVirtualAutoNote(note, AutoConstants.DISTANCE_TO_TRUST_CAMERA),
+            () -> noteVision.setVirtualAutoNote(note, AutoConstants.DISTANCE_TO_TRUST_CAMERA.get()),
             noteVision)
         .andThen(
-            pickupSuppliedNote(
+            pickupSuppliedNoteFailWithNoNote(
                 () -> {
                   var trackedNote = noteVision.getVirtualAutoNote();
 
                   if (trackedNote.isEmpty()) {
                     trackedNote =
                         getVisionNoteByTranslation(
-                            note, AutoConstants.AutoNoteOffsetThresholds.WHILE_ATTEMPTING_PICKUP);
+                            note,
+                            AutoConstants.AutoNoteOffsetThresholds.WHILE_ATTEMPTING_PICKUP.get());
                   }
 
                   return trackedNote.map(
@@ -107,39 +154,46 @@ public class AutoCommandBuilder {
         .withTimeout(timeout);
   }
 
-  public Command driveAndPickupNoteAuto(
-      Translation2d note, Pose2d pickupLocation, double pickupTimeout) {
-    final Command driveToPickup =
-        DriveToPointBuilder.driveToNoFlip(pickupLocation, 4)
-            .until(
-                () ->
-                    drive.getPose().getTranslation().getDistance(pickupLocation.getTranslation())
-                            < AutoConstants.DRIVE_TO_PICKUP_INTERRUPT_DISTANCE
-                        && getVisionNoteByTranslation(
-                                note, AutoConstants.AutoNoteOffsetThresholds.WHILE_ROUTING)
-                            .isPresent());
-    return driveToPickup.andThen(pickupNoteAtTranslation(note, pickupTimeout));
+  public Command driveToPickup(Pose2d pickupLocation) {
+    return DriveToPointBuilder.driveToNoFlip(pickupLocation, 4);
   }
 
   public Command autoFromConfigPart(AutoConfigParser.AutoPart autoPart) {
-    final Command pickupCommand =
-        (autoPart.notePickupPose().isEmpty()
-                ? pickupNoteAtTranslation(autoPart.note(), AutoConstants.PICKUP_TIMEOUT)
-                : driveAndPickupNoteAuto(
-                    autoPart.note(), autoPart.notePickupPose().get(), AutoConstants.PICKUP_TIMEOUT))
-            .andThen(fallbackPickup().onlyIf(() -> !hasNote.getAsBoolean()));
+    final Command setObstacles =
+        Commands.runOnce(
+            () -> {
+              if (autoPart.obstacles().isPresent()) {
+                setObstacles(autoPart.obstacles().get());
+              }
+            });
+    final Command driveToPickup =
+        autoPart.notePickupPose().isPresent()
+            ? driveToPickup(autoPart.notePickupPose().get())
+            : Commands.none();
 
-    return pickupCommand
-        .asProxy()
-        .andThen(readyShooter().asProxy())
-        .andThen(
-            DriveToPointBuilder.driveToAndAlignNoFlip(
-                    drive,
-                    AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation()),
-                    AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE,
-                    AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE)
-                .asProxy())
-        .andThen(autoShoot().asProxy());
+    final Command pickupNote =
+        (autoPart.note().isPresent()
+                ? pickupNoteAtTranslation(autoPart.note().get(), AutoConstants.PICKUP_TIMEOUT.get())
+                : Commands.none())
+            .andThen(fallbackPickup().onlyIf(() -> !beamBreak.detectNote()));
+    final Pose2d shootingPose =
+        AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation());
+    final Command returnCommand =
+        DriveToPointBuilder.driveToAndAlign(
+                drive,
+                shootingPose,
+                AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE.get(),
+                AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get(),
+                false)
+            .deadlineWith(IntakeCommands.keepNoteInCenter(intake, beamBreak));
+
+    return Commands.sequence(
+        dropArm(),
+        setObstacles,
+        driveToPickup,
+        pickupNote,
+        Commands.sequence(returnCommand, autoShoot())
+            .deadlineWith(readyShooterDistance(shootingPose)));
   }
 
   public Command autoFromConfigString(Supplier<String> configStringSupplier) {
@@ -148,8 +202,8 @@ public class AutoCommandBuilder {
 
   public Command autoFromConfig(
       Supplier<Optional<List<AutoConfigParser.AutoPart>>> configSupplier) {
-    return initialFullShot()
-        .asProxy()
+    return Commands.runOnce(this::clearObstacles)
+        .andThen(initialFullShot())
         .andThen(
             new DeferredCommand(
                 () -> {
@@ -172,7 +226,11 @@ public class AutoCommandBuilder {
 
   /** assumes the shooter is at the correct speed and the arm is in the correct position */
   public Command autoShoot() {
-    return ShooterCommands.autoShoot(shooterStateHelpers, intake, hasNote, arm);
+    return ShooterCommands.autoShoot(shooterStateHelpers, intake, beamBreak::detectNote);
+  }
+
+  private Command dropArm() {
+    return ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get);
   }
 
   public Command readyShooter() {
@@ -181,5 +239,19 @@ public class AutoCommandBuilder {
             Commands.runOnce(
                 () -> shooter.runVelocity(ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC.get()),
                 shooter));
+  }
+
+  public Command readyShooterDistance(Pose2d shootingPose) {
+    return MultiDistanceShot.forSpeaker(() -> shootingPose, shooter, arm);
+  }
+
+  private void setObstacles(List<Pair<Translation2d, Translation2d>> zones) {
+    Pathfinding.setDynamicObstacles(
+        AutoConstants.createDynamicObstaclesList(zones), drive.getPose().getTranslation());
+  }
+
+  public void clearObstacles() {
+    Pathfinding.setDynamicObstacles(
+        AutoConstants.createDynamicObstaclesList(List.of()), drive.getPose().getTranslation());
   }
 }

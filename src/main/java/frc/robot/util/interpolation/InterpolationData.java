@@ -1,5 +1,6 @@
 package frc.robot.util.interpolation;
 
+import edu.wpi.first.math.util.Units;
 import java.util.Arrays;
 
 public class InterpolationData {
@@ -40,15 +41,38 @@ public class InterpolationData {
               })
           .toArray(double[][]::new);
 
-  protected static final double[][] shooterDistanceData = {
-    /* distance m, angle rad, velocity rad/s */
-    {0, 0.2, 280},
-    {1.143, 0.2, 280},
-    {2.3622, 0.426759297, 280},
-    {2.9718, 0.502168204, 300},
-    {3.5814, 0.466016954, 250},
-    {4.191, 0.625507763, 350},
-    {4.192, 0, 0},
-    {100, 0, 0}
+  private static final double[][] shooterDistanceDataRaw = {
+    /* distance to front of frame ft, angle rad, velocity rad/s */
+    {0, 0.25, 280},
+    {3, 0.27, 280},
+    {4, 0.35, 280},
+    {5, 0.43, 280},
+    {6, 0.5, 300},
+    {7, 0.52, 320},
+    {8, 0.56, 290},
+    {9, 0.56, 280},
+    {10, 0.62, 300},
+    {11, 0.62, 320},
+    {12, 0.63, 320},
+    {13, 0.66, 330},
+    {13.1, 0.3, 280},
+    {100, 0.3, 280},
+  };
+
+  /** distance to speaker m, angle rad, velocity rad/s */
+  protected static final double[][] shooterDistanceData =
+      Arrays.stream(shooterDistanceDataRaw)
+          .map(
+              row -> {
+                final var newRow = row.clone();
+                newRow[0] = Units.feetToMeters(newRow[0]) + Units.inchesToMeters(14.5);
+                return newRow;
+              })
+          .toArray(double[][]::new);
+
+  public static final double[][] lobbingDistanceData = {
+    /* distance m to lobbing target, angle rad, velocity rad/s */
+    {0, 0, 350},
+    {100, 0, 350},
   };
 }

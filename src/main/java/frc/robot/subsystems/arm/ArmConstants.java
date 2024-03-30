@@ -44,5 +44,7 @@ public class ArmConstants {
         tunableTable.makeField("lower drive pos", 0.15);
     public static final LoggedTunableNumber SPEAKER_FROM_PODIUM_POS_RAD =
         tunableTable.makeField("podium shot", 0.642);
+    public static final LoggedTunableNumber SOURCE_POS_RAD =
+        tunableTable.makeField("source pos", 1);
   }
 }

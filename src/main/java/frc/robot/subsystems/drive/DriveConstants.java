@@ -28,9 +28,6 @@ public final class DriveConstants {
       tunableTable.makeField("note distance to speed mult", 1.5);
   public static final LoggedTunableNumber NOTE_PICKUP_MAX_TURN_SPEED =
       tunableTable.makeField("note pickup max turn speed", 5);
-  public static final PathConstraints pathPlannerConstraints =
-      new PathConstraints(4.0, 3.0, Units.degreesToRadians(200), Units.degreesToRadians(200));
-
   public static DrivetrainConfig drivetrainConfig =
       switch (Constants.getRobot()) {
         default ->
@@ -38,11 +35,18 @@ public final class DriveConstants {
                 Units.inchesToMeters(2.0), // Wheel radius
                 Units.inchesToMeters(29.0), // Track width x
                 Units.inchesToMeters(29.0), // Track width y
-                Units.feetToMeters(12.5), // Max linear velocity
-                Units.feetToMeters(21.32), // max linear acceleration
-                7.93, // Max angular velocity
-                29.89); // Max angular acceleration
+                3.8,
+                6.0,
+                Units.degreesToRadians(400), // Max angular velocity
+                Units.degreesToRadians(900)); // Max angular acceleration
       };
+  public static final PathConstraints pathPlannerConstraints =
+      new PathConstraints(
+          drivetrainConfig.maxLinearVelocity,
+          drivetrainConfig.maxLinearAcceleration,
+          drivetrainConfig.maxAngularVelocity,
+          drivetrainConfig.maxAngularAcceleration);
+
   public static final double wheelRadius = Units.inchesToMeters(2.0);
   public static final Translation2d[] moduleTranslations =
       new Translation2d[] {
@@ -112,9 +116,15 @@ public final class DriveConstants {
       };
 
   public static class HeadingControllerConstants {
-    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 5);
+    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 3);
     public static final LoggedTunableNumber kD =
-        tunableTable.makeField("headingController/kd", 0.4);
+        tunableTable.makeField("headingController/kd", 0.0);
+    public static final LoggedTunableNumber NOTE_PICKUP_MULT =
+        tunableTable.makeField("headingController/note pickup mult", 1.3);
+    public static final LoggedTunableNumber TOLERANCE =
+        tunableTable.makeField("headingController/tolerance deg", 3);
+    public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
+        tunableTable.makeField("headingController/note pickup tolerance deg", 7);
   }
 
   public static final PIDConstants PPtranslationConstants =
