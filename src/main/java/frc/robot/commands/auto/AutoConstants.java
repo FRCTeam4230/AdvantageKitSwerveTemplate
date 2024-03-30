@@ -36,14 +36,14 @@ public class AutoConstants {
     public static final LoggedTunableNumber WHILE_ROUTING =
         tunableTable.makeField("auto note tolerance while routing", 0.5);
     public static final LoggedTunableNumber WHILE_ATTEMPTING_PICKUP =
-        tunableTable.makeField("auto note tolerance while pickup", 1);
+        tunableTable.makeField("auto note tolerance while pickup", 0.5);
     public static final LoggedTunableNumber FALLBACK_MAX_PAST_CENTER =
         tunableTable.makeField("auto fallback past middle tolerance m", 1);
   }
 
   public static final LoggedTunableNumber PICKUP_TIMEOUT = tunableTable.makeField("pickup time", 3);
 
-  private static final double BETWEEN_SPIKE_POSE_X = 2.15;
+  private static final double BETWEEN_SPIKE_POSE_X = 1.8;
 
   public static class ShootingTranslations {
     public static final Translation2d SPEAKER_AMP_SIDE = new Translation2d(1, 6.7);

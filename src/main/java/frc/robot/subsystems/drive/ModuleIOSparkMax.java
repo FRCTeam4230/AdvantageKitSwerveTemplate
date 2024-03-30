@@ -135,6 +135,7 @@ public class ModuleIOSparkMax implements ModuleIO {
     inputs.driveAppliedVolts = driveSparkMax.getAppliedOutput() * driveSparkMax.getBusVoltage();
     inputs.driveCurrentAmps = new double[] {driveSparkMax.getOutputCurrent()};
 
+    turnAbsolutePosition.refresh();
     inputs.turnAbsolutePosition =
         Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble())
             .minus(absoluteEncoderOffset);

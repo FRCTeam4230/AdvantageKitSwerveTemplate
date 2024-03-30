@@ -85,7 +85,8 @@ public class NoteVisionSubsystem extends SubsystemBase {
         noteVisionIOsAndInputs[i].lastTimestamp = noteVisionIOsAndInputs[i].inputs.timeStampSeconds;
       }
 
-      if (armPositionSupplierRad.getAsDouble() > NoteVisionConstants.MAX_ARM_POS_RAD) {
+      if (noteVisionIOsAndInputs[i].config.onArm()
+          && armPositionSupplierRad.getAsDouble() > NoteVisionConstants.MAX_ARM_POS_RAD) {
         noteVisionIOsAndInputs[i].lastTimestamp = noteVisionIOsAndInputs[i].inputs.timeStampSeconds;
         continue;
       }
