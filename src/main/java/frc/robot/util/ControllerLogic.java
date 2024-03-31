@@ -92,11 +92,11 @@ public class ControllerLogic {
   }
 
   public Trigger pointAtSpeaker() {
-    return driverController.rightStick();
+    return driverController.povLeft();
   }
 
   public Trigger pointAtSource() {
-    return driverController.povRight();
+    return driverController.a();
   }
 
   // +x means forward for the robot
@@ -132,7 +132,7 @@ public class ControllerLogic {
   }
 
   public Trigger climbAlign() {
-    return driverController.povLeft();
+    return driverController.povRight();
   }
 
   public Trigger multiDistanceShot() {

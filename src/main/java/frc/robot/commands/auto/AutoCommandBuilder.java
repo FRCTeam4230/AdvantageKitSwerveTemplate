@@ -172,10 +172,10 @@ public class AutoCommandBuilder {
             : Commands.none();
 
     final Command pickupNote =
-        (autoPart.note().isPresent()
-                ? pickupNoteAtTranslation(autoPart.note().get(), AutoConstants.PICKUP_TIMEOUT.get())
-                : Commands.none())
-            .andThen(fallbackPickup().onlyIf(() -> !beamBreak.detectNote()));
+        autoPart.note().isPresent()
+            ? pickupNoteAtTranslation(autoPart.note().get(), AutoConstants.PICKUP_TIMEOUT.get())
+            : Commands.none();
+    final Command fallbackPickup = fallbackPickup().onlyIf(() -> !beamBreak.detectNote());
     final Pose2d shootingPose =
         AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation());
     final Command returnCommand =
@@ -190,9 +190,14 @@ public class AutoCommandBuilder {
     return Commands.sequence(
         dropArm(),
         setObstacles,
+        logAutoState("driving to pickup"),
         driveToPickup,
+        logAutoState("picking up note"),
         pickupNote,
-        Commands.sequence(returnCommand, autoShoot())
+        logAutoState("pickup fallback"),
+        fallbackPickup,
+        logAutoState("returning to shoot"),
+        Commands.sequence(returnCommand, logAutoState("shooting"), autoShoot())
             .deadlineWith(readyShooterDistance(shootingPose)));
   }
 
@@ -253,5 +258,9 @@ public class AutoCommandBuilder {
   public void clearObstacles() {
     Pathfinding.setDynamicObstacles(
         AutoConstants.createDynamicObstaclesList(List.of()), drive.getPose().getTranslation());
+  }
+
+  private Command logAutoState(String state) {
+    return Commands.runOnce(() -> Logger.recordOutput("auto/state", state));
   }
 }

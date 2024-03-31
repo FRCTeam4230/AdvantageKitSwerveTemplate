@@ -21,13 +21,11 @@ public final class DriveConstants {
       new TunableNumberWrapper(MethodHandles.lookup().lookupClass());
 
   public static final LoggedTunableNumber NOTE_PICKUP_MAX_SPEED =
-      tunableTable.makeField("note pickup max speed", 3);
+      tunableTable.makeField("note pickup max speed", 4);
   public static final LoggedTunableNumber NOTE_PICKUP_MIN_SPEED =
-      tunableTable.makeField("note pickup min speed", 1);
+      tunableTable.makeField("note pickup min speed", 2);
   public static final LoggedTunableNumber NOTE_PICKUP_DISTANCE_TO_SPEED_MULT =
-      tunableTable.makeField("note distance to speed mult", 1.5);
-  public static final LoggedTunableNumber NOTE_PICKUP_MAX_TURN_SPEED =
-      tunableTable.makeField("note pickup max turn speed", 5);
+      tunableTable.makeField("note distance to speed mult", 5);
   public static DrivetrainConfig drivetrainConfig =
       switch (Constants.getRobot()) {
         default ->
@@ -35,8 +33,8 @@ public final class DriveConstants {
                 Units.inchesToMeters(2.0), // Wheel radius
                 Units.inchesToMeters(29.0), // Track width x
                 Units.inchesToMeters(29.0), // Track width y
-                3.8,
-                6.0,
+                3.6,
+                3, // TODO tune
                 Units.degreesToRadians(400), // Max angular velocity
                 Units.degreesToRadians(900)); // Max angular acceleration
       };
@@ -120,7 +118,7 @@ public final class DriveConstants {
     public static final LoggedTunableNumber kD =
         tunableTable.makeField("headingController/kd", 0.0);
     public static final LoggedTunableNumber NOTE_PICKUP_MULT =
-        tunableTable.makeField("headingController/note pickup mult", 1.3);
+        tunableTable.makeField("headingController/note pickup mult", 1.5);
     public static final LoggedTunableNumber TOLERANCE =
         tunableTable.makeField("headingController/tolerance deg", 3);
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =

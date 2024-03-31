@@ -254,6 +254,17 @@ public class Drive extends SubsystemBase {
     }
   }
 
+  @AutoLogOutput(key = "Odometry/ChassisSpeeds")
+  private ChassisSpeeds getDriveSpeeds() {
+    return kinematics.toChassisSpeeds(getModuleStates());
+  }
+
+  @AutoLogOutput(key = "Odometry/linear speed mag")
+  private double getRobotSpeed() {
+    final var chassisSpeeds = getDriveSpeeds();
+    return Math.hypot(chassisSpeeds.vxMetersPerSecond, chassisSpeeds.vyMetersPerSecond);
+  }
+
   /** Returns the module states (turn angles and drive velocities) for all of the modules. */
   @AutoLogOutput(key = "SwerveStates/Measured")
   private SwerveModuleState[] getModuleStates() {
