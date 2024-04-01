@@ -18,14 +18,13 @@ public class AutoConstants {
   private static final TunableNumberWrapper tunableTable =
       new TunableNumberWrapper(MethodHandles.lookup().lookupClass());
   public static final LoggedTunableNumber DISTANCE_TO_TRUST_CAMERA =
-      tunableTable.makeField("camera trust m", 3);
-  ;
+      tunableTable.makeField("camera trust m", 2.5);
   public static final LoggedTunableNumber DRIVE_TO_PICKUP_INTERRUPT_DISTANCE =
       tunableTable.makeField("drive to pickup interupt m", 0);
   public static final LoggedTunableNumber SHOOTING_DISTANCE_OFFSET_TOLERANCE =
-      tunableTable.makeField("align distance tolerance m", 0.1);
+      tunableTable.makeField("align distance tolerance m", 0.2);
   public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_TOLERANCE =
-      tunableTable.makeField("align angle tolerance deg", Units.degreesToRadians(5));
+      tunableTable.makeField("align angle tolerance deg", Units.degreesToRadians(10));
   public static final Translation2d[] AUTO_NOTES =
       Stream.concat(
               Stream.of(FieldConstants.StagingLocations.spikeTranslations),
@@ -36,14 +35,14 @@ public class AutoConstants {
     public static final LoggedTunableNumber WHILE_ROUTING =
         tunableTable.makeField("auto note tolerance while routing", 0.5);
     public static final LoggedTunableNumber WHILE_ATTEMPTING_PICKUP =
-        tunableTable.makeField("auto note tolerance while pickup", 0.5);
+        tunableTable.makeField("auto note tolerance while pickup", 1);
     public static final LoggedTunableNumber FALLBACK_MAX_PAST_CENTER =
         tunableTable.makeField("auto fallback past middle tolerance m", 1);
   }
 
   public static final LoggedTunableNumber PICKUP_TIMEOUT = tunableTable.makeField("pickup time", 3);
 
-  private static final double BETWEEN_SPIKE_POSE_X = 1.8;
+  private static final double BETWEEN_SPIKE_POSE_X = 1.7;
 
   public static class ShootingTranslations {
     public static final Translation2d SPEAKER_AMP_SIDE = new Translation2d(1, 6.7);
@@ -55,15 +54,15 @@ public class AutoConstants {
     public static final Translation2d BETWEEN_1_2 =
         new Translation2d(
             BETWEEN_SPIKE_POSE_X,
-            (FieldConstants.StagingLocations.spikeTranslations[1].getY()
+            (2 * FieldConstants.StagingLocations.spikeTranslations[1].getY()
                     + FieldConstants.StagingLocations.spikeTranslations[2].getY())
-                / 2);
+                / 3);
     public static final Translation2d BETWEEN_0_1 =
         new Translation2d(
             BETWEEN_SPIKE_POSE_X,
             (FieldConstants.StagingLocations.spikeTranslations[0].getY()
-                    + FieldConstants.StagingLocations.spikeTranslations[1].getY())
-                / 2);
+                    + 2 * FieldConstants.StagingLocations.spikeTranslations[1].getY())
+                / 3);
   }
 
   public static Pose2d getShootingPose2dFromTranslation(Translation2d translation) {
@@ -78,12 +77,12 @@ public class AutoConstants {
 
   public static class NotePickupLocations {
     public static final Pose2d X =
-        new Pose2d(new Translation2d(5.9, 6.5), Rotation2d.fromDegrees(-10));
+        new Pose2d(new Translation2d(5.9, 6.5), Rotation2d.fromDegrees(10));
     public static final Pose2d Y =
         new Pose2d(
             new Translation2d(5.9, FieldConstants.fieldWidth / 2), Rotation2d.fromDegrees(0));
     public static final Pose2d Z =
-        new Pose2d(new Translation2d(5.9, 1.7), Rotation2d.fromDegrees(10));
+        new Pose2d(new Translation2d(5.9, 1.7), Rotation2d.fromDegrees(-10));
   }
 
   public static class AvoidanceZones {

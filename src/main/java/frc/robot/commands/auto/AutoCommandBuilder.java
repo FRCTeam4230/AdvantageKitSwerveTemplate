@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.*;
 import frc.robot.subsystems.arm.ArmConstants;
 import frc.robot.subsystems.arm.ArmSubsystem;
@@ -159,6 +160,10 @@ public class AutoCommandBuilder {
   }
 
   public Command autoFromConfigPart(AutoConfigParser.AutoPart autoPart) {
+    final SequentialCommandGroup output = new SequentialCommandGroup();
+
+    output.addCommands(dropArm());
+
     final Command setObstacles =
         Commands.runOnce(
             () -> {
@@ -166,16 +171,23 @@ public class AutoCommandBuilder {
                 setObstacles(autoPart.obstacles().get());
               }
             });
-    final Command driveToPickup =
-        autoPart.notePickupPose().isPresent()
-            ? driveToPickup(autoPart.notePickupPose().get())
-            : Commands.none();
+    output.addCommands(setObstacles);
 
-    final Command pickupNote =
-        (autoPart.note().isPresent()
-                ? pickupNoteAtTranslation(autoPart.note().get(), AutoConstants.PICKUP_TIMEOUT.get())
-                : Commands.none())
-            .andThen(fallbackPickup().onlyIf(() -> !beamBreak.detectNote()));
+    if (autoPart.notePickupPose().isPresent()) {
+      final Command driveToPickup = driveToPickup(autoPart.notePickupPose().get());
+
+      output.addCommands(Commands.parallel(logAutoState("driving"), driveToPickup));
+    }
+
+    if (autoPart.note().isPresent()) {
+      final Command pickupNote =
+          pickupNoteAtTranslation(autoPart.note().get(), AutoConstants.PICKUP_TIMEOUT.get());
+
+      output.addCommands(Commands.parallel(logAutoState("pickup"), pickupNote));
+    }
+
+    final Command fallbackPickup = fallbackPickup().onlyIf(() -> !beamBreak.detectNote());
+    output.addCommands(Commands.parallel(logAutoState("fallback"), fallbackPickup));
     final Pose2d shootingPose =
         AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation());
     final Command returnCommand =
@@ -186,14 +198,13 @@ public class AutoCommandBuilder {
                 AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get(),
                 false)
             .deadlineWith(IntakeCommands.keepNoteInCenter(intake, beamBreak));
+    output.addCommands(
+        Commands.parallel(
+            logAutoState("returning"),
+            Commands.sequence(returnCommand, logAutoState("shooting"), autoShoot())
+                .deadlineWith(readyShooterDistance(shootingPose))));
 
-    return Commands.sequence(
-        dropArm(),
-        setObstacles,
-        driveToPickup,
-        pickupNote,
-        Commands.sequence(returnCommand, autoShoot())
-            .deadlineWith(readyShooterDistance(shootingPose)));
+    return output;
   }
 
   public Command autoFromConfigString(Supplier<String> configStringSupplier) {
@@ -253,5 +264,9 @@ public class AutoCommandBuilder {
   public void clearObstacles() {
     Pathfinding.setDynamicObstacles(
         AutoConstants.createDynamicObstaclesList(List.of()), drive.getPose().getTranslation());
+  }
+
+  private Command logAutoState(String state) {
+    return Commands.runOnce(() -> Logger.recordOutput("auto/state", state));
   }
 }

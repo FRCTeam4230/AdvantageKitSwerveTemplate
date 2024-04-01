@@ -47,7 +47,7 @@ public class NoteVisionConstants {
 
   public static final double IDLE_NOTE_EXPIRATION = 0.5;
   public static final double NOTE_EXPIRATION = 1;
-  public static final double IN_CAMERA_EXPIRATION = 0.1;
+  public static final double IN_CAMERA_EXPIRATION = 0.2;
   public static final double MAX_ARM_POS_RAD = Units.degreesToRadians(3);
   public static final double DISTANCE_TO_RUMBLE = 4;
 

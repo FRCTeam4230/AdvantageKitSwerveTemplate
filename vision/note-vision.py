@@ -13,7 +13,7 @@ import numpy as np
 import cv2
 
 EXPOSURE_OPTIONS = [5, 10, 20, 39, 78, 156, 312, 625, 1250, 2500, 5000, 10000, 20000]
-EXPOSURE_INDEX = 6
+EXPOSURE_INDEX = 4
 
 STREAM_FULL_RES = False
 
@@ -78,14 +78,14 @@ CAMERA_CONFIGS = [
 
 HUE_SHIFT = 10
 # Define lower and upper bounds for orange color in HSV
-lower_orange_hsv = np.array([5, 150, 120])
+lower_orange_hsv = np.array([5, 100, 150])
 upper_orange_hsv = np.array([20, 255, 255])
 # The minimum contour area to detect a note
 MINIMUM_CONTOUR_AREA = 500
 # The threshold for a contour to be considered a disk
 CONTOUR_DISK_THRESHOLD = 0.9
 # how far down the image the contour would have to be in order to accept it if it is touching an edge
-EDGE_Y_THRESHOLD = 0.30 * RESOLUTION[1]
+EDGE_Y_THRESHOLD = 0.10 * RESOLUTION[1]
 # how many pixels the note can occupy
 MAX_CONTOUR_AREA = 0.20 * RESOLUTION[0] * RESOLUTION[1]
 

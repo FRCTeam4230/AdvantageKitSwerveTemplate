@@ -42,21 +42,14 @@ public class InterpolationData {
           .toArray(double[][]::new);
 
   private static final double[][] shooterDistanceDataRaw = {
-    /* distance to front of frame ft, angle rad, velocity rad/s */
-    {0, 0.25, 280},
-    {3, 0.27, 280},
-    {4, 0.35, 280},
-    {5, 0.43, 280},
-    {6, 0.5, 300},
-    {7, 0.52, 320},
-    {8, 0.56, 290},
-    {9, 0.56, 280},
-    {10, 0.62, 300},
-    {11, 0.62, 320},
-    {12, 0.63, 320},
-    {13, 0.66, 330},
-    {13.1, 0.3, 280},
-    {100, 0.3, 280},
+    /* distance to speaker in, angle rad, velocity rad/s */
+    {0, 0.23, 250},
+    {52, 0.25, 250},
+    {75, 0.44, 250},
+    {87, 0.5, 270},
+    {120, 0.6, 270},
+    {120.1, 0.25, 270},
+    {10000, 0.25, 270},
   };
 
   /** distance to speaker m, angle rad, velocity rad/s */
@@ -65,7 +58,7 @@ public class InterpolationData {
           .map(
               row -> {
                 final var newRow = row.clone();
-                newRow[0] = Units.feetToMeters(newRow[0]) + Units.inchesToMeters(14.5);
+                newRow[0] = Units.inchesToMeters(newRow[0]);
                 return newRow;
               })
           .toArray(double[][]::new);

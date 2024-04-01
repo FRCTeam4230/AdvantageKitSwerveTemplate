@@ -7,6 +7,7 @@ package frc.robot.commands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.arm.ArmSubsystem;
 import frc.robot.subsystems.shooter.ShooterSubsystem;
@@ -64,6 +65,7 @@ public class MultiDistanceShot extends Command {
     Logger.recordOutput("MultiDistanceShot/speed", speed);
     Logger.recordOutput("MultiDistanceShot/arm angle", armAngle);
     Logger.recordOutput("MultiDistanceShot/distance", distance);
+    Logger.recordOutput("MultiDistanceShot/distance in", Units.metersToInches(distance));
 
     // Run the flywheel at the calculated speed
     shooter.runVelocity(speed);
