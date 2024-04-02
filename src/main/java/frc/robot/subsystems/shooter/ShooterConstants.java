@@ -46,18 +46,15 @@ public final class ShooterConstants {
       new ShooterTune(
           new FlywheelConstants(0.0508, 0.0196, 5E-6), new FlywheelConstants(0.1828, 0.0207, 5E-6));
 
+    public static final class FlywheelModelConstants {
+      public static final class Top {
+        public static final LoggedTunableNumber kP =
+                tunableTable.makeField("top/kP", CURRENT_TUNE.top.kp);
+      }
 
-  public static final class NotePickupLocations {
-
-  public static final class FlywheelModelConstants {
-    public static final class Top {
-      public static final LoggedTunableNumber kP =
-          tunableTable.makeField("top/kP", CURRENT_TUNE.top.kp);
-    }
-
-    public static final class Bottom {
-      public static final LoggedTunableNumber kP =
-          tunableTable.makeField("bottom/kP", CURRENT_TUNE.bottom.kp);
+      public static final class Bottom {
+        public static final LoggedTunableNumber kP =
+                tunableTable.makeField("bottom/kP", CURRENT_TUNE.bottom.kp);
+      }
     }
   }
-}
