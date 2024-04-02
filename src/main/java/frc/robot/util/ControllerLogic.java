@@ -56,11 +56,11 @@ public class ControllerLogic {
   }
 
   public double getLeftClimberSpeed() {
-    return -secondController.getLeftX();
+    return -secondController.getLeftY();
   }
 
   public double getRightClimberSpeed() {
-    return -secondController.getRightX();
+    return -secondController.getRightY();
   }
 
   public Trigger leftClimberActive() {

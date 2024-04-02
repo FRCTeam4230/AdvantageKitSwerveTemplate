@@ -41,7 +41,9 @@ import frc.robot.commands.climber.ResetClimberBasic;
 import frc.robot.subsystems.RumbleSubsystem;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beamBreak.*;
+import frc.robot.subsystems.climber.ClimberConstants;
 import frc.robot.subsystems.climber.ClimberIO;
+import frc.robot.subsystems.climber.ClimberIOSparkMax;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.drive.DriveController;
@@ -127,17 +129,13 @@ public class RobotContainer {
         arm = new ArmSubsystem(new ArmIOSparkMax());
         leftClimber =
             new ClimberSubsystem(
-                new ClimberIO() {},
-                //                new ClimberIOSparkMax(
-                //                    ClimberConstants.LEFT_MOTOR_ID,
-                // ClimberConstants.LEFT_LIMIT_SWITCH_DIO_PORT),
+                new ClimberIOSparkMax(
+                    ClimberConstants.LEFT_MOTOR_ID, ClimberConstants.LEFT_LIMIT_SWITCH_DIO_PORT),
                 "left");
         rightClimber =
             new ClimberSubsystem(
-                new ClimberIO() {},
-                //                new ClimberIOSparkMax(
-                //                    ClimberConstants.RIGHT_MOTOR_ID,
-                // ClimberConstants.RIGHT_LIMIT_SWITCH_DIO_PORT),
+                new ClimberIOSparkMax(
+                    ClimberConstants.RIGHT_MOTOR_ID, ClimberConstants.RIGHT_LIMIT_SWITCH_DIO_PORT),
                 "right");
         noteVision =
             new NoteVisionSubsystem(
@@ -390,10 +388,10 @@ public class RobotContainer {
 
     controllerLogic
         .leftClimberActive()
-        .onTrue(new ManualClimberCommand(leftClimber, controllerLogic::getLeftClimberSpeed));
+        .whileTrue(new ManualClimberCommand(leftClimber, controllerLogic::getLeftClimberSpeed));
     controllerLogic
         .rightClimberActive()
-        .onTrue(new ManualClimberCommand(rightClimber, controllerLogic::getRightClimberSpeed));
+        .whileTrue(new ManualClimberCommand(rightClimber, controllerLogic::getRightClimberSpeed));
 
     //    LoggedDashboardNumber armVolts = new LoggedDashboardNumber("arm volts", 0);
     //    arm.setDefaultCommand(arm.run(() -> arm.setManualVoltage(armVolts.get())));

@@ -16,7 +16,7 @@ public class ClimberConstants {
       tunableTable.makeField("reset volts", 7);
 
   public static final class RotationPositions {
-    public static final double INITIAL_FULL_EXTENSION = 65;
+    public static final double INITIAL_FULL_EXTENSION = 60;
     public static final double HIGHEST_FULL_EXTENSION = 80;
     public static final double FULL_EXTENSION_WIGGLE_ROOM =
         HIGHEST_FULL_EXTENSION - INITIAL_FULL_EXTENSION;
