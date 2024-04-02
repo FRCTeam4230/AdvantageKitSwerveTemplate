@@ -52,4 +52,6 @@ public class NoteVisionConstants {
   public static final double DISTANCE_TO_RUMBLE = 4;
 
   public static final double ROTATION_CLOSENESS_WEIGHT_RAD_TO_M = 0.5;
+
+  public static final double INSIDE_FIELD_TOLERANCE = 0.3;
 }

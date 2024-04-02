@@ -18,7 +18,7 @@ public class NoteVisionIOSim implements NoteVisionIO {
   private final VisionSystemSim visionSim;
   private final TargetModel targetModel = new TargetModel(0.2, 0.2, 0.05);
   private final PhotonCamera camera;
-  private Pose3d[] notePoses = new Pose3d[8];
+  private Pose3d[] notePoses = new Pose3d[0];
   private final NoteVisionConstants.CameraConfig config;
 
   public NoteVisionIOSim(VisionSystemSim visionSim, NoteVisionConstants.CameraConfig config) {
