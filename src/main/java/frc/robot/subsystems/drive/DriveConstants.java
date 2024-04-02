@@ -86,7 +86,7 @@ public final class DriveConstants {
             new ModuleConfig[] {
               // Front left
               new ModuleConfig(
-                  6, 5, 9, Rotation2d.fromRadians(3.10227562), true, Units.inchesToMeters(2.0)),
+                  6, 5, 9, Rotation2d.fromRadians(3.10227562), true, Units.inchesToMeters(1.8445)),
               // Front right
               new ModuleConfig(
                   8,
@@ -94,10 +94,10 @@ public final class DriveConstants {
                   7,
                   Rotation2d.fromRadians(3.0796856053 + Math.PI),
                   true,
-                  Units.inchesToMeters(2.0)),
+                  Units.inchesToMeters(1.878)),
               // Back left
               new ModuleConfig(
-                  4, 3, 8, Rotation2d.fromRadians(-2.88248123), true, Units.inchesToMeters(2.0)),
+                  4, 3, 8, Rotation2d.fromRadians(-2.88248123), true, Units.inchesToMeters(1.899)),
               // Back right
               new ModuleConfig(
                   2,
@@ -105,7 +105,7 @@ public final class DriveConstants {
                   6,
                   Rotation2d.fromRadians(-0.7425938249 + Math.PI),
                   true,
-                  Units.inchesToMeters(2.0))
+                  Units.inchesToMeters(1.8745))
             };
         case SIMBOT -> {
           ModuleConfig[] configs = new ModuleConfig[4];
