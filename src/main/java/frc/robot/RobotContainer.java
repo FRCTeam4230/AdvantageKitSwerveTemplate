@@ -116,7 +116,7 @@ public class RobotContainer {
         aprilTagVision =
             new AprilTagVision(
                 new AprilTagVisionIOLimelight("limelight"),
-                new AprilTagVisionIOLimelight("limelight-two"));
+                new AprilTagVisionIOLimelight("limelight-front"));
         beamBreak =
             new BeamBreak(
                 new BeamBreakIOReal(BeamBreakConstants.LOWER_BEAM_BREAK_SENSOR_PORT),
