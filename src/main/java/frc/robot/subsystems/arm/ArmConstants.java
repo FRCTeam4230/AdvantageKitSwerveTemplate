@@ -11,9 +11,9 @@ public class ArmConstants {
 
   public static final int LEFT_MOTOR_ID = 9;
   public static final int RIGHT_MOTOR_ID = 10;
-  public static final LoggedTunableNumber kP = tunableTable.makeField("kP", 3);
+  public static final LoggedTunableNumber kP = tunableTable.makeField("kP", 6);
   public static final LoggedTunableNumber kI = tunableTable.makeField("kI", 0.0);
-  public static final LoggedTunableNumber kD = tunableTable.makeField("kD", 0);
+  public static final LoggedTunableNumber kD = tunableTable.makeField("kD", 0.5);
   public static final LoggedTunableNumber setpointToleranceRad =
       tunableTable.makeField("setpoint tolerance rad", 0.01); // todo tune
   public static final double ARM_ENCODER_OFFSET_RAD = 2.04801388399;
@@ -44,5 +44,7 @@ public class ArmConstants {
         tunableTable.makeField("lower drive pos", 0.15);
     public static final LoggedTunableNumber SPEAKER_FROM_PODIUM_POS_RAD =
         tunableTable.makeField("podium shot", 0.642);
+    public static final LoggedTunableNumber SOURCE_POS_RAD =
+        tunableTable.makeField("source pos", 1);
   }
 }

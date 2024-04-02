@@ -47,16 +47,20 @@ public class ControllerLogic {
     return secondController.povLeft();
   }
 
+  public Trigger armSourcePos() {
+    return secondController.a();
+  }
+
   public Trigger armPodiumPos() {
-    return secondController.povRight();
+    return new Trigger(() -> false);
   }
 
   public double getLeftClimberSpeed() {
-    return -secondController.getLeftX();
+    return -secondController.getLeftY();
   }
 
   public double getRightClimberSpeed() {
-    return -secondController.getRightX();
+    return -secondController.getRightY();
   }
 
   public Trigger leftClimberActive() {
@@ -68,7 +72,11 @@ public class ControllerLogic {
   }
 
   public Trigger runShooter() {
-    return secondController.rightBumper();
+    return new Trigger(() -> false);
+  }
+
+  public Trigger runShooterForLobbing() {
+    return secondController.b();
   }
 
   public Trigger forceIntake() {
@@ -85,6 +93,10 @@ public class ControllerLogic {
 
   public Trigger pointAtSpeaker() {
     return driverController.povLeft();
+  }
+
+  public Trigger pointAtSource() {
+    return driverController.a();
   }
 
   // +x means forward for the robot
@@ -108,30 +120,22 @@ public class ControllerLogic {
   }
 
   public Trigger ampPathFind() {
-    return driverController.rightStick();
+    return driverController.y();
   }
 
   public Trigger visionIntake() {
-    return driverController.leftStick();
+    return driverController.x();
   }
 
-  public Trigger leftSpeakerPathFind() {
-    return driverController.leftBumper().and(driverController.rightBumper().negate());
-  }
-
-  public Trigger rightSpeakerPathFind() {
-    return driverController.rightBumper().and(driverController.leftBumper().negate());
-  }
-
-  public Trigger centerSpeakerPathFind() {
-    return driverController.leftBumper().and(driverController.rightBumper());
-  }
-
-  public Trigger lobbing() {
+  public Trigger lobbingAlign() {
     return driverController.povUp();
   }
 
   public Trigger climbAlign() {
-    return driverController.povLeft();
+    return driverController.povRight();
+  }
+
+  public Trigger multiDistanceShot() {
+    return secondController.rightBumper();
   }
 }

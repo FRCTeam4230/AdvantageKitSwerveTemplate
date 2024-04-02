@@ -13,4 +13,9 @@ public class InterpolationMaps {
       InterpolationMapBuilder.makeMap(InterpolationData.shooterDistanceData, 0, 1);
   public static final InterpolatingDoubleTreeMap shooterDistanceToVelocity =
       InterpolationMapBuilder.makeMap(InterpolationData.shooterDistanceData, 0, 2);
+
+  public static final InterpolatingDoubleTreeMap lobbingDistanceToArmRad =
+      InterpolationMapBuilder.makeMap(InterpolationData.lobbingDistanceData, 0, 1);
+  public static final InterpolatingDoubleTreeMap lobbingDistanceToVelocity =
+      InterpolationMapBuilder.makeMap(InterpolationData.lobbingDistanceData, 0, 2);
 }

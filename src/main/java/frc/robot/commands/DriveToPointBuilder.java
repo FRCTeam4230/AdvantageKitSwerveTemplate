@@ -41,9 +41,9 @@ public class DriveToPointBuilder {
       double distanceTolerance,
       double angleToleranceRad,
       boolean flip) {
-    final var flippedTargetPose = flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
     return Commands.runEnd(
             () -> {
+              final var flippedTargetPose = flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
               final var pos = drive.getPose();
 
               final var translationOffset =
@@ -56,7 +56,7 @@ public class DriveToPointBuilder {
               final var speedY =
                   DriveConstants.PPtranslationConstants.kP * translationOffset.getY();
 
-              if (drive.getThetaController().atGoal()) {
+              if (drive.getThetaController().atSetpoint()) {
                 omega = 0;
               }
 
@@ -69,6 +69,7 @@ public class DriveToPointBuilder {
             drive)
         .until(
             () -> {
+              final var flippedTargetPose = flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
               final var pos = drive.getPose();
               return pos.getTranslation().getDistance(flippedTargetPose.getTranslation())
                       < distanceTolerance
@@ -77,16 +78,15 @@ public class DriveToPointBuilder {
             });
   }
 
-  public static Command driveToAndAlignWithFlipping(
-      Drive drive, Pose2d targetPose, double distanceTolerance, double angleToleranceRad) {
-    return driveTo(targetPose)
-        .andThen(align(drive, targetPose, distanceTolerance, angleToleranceRad, true));
-  }
-
-  public static Command driveToAndAlignNoFlip(
-      Drive drive, Pose2d targetPose, double distanceTolerance, double angleToleranceRad) {
-    return driveToNoFlip(targetPose)
-        .andThen(align(drive, targetPose, distanceTolerance, angleToleranceRad, false));
+  public static Command driveToAndAlign(
+      Drive drive,
+      Pose2d targetPose,
+      double distanceTolerance,
+      double angleToleranceRad,
+      boolean flip) {
+    final Command pathfindingPart = flip ? driveTo(targetPose) : driveToNoFlip(targetPose);
+    return pathfindingPart.andThen(
+        align(drive, targetPose, distanceTolerance, angleToleranceRad, flip));
   }
 
   public static Command waitUntilNearPose(

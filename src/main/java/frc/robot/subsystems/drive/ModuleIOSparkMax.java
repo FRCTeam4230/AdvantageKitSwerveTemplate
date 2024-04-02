@@ -15,6 +15,9 @@ package frc.robot.subsystems.drive;
 
 import static frc.robot.subsystems.drive.DriveConstants.*;
 
+import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.CANSparkBase.FaultID;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -24,7 +27,6 @@ import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.drive.DriveConstants.ModuleConfig;
 import java.util.OptionalDouble;
@@ -49,7 +51,8 @@ public class ModuleIOSparkMax implements ModuleIO {
 
   private final RelativeEncoder driveEncoder;
   private final RelativeEncoder turnRelativeEncoder;
-  private final DutyCycleEncoder turnAbsoluteEncoder;
+  private final CANcoder cancoder;
+  private final StatusSignal<Double> turnAbsolutePosition;
   private final Queue<Double> timestampQueue;
   private final Queue<Double> drivePositionQueue;
   private final Queue<Double> turnPositionQueue;
@@ -61,11 +64,10 @@ public class ModuleIOSparkMax implements ModuleIO {
     // Init motor & encoder objects
     driveSparkMax = new CANSparkMax(config.driveID(), MotorType.kBrushless);
     turnSparkMax = new CANSparkMax(config.turnID(), MotorType.kBrushless);
-    turnAbsoluteEncoder = new DutyCycleEncoder(config.absoluteEncoderChannel());
+    cancoder = new CANcoder(config.absoluteEncoderChannel(), canbus);
+    cancoder.getConfigurator().apply(new CANcoderConfiguration());
+    turnAbsolutePosition = cancoder.getAbsolutePosition();
     absoluteEncoderOffset = config.absoluteEncoderOffset(); // MUST BE CALIBRATED
-
-    // set distance per rotation on dutycycleencoder
-    turnAbsoluteEncoder.setDistancePerRotation(2 * Math.PI);
 
     driveSparkMax.restoreFactoryDefaults();
     turnSparkMax.restoreFactoryDefaults();
@@ -136,11 +138,9 @@ public class ModuleIOSparkMax implements ModuleIO {
     inputs.driveAppliedVolts = driveSparkMax.getAppliedOutput() * driveSparkMax.getBusVoltage();
     inputs.driveCurrentAmps = new double[] {driveSparkMax.getOutputCurrent()};
 
+    turnAbsolutePosition.refresh();
     inputs.turnAbsolutePosition =
-        new Rotation2d(
-                // turnAbsoluteEncoder.getVoltage() / RobotController.getVoltage5V() * 2.0 *
-                // Math.PI)
-                turnAbsoluteEncoder.getDistance())
+        Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble())
             .minus(absoluteEncoderOffset);
     inputs.turnPosition =
         Rotation2d.fromRotations(

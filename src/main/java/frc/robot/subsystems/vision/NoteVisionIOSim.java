@@ -31,7 +31,7 @@ public class NoteVisionIOSim implements NoteVisionIO {
     final var cameraProps = new SimCameraProperties();
     cameraProps.setAvgLatencyMs(10);
     cameraProps.setFPS(30);
-    cameraProps.setCalibration(1200, 960, Rotation2d.fromDegrees(70));
+    cameraProps.setCalibration(1200, 960, Rotation2d.fromDegrees(75));
     visionSim.addCamera(new PhotonCameraSim(camera, cameraProps), config.cameraPose());
   }
 

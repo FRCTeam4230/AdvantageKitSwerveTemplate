@@ -21,27 +21,29 @@ public final class DriveConstants {
       new TunableNumberWrapper(MethodHandles.lookup().lookupClass());
 
   public static final LoggedTunableNumber NOTE_PICKUP_MAX_SPEED =
-      tunableTable.makeField("note pickup max speed", 3);
+      tunableTable.makeField("note pickup max speed", 4);
   public static final LoggedTunableNumber NOTE_PICKUP_MIN_SPEED =
-      tunableTable.makeField("note pickup min speed", 1);
+      tunableTable.makeField("note pickup min speed", 2);
   public static final LoggedTunableNumber NOTE_PICKUP_DISTANCE_TO_SPEED_MULT =
-      tunableTable.makeField("note distance to speed mult", 1.5);
-  public static final LoggedTunableNumber NOTE_PICKUP_MAX_TURN_SPEED =
-      tunableTable.makeField("note pickup max turn speed", 5);
-  public static final PathConstraints pathPlannerConstraints =
-      new PathConstraints(4.0, 3.0, Units.degreesToRadians(200), Units.degreesToRadians(200));
-
+      tunableTable.makeField("note distance to speed mult", 5);
   public static DrivetrainConfig drivetrainConfig =
       switch (Constants.getRobot()) {
         default ->
             new DrivetrainConfig(
                 Units.inchesToMeters(29.0), // Track width x
                 Units.inchesToMeters(29.0), // Track width y
-                Units.feetToMeters(12.5), // Max linear velocity
-                Units.feetToMeters(21.32), // max linear acceleration
-                7.93, // Max angular velocity
-                29.89); // Max angular acceleration
+                3.6,
+                3, // TODO tune
+                Units.degreesToRadians(400), // Max angular velocity
+                Units.degreesToRadians(900)); // Max angular acceleration
       };
+  public static final PathConstraints pathPlannerConstraints =
+      new PathConstraints(
+          drivetrainConfig.maxLinearVelocity,
+          drivetrainConfig.maxLinearAcceleration,
+          drivetrainConfig.maxAngularVelocity,
+          drivetrainConfig.maxAngularAcceleration);
+
   public static final Translation2d[] moduleTranslations =
       new Translation2d[] {
         new Translation2d(
@@ -57,7 +59,7 @@ public final class DriveConstants {
       new SwerveDriveKinematics(moduleTranslations);
   public static final double odometryFrequency =
       switch (Constants.getRobot()) {
-        case SIMBOT -> 50.0;
+        case SIMBOT -> 100;
         case COMPBOT -> 50.0;
       };
   public static final Matrix<N3, N1> stateStdDevs =
@@ -78,7 +80,7 @@ public final class DriveConstants {
   public static final int gyroID = 13;
 
   // Turn to "" for no canbus name
-  public static final String canbus = "chassis";
+  public static final String canbus = "drive";
 
   public static ModuleConfig[] moduleConfigs =
       switch (Constants.getRobot()) {
@@ -86,26 +88,26 @@ public final class DriveConstants {
             new ModuleConfig[] {
               // Front left
               new ModuleConfig(
-                  6, 5, 9, Rotation2d.fromRadians(3.10227562), true, Units.inchesToMeters(1.8445)),
+                  6,
+                  5,
+                  25,
+                  Rotation2d.fromRotations(-0.249268 + 0.5),
+                  true,
+                  Units.inchesToMeters(1.8445)),
               // Front right
               new ModuleConfig(
-                  8,
-                  7,
-                  7,
-                  Rotation2d.fromRadians(3.0796856053 + Math.PI),
-                  true,
-                  Units.inchesToMeters(1.878)),
+                  8, 7, 27, Rotation2d.fromRotations(-0.262695), true, Units.inchesToMeters(1.878)),
               // Back left
               new ModuleConfig(
-                  4, 3, 8, Rotation2d.fromRadians(-2.88248123), true, Units.inchesToMeters(1.899)),
+                  4,
+                  3,
+                  23,
+                  Rotation2d.fromRotations(-0.381592 + 0.5),
+                  true,
+                  Units.inchesToMeters(1.899)),
               // Back right
               new ModuleConfig(
-                  2,
-                  1,
-                  6,
-                  Rotation2d.fromRadians(-0.7425938249 + Math.PI),
-                  true,
-                  Units.inchesToMeters(1.8745))
+                  2, 1, 21, Rotation2d.fromRotations(0.138672), true, Units.inchesToMeters(1.8745))
             };
         case SIMBOT -> {
           ModuleConfig[] configs = new ModuleConfig[4];
@@ -125,9 +127,15 @@ public final class DriveConstants {
       };
 
   public static class HeadingControllerConstants {
-    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 5);
+    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 3);
     public static final LoggedTunableNumber kD =
-        tunableTable.makeField("headingController/kd", 0.4);
+        tunableTable.makeField("headingController/kd", 0.0);
+    public static final LoggedTunableNumber NOTE_PICKUP_MULT =
+        tunableTable.makeField("headingController/note pickup mult", 1.5);
+    public static final LoggedTunableNumber TOLERANCE =
+        tunableTable.makeField("headingController/tolerance deg", 3);
+    public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
+        tunableTable.makeField("headingController/note pickup tolerance deg", 7);
   }
 
   public static final PIDConstants PPtranslationConstants =

@@ -17,10 +17,12 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleConfigs;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.pathfinding.Pathfinding;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
@@ -39,7 +41,9 @@ import frc.robot.commands.climber.ResetClimberBasic;
 import frc.robot.subsystems.RumbleSubsystem;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beamBreak.*;
+import frc.robot.subsystems.climber.ClimberConstants;
 import frc.robot.subsystems.climber.ClimberIO;
+import frc.robot.subsystems.climber.ClimberIOSparkMax;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.drive.*;
 import frc.robot.subsystems.drive.DriveController;
@@ -51,6 +55,7 @@ import frc.robot.subsystems.shooter.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.*;
 import java.util.Arrays;
+import java.util.List;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardString;
 import org.photonvision.simulation.VisionSystemSim;
@@ -124,22 +129,19 @@ public class RobotContainer {
         arm = new ArmSubsystem(new ArmIOSparkMax());
         leftClimber =
             new ClimberSubsystem(
-                new ClimberIO() {},
-                //                new ClimberIOSparkMax(
-                //                    ClimberConstants.LEFT_MOTOR_ID,
-                // ClimberConstants.LEFT_LIMIT_SWITCH_DIO_PORT),
+                new ClimberIOSparkMax(
+                    ClimberConstants.LEFT_MOTOR_ID, ClimberConstants.LEFT_LIMIT_SWITCH_DIO_PORT),
                 "left");
         rightClimber =
             new ClimberSubsystem(
-                new ClimberIO() {},
-                //                new ClimberIOSparkMax(
-                //                    ClimberConstants.RIGHT_MOTOR_ID,
-                // ClimberConstants.RIGHT_LIMIT_SWITCH_DIO_PORT),
+                new ClimberIOSparkMax(
+                    ClimberConstants.RIGHT_MOTOR_ID, ClimberConstants.RIGHT_LIMIT_SWITCH_DIO_PORT),
                 "right");
         noteVision =
             new NoteVisionSubsystem(
                 Arrays.stream(NoteVisionConstants.CAMERA_CONFIGS)
-                    .map(NoteVisionConstants.CameraConfig::makePhotonVision)
+                    .map(NoteVisionConstants.CameraConfig::name)
+                    .map(NoteVisionIOPython::new)
                     .toArray(NoteVisionIO[]::new),
                 drive.getPoseLogForNoteDetection(),
                 drive::getDrive,
@@ -159,7 +161,9 @@ public class RobotContainer {
         var simApriltagVisionIO =
             new AprilTagVisionIOPhotonVisionSIM(
                 "photonCamera1",
-                new Transform3d(new Translation3d(0.5, 0.0, 0.5), new Rotation3d(0, 0, 0)),
+                new Transform3d(
+                    new Translation3d(-0.5, 0.0, 0.5),
+                    new Rotation3d(0, 0, Units.degreesToRadians(180))),
                 drive::getDrive);
 
         VisionSystemSim noteVisionSimSystem = new VisionSystemSim("notes");
@@ -245,17 +249,22 @@ public class RobotContainer {
     drive.setPose(new Pose2d(1, 1, new Rotation2d(1, 1)));
     autoCommandBuilder =
         new AutoCommandBuilder(
-            drive, noteVision, shooter, intake, arm, beamBreak::detectNote, shooterStateHelpers);
+            drive, noteVision, shooter, intake, arm, beamBreak, shooterStateHelpers);
 
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
     configureAutoChooser();
     configureButtonBindings();
     configureNamedCommands();
     configureRumble();
+    configureTeleopCommands();
 
     intake.setDefaultCommand(IntakeCommands.keepNoteInCenter(intake, beamBreak));
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
+    Pathfinding.setDynamicObstacles(
+        AutoConstants.createDynamicObstaclesList(
+            List.of(AutoConstants.AvoidanceZones.STAGE, AutoConstants.AvoidanceZones.CLOSE_NOTES)),
+        drive.getPose().getTranslation());
   }
 
   private void setupLimelightFlashing() {
@@ -265,6 +274,12 @@ public class RobotContainer {
                     () -> LimelightHelpers.setLEDMode_ForceOn("limelight"),
                     () -> LimelightHelpers.setLEDMode_ForceOff("limelight"))
                 .ignoringDisable(true));
+  }
+
+  private void configureTeleopCommands() {
+    new Trigger(DriverStation::isTeleopEnabled)
+        .onTrue(resetClimbersCommand)
+        .onTrue(Commands.runOnce(autoCommandBuilder::clearObstacles));
   }
 
   private void configureRumble() {
@@ -290,7 +305,7 @@ public class RobotContainer {
                     () -> shooter.runVelocity(ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC.get()),
                     shooter)));
 
-    NamedCommands.registerCommand("pickup note", autoCommandBuilder.pickupNoteVisibleNote());
+    NamedCommands.registerCommand("pickup note", autoCommandBuilder.pickupVisibleNote());
 
     NamedCommands.registerCommand("shoot auto", autoCommandBuilder.autoShoot());
   }
@@ -315,28 +330,23 @@ public class RobotContainer {
     controllerLogic
         .ampPathFind()
         .whileTrue(
-            DriveToPointBuilder.driveTo(FieldConstants.ampScoringPose)
-                .alongWith(
-                    DriveToPointBuilder.waitUntilNearPose(
-                        drive::getPose,
-                        () -> AllianceFlipUtil.apply(FieldConstants.ampScoringPose),
-                        1))
-                .andThen(
-                    ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get)
-                        .alongWith(
-                            ShooterCommands.runSpeed(
-                                shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get))));
-    controllerLogic.pointAtSpeaker().onTrue(Commands.runOnce(driveMode::enableSpeakerHeading));
+            DriveToPointBuilder.driveToAndAlign(
+                drive, FieldConstants.ampScoringPose, 0.05, Units.degreesToRadians(3), true));
+    controllerLogic
+        .pointAtSpeaker()
+        .whileTrue(
+            Commands.startEnd(driveMode::enableSpeakerHeading, driveMode::disableHeadingControl));
+    controllerLogic.pointAtSource().onTrue(Commands.runOnce(driveMode::enableSourceHeading));
     controllerLogic.climbAlign().onTrue(Commands.runOnce(driveMode::enableStageHeading));
-    controllerLogic.lobbing().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));
+    controllerLogic.lobbingAlign().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));
     controllerLogic
         .disableHeadingControl()
         .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
 
-    controllerLogic.visionIntake().whileTrue(autoCommandBuilder.pickupNoteVisibleNote());
-    controllerLogic.leftSpeakerPathFind().whileTrue(DriveToSpeaker.left(drive, shooter, arm));
-    controllerLogic.centerSpeakerPathFind().whileTrue(DriveToSpeaker.center(drive, shooter, arm));
-    controllerLogic.rightSpeakerPathFind().whileTrue(DriveToSpeaker.right(drive, shooter, arm));
+    controllerLogic
+        .visionIntake()
+        .and(new Trigger(() -> noteVision.getCurrentNote().isPresent()))
+        .whileTrue(autoCommandBuilder.driveIntoVisibleNote());
 
     controllerLogic
         .extakeTrigger()
@@ -351,10 +361,7 @@ public class RobotContainer {
                         IntakeCommands.manualIntakeCommand(
                             intake, controllerLogic::getIntakeSpeed)),
                 IntakeCommands.manualIntakeCommand(intake, controllerLogic::getIntakeSpeed)
-                    .until(beamBreak::detectNote)
-                    .andThen(
-                        ArmCommands.autoArmToPosition(
-                            arm, ArmConstants.Positions.SPEAKER_POS_RAD::get)),
+                    .until(beamBreak::detectNote),
                 beamBreak::detectNote));
 
     // backup in case arm or shooter can't reach setpoint
@@ -368,7 +375,9 @@ public class RobotContainer {
 
     controllerLogic
         .resetRobotPoseAngle()
-        .onTrue(AdjustPositionCommands.setRotation(drive, () -> new Rotation2d(0)));
+        .onTrue(
+            AdjustPositionCommands.setRotation(
+                drive, () -> AllianceFlipUtil.apply(new Rotation2d(0))));
     controllerLogic
         .toggleVision()
         .toggleOnTrue(
@@ -379,10 +388,10 @@ public class RobotContainer {
 
     controllerLogic
         .leftClimberActive()
-        .onTrue(new ManualClimberCommand(leftClimber, controllerLogic::getLeftClimberSpeed));
+        .whileTrue(new ManualClimberCommand(leftClimber, controllerLogic::getLeftClimberSpeed));
     controllerLogic
         .rightClimberActive()
-        .onTrue(new ManualClimberCommand(rightClimber, controllerLogic::getRightClimberSpeed));
+        .whileTrue(new ManualClimberCommand(rightClimber, controllerLogic::getRightClimberSpeed));
 
     //    LoggedDashboardNumber armVolts = new LoggedDashboardNumber("arm volts", 0);
     //    arm.setDefaultCommand(arm.run(() -> arm.setManualVoltage(armVolts.get())));
@@ -392,15 +401,40 @@ public class RobotContainer {
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
     controllerLogic
         .armSpeakerPos()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get));
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get))
+        .whileTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC::get));
+    controllerLogic
+        .armSourcePos()
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SOURCE_POS_RAD::get));
     controllerLogic
         .armAmpPos()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get));
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get))
+        .whileTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .armPodiumPos()
         .onTrue(
             ArmCommands.autoArmToPosition(
-                arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get));
+                arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get))
+        .whileTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.PODIUM_VELOCITY_RAD_PER_SEC::get));
+
+    final Trigger multiDistance = controllerLogic.multiDistanceShot();
+    final Trigger inAllianceWing =
+        new Trigger(() -> AllianceFlipUtil.apply(drive.getPose()).getX() < FieldConstants.wingX);
+
+    multiDistance
+        .and(inAllianceWing)
+        .whileTrue(MultiDistanceShot.forSpeaker(drive::getPose, shooter, arm));
+    multiDistance
+        .and(inAllianceWing.negate())
+        .whileTrue(MultiDistanceShot.forLobbing(drive::getPose, shooter, arm));
+
+    controllerLogic
+        .runShooterForLobbing()
+        .whileTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_LOB_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .runShooter()
         .whileTrue(
@@ -419,8 +453,8 @@ public class RobotContainer {
 
   private void configureAutoChooser() {
     final var configString = new LoggedDashboardString("auto config string", ".102b");
-    autoChooser.addOption(
-        "test configured auto", autoCommandBuilder.autoFromConfigString(configString::get));
+    autoChooser.addDefaultOption(
+        "configurable auto", autoCommandBuilder.autoFromConfigString(configString::get));
 
     // -999 is an indicator that it is unchanged
     final var angle =
@@ -443,7 +477,7 @@ public class RobotContainer {
                     })
                 .ignoringDisable(true));
 
-    autoChooser.addOption("test note pickup", autoCommandBuilder.pickupNoteVisibleNote());
+    autoChooser.addOption("test note pickup", autoCommandBuilder.pickupVisibleNote());
 
     final SysIdBuilder sysIdBuilder = new SysIdBuilder(autoChooser);
 
@@ -460,9 +494,5 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     return resetClimbersCommand.asProxy().alongWith(autoChooser.get().asProxy());
-  }
-
-  public Command getTeleopCommand() {
-    return resetClimbersCommand;
   }
 }
