@@ -47,6 +47,8 @@ public class MultiDistanceShot extends Command {
     this.arm = arm;
     this.distanceToShooterVelocityRadPerSec = distanceToShooterVelocityRadPerSec;
     this.distanceToArmRad = distanceToArmRad;
+
+    addRequirements(shooter, arm);
   }
 
   @Override

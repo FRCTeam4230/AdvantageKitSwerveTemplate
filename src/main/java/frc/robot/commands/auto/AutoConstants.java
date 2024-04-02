@@ -27,8 +27,14 @@ public class AutoConstants {
       tunableTable.makeField("align angle tolerance deg", Units.degreesToRadians(10));
   public static final Translation2d[] AUTO_NOTES =
       Stream.concat(
-              Stream.of(FieldConstants.StagingLocations.spikeTranslations),
-              Stream.of(FieldConstants.StagingLocations.centerlineTranslations))
+              Stream.concat(
+                  Stream.of(FieldConstants.StagingLocations.spikeTranslations),
+                  Stream.of(FieldConstants.StagingLocations.centerlineTranslations)),
+              Stream.of(
+                  new Translation2d(-1, 5),
+                  new Translation2d(1, 9),
+                  new Translation2d(17, 1),
+                  new Translation2d(0, -1)))
           .toArray(Translation2d[]::new);
 
   public static class AutoNoteOffsetThresholds {

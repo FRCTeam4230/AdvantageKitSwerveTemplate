@@ -36,6 +36,7 @@ public class ArmCommands {
     return Commands.runOnce(
         () -> {
           arm.setPositionRad(targetRadianSupplier.getAsDouble());
-        });
+        },
+        arm);
   }
 }
