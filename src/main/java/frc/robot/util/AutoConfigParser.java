@@ -107,6 +107,7 @@ public class AutoConfigParser {
 
           // we set obstacles on last note, don't do it again for the next one
           currentObstacles = Optional.empty();
+          time = Optional.empty();
         }
       }
       return Optional.of(output);

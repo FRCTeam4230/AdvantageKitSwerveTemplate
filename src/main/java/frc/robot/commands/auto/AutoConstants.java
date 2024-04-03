@@ -24,7 +24,7 @@ public class AutoConstants {
   public static final LoggedTunableNumber SHOOTING_DISTANCE_OFFSET_TOLERANCE =
       tunableTable.makeField("align distance tolerance m", 0.2);
   public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_TOLERANCE =
-      tunableTable.makeField("align angle tolerance deg", Units.degreesToRadians(10));
+      tunableTable.makeField("align angle tolerance deg", 10);
   public static final Translation2d[] AUTO_NOTES =
       Stream.concat(
               Stream.concat(

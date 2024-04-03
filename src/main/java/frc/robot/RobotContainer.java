@@ -457,6 +457,8 @@ public class RobotContainer {
     autoChooser.addDefaultOption(
         "configurable auto", autoCommandBuilder.autoFromConfigString(configString::get));
 
+    Dashboard.showAutoPlan(configString::get).schedule();
+
     // -999 is an indicator that it is unchanged
     final var angle =
         new LoggedTunableNumber(
