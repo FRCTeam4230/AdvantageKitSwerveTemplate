@@ -192,7 +192,6 @@ public class Drive extends SubsystemBase {
       poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
       odometryDrive.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
 
-      Logger.recordOutput("pose timestamp", sampleTimestamps[i]);
       poseLogForNoteDetection.addNewPose(odometryDrive.getEstimatedPosition(), sampleTimestamps[i]);
     }
 
