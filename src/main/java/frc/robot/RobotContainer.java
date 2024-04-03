@@ -413,6 +413,11 @@ public class RobotContainer {
         .whileTrue(
             ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
+        .runShooterForLobbing()
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.LOBBING_POS_RAD::get))
+        .whileTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_LOB_VELOCITY_RAD_PER_SEC::get));
+    controllerLogic
         .armPodiumPos()
         .onTrue(
             ArmCommands.autoArmToPosition(
@@ -431,10 +436,6 @@ public class RobotContainer {
         .and(inAllianceWing.negate())
         .whileTrue(MultiDistanceShot.forLobbing(drive::getPose, shooter, arm));
 
-    controllerLogic
-        .runShooterForLobbing()
-        .whileTrue(
-            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_LOB_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .runShooter()
         .whileTrue(

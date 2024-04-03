@@ -76,7 +76,7 @@ public class ControllerLogic {
   }
 
   public Trigger runShooterForLobbing() {
-    return secondController.b();
+    return secondController.povRight();
   }
 
   public Trigger forceIntake() {
