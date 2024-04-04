@@ -65,7 +65,6 @@ public class InterpolationData {
 
   public static final double[][] lobbingDistanceData = {
     /* distance m to lobbing target, angle rad, velocity rad/s */
-    {0, 0, 350},
-    {100, 0, 350},
+    {0, 0, 350}, {4, 0, 350}, {8, 0.3, 350}, {100, 0.3, 350},
   };
 }
