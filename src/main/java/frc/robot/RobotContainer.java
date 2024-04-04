@@ -18,6 +18,7 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleConfigs;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.pathfinding.Pathfinding;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -268,12 +269,16 @@ public class RobotContainer {
   }
 
   private void setupLimelightFlashing() {
-    new Trigger(beamBreak::detectNote)
-        .whileTrue(
-            Commands.startEnd(
-                    () -> LimelightHelpers.setLEDMode_ForceOn("limelight"),
-                    () -> LimelightHelpers.setLEDMode_ForceOff("limelight"))
-                .ignoringDisable(true));
+    new Trigger(beamBreak::detectNote).whileTrue(LimelightControl.lightsOn("limelight"));
+
+    new Trigger(
+            () ->
+                MathUtil.isNear(
+                    0,
+                    AllianceFlipUtil.apply(drive.getRotation().plus(Rotation2d.fromDegrees(30)))
+                        .getDegrees(),
+                    60))
+        .whileTrue(LimelightControl.lightsFlashing("limelight-front", 0.2));
   }
 
   private void configureTeleopCommands() {
