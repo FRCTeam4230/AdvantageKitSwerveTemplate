@@ -337,10 +337,7 @@ public class RobotContainer {
         .whileTrue(
             DriveToPointBuilder.driveToAndAlign(
                 drive, FieldConstants.ampScoringPose, 0.05, Units.degreesToRadians(3), true));
-    controllerLogic
-        .pointAtSpeaker()
-        .whileTrue(
-            Commands.startEnd(driveMode::enableSpeakerHeading, driveMode::disableHeadingControl));
+    controllerLogic.pointAtSpeaker().onTrue(Commands.runOnce(driveMode::enableSpeakerHeading));
     controllerLogic.pointAtSource().onTrue(Commands.runOnce(driveMode::enableSourceHeading));
     controllerLogic.climbAlign().onTrue(Commands.runOnce(driveMode::enableStageHeading));
     controllerLogic.lobbingAlign().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));
@@ -407,7 +404,7 @@ public class RobotContainer {
     controllerLogic
         .armSpeakerPos()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get))
-        .whileTrue(
+        .onTrue(
             ShooterCommands.runSpeed(shooter, ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .armSourcePos()
@@ -415,19 +412,18 @@ public class RobotContainer {
     controllerLogic
         .armAmpPos()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get))
-        .whileTrue(
-            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get));
+        .onTrue(ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .runShooterForLobbing()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.LOBBING_POS_RAD::get))
-        .whileTrue(
+        .onTrue(
             ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_LOB_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .armPodiumPos()
         .onTrue(
             ArmCommands.autoArmToPosition(
                 arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get))
-        .whileTrue(
+        .onTrue(
             ShooterCommands.runSpeed(shooter, ShooterConstants.PODIUM_VELOCITY_RAD_PER_SEC::get));
 
     final Trigger multiDistance = controllerLogic.multiDistanceShot();

@@ -43,13 +43,13 @@ public class InterpolationData {
 
   private static final double[][] shooterDistanceDataRaw = {
     /* distance to speaker in, angle rad, velocity rad/s */
-    {0, 0.23, 250},
-    {52, 0.25, 250},
-    {75, 0.44, 250},
-    {87, 0.5, 270},
-    {120, 0.6, 270},
-    {120.1, 0.25, 270},
-    {10000, 0.25, 270},
+    {0, 0.23, 260},
+    {52, 0.25, 260},
+    {75, 0.44, 260},
+    {87, 0.5, 275},
+    {120, 0.6, 275},
+    {120.1, 0.25, 275},
+    {10000, 0.25, 275},
   };
 
   /** distance to speaker m, angle rad, velocity rad/s */
@@ -65,6 +65,6 @@ public class InterpolationData {
 
   public static final double[][] lobbingDistanceData = {
     /* distance m to lobbing target, angle rad, velocity rad/s */
-    {0, 0, 350}, {4, 0, 350}, {8, 0.3, 350}, {100, 0.3, 350},
+    {0, 0, 350}, {4, 0, 350}, {8, 0.25, 350}, {100, 0.25, 350},
   };
 }
