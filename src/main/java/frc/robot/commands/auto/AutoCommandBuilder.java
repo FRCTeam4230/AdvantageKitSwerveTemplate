@@ -203,7 +203,7 @@ public class AutoCommandBuilder {
                 drive,
                 shootingPose,
                 AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE.get(),
-                        Units.degreesToRadians(AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get()),
+                Units.degreesToRadians(AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get()),
                 false)
             .deadlineWith(IntakeCommands.keepNoteInCenter(intake, beamBreak));
     output.addCommands(
