@@ -51,6 +51,10 @@ public class ControllerLogic {
     return secondController.a();
   }
 
+  public Trigger shooterOff() {
+    return secondController.b();
+  }
+
   public Trigger armPodiumPos() {
     return new Trigger(() -> false);
   }
