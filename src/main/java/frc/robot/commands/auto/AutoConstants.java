@@ -17,7 +17,7 @@ public class AutoConstants {
   private static final TunableNumberWrapper tunableTable =
       new TunableNumberWrapper(MethodHandles.lookup().lookupClass());
   public static final LoggedTunableNumber DISTANCE_TO_TRUST_CAMERA =
-      tunableTable.makeField("camera trust m", 2);
+      tunableTable.makeField("camera trust m", 1);
   public static final LoggedTunableNumber DRIVE_TO_PICKUP_INTERRUPT_DISTANCE =
       tunableTable.makeField("drive to pickup interupt m", 0);
   public static final LoggedTunableNumber SHOOTING_DISTANCE_OFFSET_TOLERANCE =
