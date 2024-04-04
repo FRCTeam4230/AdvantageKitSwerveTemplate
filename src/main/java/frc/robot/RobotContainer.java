@@ -400,7 +400,8 @@ public class RobotContainer {
 
     controllerLogic
         .armDown()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get))
+        .onTrue(Commands.runOnce(shooter::stop, shooter));
     controllerLogic
         .armSpeakerPos()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get))
