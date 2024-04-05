@@ -84,7 +84,7 @@ public class ControllerLogic {
   }
 
   public Trigger forceIntake() {
-    return secondController.leftBumper();
+    return secondController.leftBumper().or(driverController.leftBumper());
   }
 
   public Trigger toggleVision() {

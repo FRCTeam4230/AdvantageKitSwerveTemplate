@@ -21,9 +21,9 @@ public class AutoConstants {
   public static final LoggedTunableNumber DRIVE_TO_PICKUP_INTERRUPT_DISTANCE =
       tunableTable.makeField("drive to pickup interupt m", 0);
   public static final LoggedTunableNumber SHOOTING_DISTANCE_OFFSET_TOLERANCE =
-      tunableTable.makeField("align distance tolerance m", 0.2);
+      tunableTable.makeField("align distance tolerance m", 0.1);
   public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_TOLERANCE =
-      tunableTable.makeField("align angle tolerance deg", 10);
+      tunableTable.makeField("align angle tolerance deg", 6);
   public static final Translation2d[] AUTO_NOTES =
       Stream.concat(
               Stream.concat(
