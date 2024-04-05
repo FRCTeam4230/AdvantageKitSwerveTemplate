@@ -23,7 +23,9 @@ public final class DriveConstants {
   public static final LoggedTunableNumber NOTE_PICKUP_MAX_SPEED =
       tunableTable.makeField("note pickup max speed", 4);
   public static final LoggedTunableNumber NOTE_PICKUP_MIN_SPEED =
-      tunableTable.makeField("note pickup min speed", 2);
+      tunableTable.makeField("note pickup min speed", 1);
+  public static final LoggedTunableNumber NOTE_PICKUP_SPEED_STARTING_DISTANCE =
+      tunableTable.makeField("note pickup speed starting distance", 0.4);
   public static final LoggedTunableNumber NOTE_PICKUP_DISTANCE_TO_SPEED_MULT =
       tunableTable.makeField("note distance to speed mult", 5);
   public static DrivetrainConfig drivetrainConfig =
@@ -122,7 +124,7 @@ public final class DriveConstants {
     public static final LoggedTunableNumber TOLERANCE =
         tunableTable.makeField("headingController/tolerance deg", 3);
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
-        tunableTable.makeField("headingController/note pickup tolerance deg", 7);
+        tunableTable.makeField("headingController/note pickup tolerance deg", 6);
   }
 
   public static final PIDConstants PPtranslationConstants =
