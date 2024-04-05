@@ -288,7 +288,7 @@ public class RobotContainer {
   }
 
   private void configureRumble() {
-    rumbleSubsystem.setRumbleTimes(40, 10);
+    rumbleSubsystem.setRumbleTimes(30, 10);
 
     rumbleSubsystem.setDefaultCommand(
         rumbleSubsystem.noteMonitoring(
