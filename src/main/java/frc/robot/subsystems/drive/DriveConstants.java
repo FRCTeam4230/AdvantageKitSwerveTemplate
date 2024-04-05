@@ -124,7 +124,7 @@ public final class DriveConstants {
     public static final LoggedTunableNumber TOLERANCE =
         tunableTable.makeField("headingController/tolerance deg", 3);
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
-        tunableTable.makeField("headingController/note pickup tolerance deg", 6);
+        tunableTable.makeField("headingController/note pickup tolerance deg", 7);
   }
 
   public static final PIDConstants PPtranslationConstants =
