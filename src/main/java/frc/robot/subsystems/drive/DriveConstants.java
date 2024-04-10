@@ -110,9 +110,9 @@ public final class DriveConstants {
   public static final ModuleConstants moduleConstants =
       switch (Constants.getRobot()) {
         case COMPBOT ->
-            new ModuleConstants(Mk4iReductions.L1.reduction, Mk4iReductions.TURN.reduction);
+            new ModuleConstants(Mk4iReductions.L2.reduction, Mk4iReductions.TURN.reduction);
         case SIMBOT ->
-            new ModuleConstants(Mk4iReductions.L1.reduction, Mk4iReductions.TURN.reduction);
+            new ModuleConstants(Mk4iReductions.L2.reduction, Mk4iReductions.TURN.reduction);
       };
 
   public static class HeadingControllerConstants {
