@@ -1,6 +1,5 @@
 package frc.robot.util.interpolation;
 
-import edu.wpi.first.math.util.Units;
 import java.util.Arrays;
 
 public class InterpolationData {
@@ -41,27 +40,16 @@ public class InterpolationData {
               })
           .toArray(double[][]::new);
 
-  private static final double[][] shooterDistanceDataRaw = {
-    /* distance to speaker in, angle rad, velocity rad/s */
-    {0, 0.23, 260},
-    {52, 0.25, 260},
-    {75, 0.44, 260},
-    {87, 0.5, 275},
-    {120, 0.6, 275},
-    {120.1, 0.25, 275},
-    {10000, 0.25, 275},
-  };
-
   /** distance to speaker m, angle rad, velocity rad/s */
-  protected static final double[][] shooterDistanceData =
-      Arrays.stream(shooterDistanceDataRaw)
-          .map(
-              row -> {
-                final var newRow = row.clone();
-                newRow[0] = Units.inchesToMeters(newRow[0]);
-                return newRow;
-              })
-          .toArray(double[][]::new);
+  protected static final double[][] shooterDistanceData = {
+    {0, .3, 350},
+    {1.37, .3, 350},
+    {1.572, .40, 350},
+    {2.055, .48, 350},
+    {3.12, 0.63, 400},
+    {3.8289, 0.7, 400},
+    {3.8289, 0.7, 400}
+  };
 
   public static final double[][] lobbingDistanceData = {
     /* distance m to lobbing target, angle rad, velocity rad/s */
