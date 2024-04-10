@@ -13,10 +13,11 @@
 
 package frc.robot.subsystems.drive;
 
-import static edu.wpi.first.units.Units.*;
 import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathPlannerTrajectory;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
+import lombok.Setter;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -82,6 +84,9 @@ public class Drive extends SubsystemBase {
 
   private final SwerveDrivePoseEstimator odometryDrive =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+  @Setter
+  private boolean rotateTowardsEndOfPath = false;
+  private List<Pose2d> currentPath;
 
   public Drive(
       GyroIO gyroIO,
@@ -118,11 +123,14 @@ public class Drive extends SubsystemBase {
                 && DriverStation.getAlliance().get() == Alliance.Red,
         this);
     PathPlannerLogging.setLogActivePathCallback(
-        activePath ->
-            Logger.recordOutput(
-                "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()])));
+        activePath -> {
+          Logger.recordOutput(
+                  "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
+          currentPath = activePath;
+        });
     PathPlannerLogging.setLogTargetPoseCallback(
         targetPose -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
+    PPHolonomicDriveController.setRotationTargetOverride(());
 
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
     thetaController.setTolerance(
