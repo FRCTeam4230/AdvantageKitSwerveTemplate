@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.commands.auto.AutoConstants;
+import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.AutoConfigParser;
 import java.util.Arrays;
 import java.util.Optional;
@@ -38,8 +39,8 @@ public class Dashboard {
     final var autoPlanField = new Field2d();
     SmartDashboard.putData("auto plan", autoPlanField);
     final var targetNotes = autoPlanField.getObject("target notes");
-    final var pickups = autoPlanField.getObject("pickups");
     final var shootingSpots = autoPlanField.getObject("shooting spots");
+    final var obstacles = autoPlanField.getObject("obstacles");
     return Commands.run(
             () -> {
               if (DriverStation.isDisabled()) {
@@ -48,7 +49,7 @@ public class Dashboard {
                 final var autoConfig = AutoConfigParser.parseAutoConfig(configString);
                 if (autoConfig.isEmpty()) {
                   targetNotes.setPoses();
-                  pickups.setPoses();
+                  obstacles.setPoses();
                   shootingSpots.setPoses();
                   return;
                 }
@@ -61,11 +62,19 @@ public class Dashboard {
                         .map(Optional::get)
                         .map(note -> new Pose2d(note, Rotation2d.fromDegrees(90)))
                         .toArray(Pose2d[]::new));
-                pickups.setPoses(
+                obstacles.setPoses(
                     autoParts.stream()
-                        .map(AutoConfigParser.AutoPart::notePickupPose)
+                        .map(AutoConfigParser.AutoPart::obstacles)
                         .filter(Optional::isPresent)
                         .map(Optional::get)
+                        .flatMap(
+                            obstacleList ->
+                                obstacleList.stream()
+                                    .map(
+                                        corners ->
+                                            corners.getFirst().plus(corners.getSecond()).div(2)))
+                        .map(obstacle -> new Pose2d(obstacle, Rotation2d.fromDegrees(-90)))
+                        .map(AllianceFlipUtil::apply)
                         .toArray(Pose2d[]::new));
                 shootingSpots.setPoses(
                     autoParts.stream()

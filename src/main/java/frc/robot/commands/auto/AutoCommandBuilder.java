@@ -181,21 +181,20 @@ public class AutoCommandBuilder {
           Commands.waitUntil(() -> DriverStation.getMatchTime() <= autoPart.time().get()));
     }
 
-    if (autoPart.notePickupPose().isPresent()) {
-      final Command driveToPickup = driveToPickup(autoPart.notePickupPose().get());
-
-      output.addCommands(Commands.parallel(logAutoState("driving"), driveToPickup));
-    }
-
     if (autoPart.note().isPresent()) {
+      final Command pathfindToNote = pathfindToNote(autoPart.note().get());
+
+      output.addCommands(Commands.parallel(logAutoState("driving"), pathfindToNote));
+
       final Command pickupNote =
           pickupNoteAtTranslation(autoPart.note().get(), AutoConstants.PICKUP_TIMEOUT.get());
 
       output.addCommands(Commands.parallel(logAutoState("pickup"), pickupNote));
+    } else {
+      final Command fallbackPickup = fallbackPickup().onlyIf(() -> !beamBreak.detectNote());
+      output.addCommands(Commands.parallel(logAutoState("scanning"), fallbackPickup));
     }
 
-    final Command fallbackPickup = fallbackPickup().onlyIf(() -> !beamBreak.detectNote());
-    output.addCommands(Commands.parallel(logAutoState("fallback"), fallbackPickup));
     final Pose2d shootingPose =
         AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation());
     final Command returnCommand =
@@ -208,11 +207,23 @@ public class AutoCommandBuilder {
             .deadlineWith(IntakeCommands.keepNoteInCenter(intake, beamBreak));
     output.addCommands(
         Commands.parallel(
-            logAutoState("returning"),
-            Commands.sequence(returnCommand, logAutoState("shooting"), autoShoot())
-                .deadlineWith(readyShooterDistance(shootingPose))));
+                logAutoState("returning"),
+                Commands.sequence(returnCommand, logAutoState("shooting"), autoShoot())
+                    .deadlineWith(readyShooterDistance(shootingPose)))
+            .onlyIf(beamBreak::detectNote));
 
     return output;
+  }
+
+  private Command pathfindToNote(Translation2d note) {
+    return Commands.parallel(
+            Commands.runOnce(() -> drive.setRotateTowardsEndOfPath(true)),
+            DriveToPointBuilder.driveToNoFlip(new Pose2d(note, new Rotation2d())))
+        .finallyDo(() -> drive.setRotateTowardsEndOfPath(false))
+        .until(
+            () ->
+                drive.getPose().getTranslation().getDistance(note)
+                    < AutoConstants.PATHFIND_UNTIL_DISTANCE.get());
   }
 
   public Command autoFromConfigString(Supplier<String> configStringSupplier) {

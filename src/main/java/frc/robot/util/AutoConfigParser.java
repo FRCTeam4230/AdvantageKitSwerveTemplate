@@ -1,7 +1,6 @@
 package frc.robot.util;
 
 import edu.wpi.first.math.Pair;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.commands.auto.AutoConstants;
 import java.util.*;
@@ -10,17 +9,8 @@ public class AutoConfigParser {
   public record AutoPart(
       Optional<Translation2d> note,
       Translation2d shootingTranslation,
-      Optional<Pose2d> notePickupPose,
       Optional<List<Pair<Translation2d, Translation2d>>> obstacles,
       Optional<Integer> time) {}
-
-  public static final Map<Character, Pose2d> pickupPoseMap = new HashMap<>();
-
-  static {
-    pickupPoseMap.put('x', AutoConstants.NotePickupLocations.X);
-    pickupPoseMap.put('y', AutoConstants.NotePickupLocations.Y);
-    pickupPoseMap.put('z', AutoConstants.NotePickupLocations.Z);
-  }
 
   public static final Map<Character, Translation2d> shootingPoseMap = new HashMap<>();
 
@@ -41,6 +31,12 @@ public class AutoConfigParser {
     obstacleMap.put('r', AutoConstants.AvoidanceZones.SOURCE_SIDE_NEXT_TO_STAGE);
     obstacleMap.put('s', AutoConstants.AvoidanceZones.STAGE);
     obstacleMap.put('t', AutoConstants.AvoidanceZones.CLOSE_NOTES);
+    obstacleMap.put('u', AutoConstants.AvoidanceZones.AMP_SIDE_FAR_STAGE);
+    obstacleMap.put('v', AutoConstants.AvoidanceZones.MIDDLE_FAR_STAGE);
+    obstacleMap.put('w', AutoConstants.AvoidanceZones.SOURCE_SIDE_FAR_STAGE);
+    obstacleMap.put('x', AutoConstants.AvoidanceZones.AMP_SIDE_MIDDLE_STAGE);
+    obstacleMap.put('y', AutoConstants.AvoidanceZones.SOURCE_SIDE_MIDDLE_STAGE);
+    obstacleMap.put('z', AutoConstants.AvoidanceZones.MIDDLE_SUBWOOFER);
   }
 
   /**
@@ -79,11 +75,10 @@ public class AutoConfigParser {
         }
         final var shootingPose =
             Optional.ofNullable(shootingPoseMap.get(part.charAt(part.length() - 1)));
-        final var pickupPose = Optional.ofNullable(pickupPoseMap.get(part.charAt(0)));
         if (shootingPose.isEmpty()) {
           return Optional.empty();
         }
-        for (int noteCharInt : part.substring(1, part.length() - 1).chars().toArray()) {
+        for (int noteCharInt : part.substring(0, part.length() - 1).chars().toArray()) {
           final var finalCurrentObstacles = currentObstacles;
 
           Optional<Translation2d> note;
@@ -99,11 +94,7 @@ public class AutoConfigParser {
 
           output.add(
               new AutoPart(
-                  note,
-                  AllianceFlipUtil.apply(shootingPose.get()),
-                  pickupPose.map(AllianceFlipUtil::apply),
-                  finalCurrentObstacles,
-                  time));
+                  note, AllianceFlipUtil.apply(shootingPose.get()), finalCurrentObstacles, time));
 
           // we set obstacles on last note, don't do it again for the next one
           currentObstacles = Optional.empty();

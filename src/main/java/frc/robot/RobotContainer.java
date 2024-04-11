@@ -17,7 +17,6 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleConfigs;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -56,7 +55,6 @@ import frc.robot.subsystems.shooter.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.*;
 import java.util.Arrays;
-import java.util.List;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardString;
 import org.photonvision.simulation.VisionSystemSim;
@@ -203,8 +201,8 @@ public class RobotContainer {
                 drive::getPose,
                 arm::getPositionRad);
 
-        new Trigger(DriverStation::isAutonomousEnabled)
-            .onTrue(Commands.runOnce(noteVisionIOs[0]::resetNotePoses));
+        //        new Trigger(DriverStation::isAutonomousEnabled)
+        //            .onTrue(Commands.runOnce(noteVisionIOs[0]::resetNotePoses));
       }
       default -> {
         // Replayed robot, disable IO implementations
@@ -262,10 +260,6 @@ public class RobotContainer {
     intake.setDefaultCommand(IntakeCommands.keepNoteInCenter(intake, beamBreak));
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
-    Pathfinding.setDynamicObstacles(
-        AutoConstants.createDynamicObstaclesList(
-            List.of(AutoConstants.AvoidanceZones.STAGE, AutoConstants.AvoidanceZones.CLOSE_NOTES)),
-        drive.getPose().getTranslation());
   }
 
   private void setupLimelightFlashing() {

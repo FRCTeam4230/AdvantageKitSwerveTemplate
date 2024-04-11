@@ -17,7 +17,6 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-import com.pathplanner.lib.path.PathPlannerTrajectory;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -42,6 +41,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.PoseLog;
 import frc.robot.util.VisionHelpers.TimestampedVisionUpdate;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
@@ -84,8 +84,7 @@ public class Drive extends SubsystemBase {
 
   private final SwerveDrivePoseEstimator odometryDrive =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
-  @Setter
-  private boolean rotateTowardsEndOfPath = false;
+  @Setter private boolean rotateTowardsEndOfPath = false;
   private List<Pose2d> currentPath;
 
   public Drive(
@@ -125,12 +124,27 @@ public class Drive extends SubsystemBase {
     PathPlannerLogging.setLogActivePathCallback(
         activePath -> {
           Logger.recordOutput(
-                  "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
+              "Odometry/Trajectory", activePath.toArray(new Pose2d[activePath.size()]));
           currentPath = activePath;
         });
     PathPlannerLogging.setLogTargetPoseCallback(
         targetPose -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
-    PPHolonomicDriveController.setRotationTargetOverride(());
+    PPHolonomicDriveController.setRotationTargetOverride(
+        () -> {
+          final int STEP_COUNT = 5;
+          if (!rotateTowardsEndOfPath || currentPath == null) {
+            return Optional.empty();
+          }
+
+          if (currentPath.size() < STEP_COUNT)
+            ;
+
+          final var finalTranslation = currentPath.get(currentPath.size() - 1).getTranslation();
+          final var secondToLastTranslation =
+              currentPath.get(currentPath.size() - STEP_COUNT).getTranslation();
+
+          return Optional.of(finalTranslation.minus(secondToLastTranslation).getAngle());
+        });
 
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
     thetaController.setTolerance(
