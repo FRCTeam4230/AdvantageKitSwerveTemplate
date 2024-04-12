@@ -32,13 +32,13 @@ public final class DriveConstants {
       switch (Constants.getRobot()) {
         default ->
             new DrivetrainConfig(
-                Units.inchesToMeters(2.0), // Wheel radius
+                Units.inchesToMeters(1.95), // Wheel radius
                 Units.inchesToMeters(29.0), // Track width x
                 Units.inchesToMeters(29.0), // Track width y
-                3.6,
-                3, // TODO tune
-                Units.degreesToRadians(400), // Max angular velocity
-                Units.degreesToRadians(900)); // Max angular acceleration
+                4.35,
+                3.5,
+                Units.degreesToRadians(450), // Max angular velocity
+                Units.degreesToRadians(800)); // Max angular acceleration
       };
   public static final PathConstraints pathPlannerConstraints =
       new PathConstraints(
@@ -91,13 +91,13 @@ public final class DriveConstants {
         case COMPBOT ->
             new ModuleConfig[] {
               // Front left
-              new ModuleConfig(6, 5, 25, Rotation2d.fromRotations(-0.249268 + 0.5), true),
+              new ModuleConfig(6, 5, 25, Rotation2d.fromRotations(0.017578 + 0.5), true),
               // Front right
-              new ModuleConfig(8, 7, 27, Rotation2d.fromRotations(-0.262695), true),
+              new ModuleConfig(8, 7, 27, Rotation2d.fromRotations(-0.258301), true),
               // Back left
-              new ModuleConfig(4, 3, 23, Rotation2d.fromRotations(-0.381592 + 0.5), true),
+              new ModuleConfig(4, 3, 23, Rotation2d.fromRotations(0.326904 + 0.5), true),
               // Back right
-              new ModuleConfig(2, 1, 21, Rotation2d.fromRotations(0.138672), true)
+              new ModuleConfig(2, 1, 21, Rotation2d.fromRotations(0.133789), true)
             };
         case SIMBOT -> {
           ModuleConfig[] configs = new ModuleConfig[4];
@@ -110,21 +110,23 @@ public final class DriveConstants {
   public static final ModuleConstants moduleConstants =
       switch (Constants.getRobot()) {
         case COMPBOT ->
-            new ModuleConstants(Mk4iReductions.L1.reduction, Mk4iReductions.TURN.reduction);
+            new ModuleConstants(Mk4iReductions.L2.reduction, Mk4iReductions.TURN.reduction);
         case SIMBOT ->
-            new ModuleConstants(Mk4iReductions.L1.reduction, Mk4iReductions.TURN.reduction);
+            new ModuleConstants(Mk4iReductions.L2.reduction, Mk4iReductions.TURN.reduction);
       };
 
   public static class HeadingControllerConstants {
-    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 3);
+    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 5);
     public static final LoggedTunableNumber kD =
-        tunableTable.makeField("headingController/kd", 0.0);
+        tunableTable.makeField("headingController/kd", 0.1);
     public static final LoggedTunableNumber NOTE_PICKUP_MULT =
         tunableTable.makeField("headingController/note pickup mult", 1.3);
     public static final LoggedTunableNumber TOLERANCE =
         tunableTable.makeField("headingController/tolerance deg", 3);
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
         tunableTable.makeField("headingController/note pickup tolerance deg", 6);
+    public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_DEG =
+        tunableTable.makeField("headingController/speaker shooting offset set", 5);
   }
 
   public static final PIDConstants PPtranslationConstants =

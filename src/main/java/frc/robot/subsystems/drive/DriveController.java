@@ -45,16 +45,20 @@ public class DriveController {
     setHeadingSupplier(
         () ->
             new Rotation2d(
-                poseSupplier.get().getX()
-                    - AllianceFlipUtil.apply(
-                            FieldConstants.Speaker.centerSpeakerOpening
-                                .getTranslation()
-                                .plus(new Translation2d(Units.inchesToMeters(8), 0)))
-                        .getX(),
-                poseSupplier.get().getY()
-                    - AllianceFlipUtil.apply(
-                            FieldConstants.Speaker.centerSpeakerOpening.getTranslation())
-                        .getY()));
+                    poseSupplier.get().getX()
+                        - AllianceFlipUtil.apply(
+                                FieldConstants.Speaker.centerSpeakerOpening
+                                    .getTranslation()
+                                    .plus(new Translation2d(Units.inchesToMeters(8), 0)))
+                            .getX(),
+                    poseSupplier.get().getY()
+                        - AllianceFlipUtil.apply(
+                                FieldConstants.Speaker.centerSpeakerOpening.getTranslation())
+                            .getY())
+                .plus(
+                    Rotation2d.fromDegrees(
+                        DriveConstants.HeadingControllerConstants.SHOOTING_ANGLE_OFFSET_DEG
+                            .get())));
   }
 
   public void enableStageHeading() {
