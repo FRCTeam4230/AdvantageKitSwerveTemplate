@@ -51,6 +51,10 @@ public class ControllerLogic {
     return secondController.a();
   }
 
+  public Trigger shooterOff() {
+    return secondController.b();
+  }
+
   public Trigger armPodiumPos() {
     return new Trigger(() -> false);
   }
@@ -76,11 +80,11 @@ public class ControllerLogic {
   }
 
   public Trigger runShooterForLobbing() {
-    return secondController.b();
+    return secondController.povRight();
   }
 
   public Trigger forceIntake() {
-    return secondController.leftBumper();
+    return secondController.leftBumper().or(driverController.leftBumper());
   }
 
   public Trigger toggleVision() {

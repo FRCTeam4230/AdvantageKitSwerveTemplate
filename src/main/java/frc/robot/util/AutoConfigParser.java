@@ -11,7 +11,8 @@ public class AutoConfigParser {
       Optional<Translation2d> note,
       Translation2d shootingTranslation,
       Optional<Pose2d> notePickupPose,
-      Optional<List<Pair<Translation2d, Translation2d>>> obstacles) {}
+      Optional<List<Pair<Translation2d, Translation2d>>> obstacles,
+      Optional<Integer> time) {}
 
   public static final Map<Character, Pose2d> pickupPoseMap = new HashMap<>();
 
@@ -54,8 +55,17 @@ public class AutoConfigParser {
       final String[] parts = config.split("-");
 
       Optional<List<Pair<Translation2d, Translation2d>>> currentObstacles = Optional.empty();
+      Optional<Integer> time = Optional.empty();
 
       for (String part : parts) {
+        final var newTime = getTimeFromStringPart(part);
+
+        // section was just configuring obstacles, no notes here
+        if (newTime.isPresent()) {
+          time = newTime;
+          continue;
+        }
+
         final var newObstacles = getObstaclesFromStringPart(part);
 
         // section was just configuring obstacles, no notes here
@@ -92,16 +102,26 @@ public class AutoConfigParser {
                   note,
                   AllianceFlipUtil.apply(shootingPose.get()),
                   pickupPose.map(AllianceFlipUtil::apply),
-                  finalCurrentObstacles));
+                  finalCurrentObstacles,
+                  time));
 
           // we set obstacles on last note, don't do it again for the next one
           currentObstacles = Optional.empty();
+          time = Optional.empty();
         }
       }
       return Optional.of(output);
     } catch (Exception e) {
       return Optional.empty();
     }
+  }
+
+  private static Optional<Integer> getTimeFromStringPart(String part) {
+    if (part.charAt(0) != '@') {
+      return Optional.empty();
+    }
+
+    return Optional.of(Integer.parseInt(part.substring(1)));
   }
 
   private static Optional<List<Pair<Translation2d, Translation2d>>> getObstaclesFromStringPart(

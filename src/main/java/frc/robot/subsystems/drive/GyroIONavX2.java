@@ -38,9 +38,9 @@ public class GyroIONavX2 implements GyroIO {
     inputs.odometryYawPositions =
         yawPositionQueue.stream().map(Rotation2d::fromDegrees).toArray(Rotation2d[]::new);
 
-    Logger.recordOutput("gyro/velocity", navx.getRawGyroZ());
-
     yawPositionQueue.clear();
+
+    Logger.recordOutput("gyro/velocity", navx.getRawGyroZ());
   }
 
   @Override

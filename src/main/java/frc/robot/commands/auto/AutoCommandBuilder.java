@@ -5,6 +5,8 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
@@ -173,6 +175,12 @@ public class AutoCommandBuilder {
             });
     output.addCommands(setObstacles);
 
+    if (autoPart.time().isPresent()) {
+      output.addCommands(
+          logAutoState("waiting"),
+          Commands.waitUntil(() -> DriverStation.getMatchTime() <= autoPart.time().get()));
+    }
+
     if (autoPart.notePickupPose().isPresent()) {
       final Command driveToPickup = driveToPickup(autoPart.notePickupPose().get());
 
@@ -195,7 +203,7 @@ public class AutoCommandBuilder {
                 drive,
                 shootingPose,
                 AutoConstants.SHOOTING_DISTANCE_OFFSET_TOLERANCE.get(),
-                AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get(),
+                Units.degreesToRadians(AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get()),
                 false)
             .deadlineWith(IntakeCommands.keepNoteInCenter(intake, beamBreak));
     output.addCommands(

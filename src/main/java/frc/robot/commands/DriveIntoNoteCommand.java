@@ -69,7 +69,8 @@ public class DriveIntoNoteCommand extends Command {
 
     double speed =
         MathUtil.clamp(
-            distanceToNote * DriveConstants.NOTE_PICKUP_DISTANCE_TO_SPEED_MULT.get(),
+            (distanceToNote - DriveConstants.NOTE_PICKUP_SPEED_STARTING_DISTANCE.get())
+                * DriveConstants.NOTE_PICKUP_DISTANCE_TO_SPEED_MULT.get(),
             DriveConstants.NOTE_PICKUP_MIN_SPEED.get(),
             DriveConstants.NOTE_PICKUP_MAX_SPEED.get());
 

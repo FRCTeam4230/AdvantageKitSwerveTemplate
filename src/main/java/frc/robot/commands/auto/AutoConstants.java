@@ -4,7 +4,7 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.FieldConstants;
 import frc.robot.util.LoggedTunableNumber;
@@ -18,17 +18,23 @@ public class AutoConstants {
   private static final TunableNumberWrapper tunableTable =
       new TunableNumberWrapper(MethodHandles.lookup().lookupClass());
   public static final LoggedTunableNumber DISTANCE_TO_TRUST_CAMERA =
-      tunableTable.makeField("camera trust m", 2.5);
+      tunableTable.makeField("camera trust m", 1);
   public static final LoggedTunableNumber DRIVE_TO_PICKUP_INTERRUPT_DISTANCE =
       tunableTable.makeField("drive to pickup interupt m", 0);
   public static final LoggedTunableNumber SHOOTING_DISTANCE_OFFSET_TOLERANCE =
-      tunableTable.makeField("align distance tolerance m", 0.2);
+      tunableTable.makeField("align distance tolerance m", 0.1);
   public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_TOLERANCE =
-      tunableTable.makeField("align angle tolerance deg", Units.degreesToRadians(10));
+      tunableTable.makeField("align angle tolerance deg", 6);
   public static final Translation2d[] AUTO_NOTES =
       Stream.concat(
-              Stream.of(FieldConstants.StagingLocations.spikeTranslations),
-              Stream.of(FieldConstants.StagingLocations.centerlineTranslations))
+              Stream.concat(
+                  Stream.of(FieldConstants.StagingLocations.spikeTranslations),
+                  Stream.of(FieldConstants.StagingLocations.centerlineTranslations)),
+              Stream.of(
+                  new Translation2d(-1, 5),
+                  new Translation2d(1, 9),
+                  new Translation2d(17, 1),
+                  new Translation2d(0, -1)))
           .toArray(Translation2d[]::new);
 
   public static class AutoNoteOffsetThresholds {
@@ -47,7 +53,7 @@ public class AutoConstants {
   public static class ShootingTranslations {
     public static final Translation2d SPEAKER_AMP_SIDE = new Translation2d(1, 6.7);
     public static final Translation2d SPEAKER_CENTER =
-        new Translation2d(1.4, FieldConstants.Speaker.centerSpeakerOpening.getY());
+        new Translation2d(1.35, FieldConstants.Speaker.centerSpeakerOpening.getY());
     public static final Translation2d SPEAKER_SOURCE_SIDE = new Translation2d(0.9, 4.3);
     public static final Translation2d STAGE_AMP_SIDE = new Translation2d(3.7, 5.7);
     public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(3.1, 2.9);
@@ -72,17 +78,20 @@ public class AutoConstants {
   public static Rotation2d getShootingAngleFromTranslation(Translation2d translation) {
     return translation
         .minus(AllianceFlipUtil.apply(FieldConstants.Speaker.centerSpeakerOpening.getTranslation()))
-        .getAngle();
+        .getAngle()
+        .plus(
+            Rotation2d.fromDegrees(
+                DriveConstants.HeadingControllerConstants.SHOOTING_ANGLE_OFFSET_DEG.get()));
   }
 
   public static class NotePickupLocations {
     public static final Pose2d X =
-        new Pose2d(new Translation2d(5.9, 6.5), Rotation2d.fromDegrees(10));
+        new Pose2d(new Translation2d(6.1, 6.5), Rotation2d.fromDegrees(10));
     public static final Pose2d Y =
         new Pose2d(
-            new Translation2d(5.9, FieldConstants.fieldWidth / 2), Rotation2d.fromDegrees(0));
+            new Translation2d(6.1, FieldConstants.fieldWidth / 2), Rotation2d.fromDegrees(0));
     public static final Pose2d Z =
-        new Pose2d(new Translation2d(5.9, 1.7), Rotation2d.fromDegrees(-10));
+        new Pose2d(new Translation2d(6.1, 1.7), Rotation2d.fromDegrees(-10));
   }
 
   public static class AvoidanceZones {

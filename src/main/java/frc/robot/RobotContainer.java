@@ -18,6 +18,7 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleConfigs;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.pathfinding.Pathfinding;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -116,7 +117,7 @@ public class RobotContainer {
         aprilTagVision =
             new AprilTagVision(
                 new AprilTagVisionIOLimelight("limelight"),
-                new AprilTagVisionIOLimelight("limelight-two"));
+                new AprilTagVisionIOLimelight("limelight-front"));
         beamBreak =
             new BeamBreak(
                 new BeamBreakIOReal(BeamBreakConstants.LOWER_BEAM_BREAK_SENSOR_PORT),
@@ -268,12 +269,16 @@ public class RobotContainer {
   }
 
   private void setupLimelightFlashing() {
-    new Trigger(beamBreak::detectNote)
-        .whileTrue(
-            Commands.startEnd(
-                    () -> LimelightHelpers.setLEDMode_ForceOn("limelight"),
-                    () -> LimelightHelpers.setLEDMode_ForceOff("limelight"))
-                .ignoringDisable(true));
+    new Trigger(beamBreak::detectNote).whileTrue(LimelightControl.lightsOn("limelight"));
+
+    new Trigger(
+            () ->
+                MathUtil.isNear(
+                    0,
+                    AllianceFlipUtil.apply(drive.getRotation().plus(Rotation2d.fromDegrees(30)))
+                        .getDegrees(),
+                    60))
+        .whileTrue(LimelightControl.lightsFlashing("limelight-front", 0.2));
   }
 
   private void configureTeleopCommands() {
@@ -283,7 +288,7 @@ public class RobotContainer {
   }
 
   private void configureRumble() {
-    rumbleSubsystem.setRumbleTimes(40, 10);
+    rumbleSubsystem.setRumbleTimes(30, 10);
 
     rumbleSubsystem.setDefaultCommand(
         rumbleSubsystem.noteMonitoring(
@@ -332,10 +337,7 @@ public class RobotContainer {
         .whileTrue(
             DriveToPointBuilder.driveToAndAlign(
                 drive, FieldConstants.ampScoringPose, 0.05, Units.degreesToRadians(3), true));
-    controllerLogic
-        .pointAtSpeaker()
-        .whileTrue(
-            Commands.startEnd(driveMode::enableSpeakerHeading, driveMode::disableHeadingControl));
+    controllerLogic.pointAtSpeaker().onTrue(Commands.runOnce(driveMode::enableSpeakerHeading));
     controllerLogic.pointAtSource().onTrue(Commands.runOnce(driveMode::enableSourceHeading));
     controllerLogic.climbAlign().onTrue(Commands.runOnce(driveMode::enableStageHeading));
     controllerLogic.lobbingAlign().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));
@@ -398,11 +400,12 @@ public class RobotContainer {
 
     controllerLogic
         .armDown()
-        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get))
+        .onTrue(Commands.runOnce(shooter::stop, shooter));
     controllerLogic
         .armSpeakerPos()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SPEAKER_POS_RAD::get))
-        .whileTrue(
+        .onTrue(
             ShooterCommands.runSpeed(shooter, ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .armSourcePos()
@@ -410,15 +413,20 @@ public class RobotContainer {
     controllerLogic
         .armAmpPos()
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.AMP_POS_RAD::get))
-        .whileTrue(
-            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get));
+        .onTrue(ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_VELOCITY_RAD_PER_SEC::get));
+    controllerLogic
+        .runShooterForLobbing()
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.LOBBING_POS_RAD::get))
+        .onTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_LOB_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .armPodiumPos()
         .onTrue(
             ArmCommands.autoArmToPosition(
                 arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get))
-        .whileTrue(
+        .onTrue(
             ShooterCommands.runSpeed(shooter, ShooterConstants.PODIUM_VELOCITY_RAD_PER_SEC::get));
+    controllerLogic.shooterOff().onTrue(Commands.runOnce(shooter::stop, shooter));
 
     final Trigger multiDistance = controllerLogic.multiDistanceShot();
     final Trigger inAllianceWing =
@@ -431,10 +439,6 @@ public class RobotContainer {
         .and(inAllianceWing.negate())
         .whileTrue(MultiDistanceShot.forLobbing(drive::getPose, shooter, arm));
 
-    controllerLogic
-        .runShooterForLobbing()
-        .whileTrue(
-            ShooterCommands.runSpeed(shooter, ShooterConstants.AMP_LOB_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .runShooter()
         .whileTrue(
@@ -455,6 +459,8 @@ public class RobotContainer {
     final var configString = new LoggedDashboardString("auto config string", ".102b");
     autoChooser.addDefaultOption(
         "configurable auto", autoCommandBuilder.autoFromConfigString(configString::get));
+
+    Dashboard.showAutoPlan(configString::get).schedule();
 
     // -999 is an indicator that it is unchanged
     final var angle =

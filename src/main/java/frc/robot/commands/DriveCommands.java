@@ -37,6 +37,7 @@ public class DriveCommands {
   private static final double DEADBAND = 0.1;
   private static final double X_RATE_LIMIT = 7.75;
   private static final double Y_RATE_LIMIT = 7.75;
+  private static final String LOGGING_PREFIX = "teleop drive/";
 
   private DriveCommands() {}
 
@@ -66,10 +67,10 @@ public class DriveCommands {
               new Rotation2d(xSupplier.getAsDouble(), ySupplier.getAsDouble());
           final Optional<Supplier<Rotation2d>> headingSupplier = driveMode.getHeadingSupplier();
           double omega;
-          Logger.recordOutput("heading control on", headingSupplier.isPresent());
+          Logger.recordOutput(LOGGING_PREFIX + "heading control on", headingSupplier.isPresent());
           if (headingSupplier.isPresent()) {
             final var targetAngle = headingSupplier.get().get();
-            Logger.recordOutput("drive heading", targetAngle);
+            Logger.recordOutput(LOGGING_PREFIX + "drive heading", targetAngle);
             omega =
                 drive
                     .getThetaController()
@@ -84,7 +85,7 @@ public class DriveCommands {
             omega = Math.copySign(omega * omega, omega);
             omega *= drivetrainConfig.maxAngularVelocity();
           }
-          Logger.recordOutput("omega", omega);
+          Logger.recordOutput(LOGGING_PREFIX + "omega", omega);
 
           // Square values
           linearMagnitude = linearMagnitude * linearMagnitude;

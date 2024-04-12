@@ -23,7 +23,8 @@ public class ArmSubsystem extends SubsystemBase {
 
   @Getter private boolean positionControlActive = false;
 
-  private final Translation3d ROTATION_POINT = new Translation3d(-.26, 0.0, .273);
+  private static final Translation3d ROTATION_POINT = new Translation3d(-.26, 0.0, .273);
+  private static final String LOGGING_PREFIX = "ArmSubsystem";
 
   @AutoLogOutput
   private Pose3d getArmPose() {
@@ -76,9 +77,9 @@ public class ArmSubsystem extends SubsystemBase {
 
       volts += holdVolts;
 
-      Logger.recordOutput("Arm/hold volts", holdVolts);
-      Logger.recordOutput("Arm/pid volts", pidVolts);
-      Logger.recordOutput("Arm/friction volts", frictionVolts);
+      Logger.recordOutput(LOGGING_PREFIX + "Arm/hold volts", holdVolts);
+      Logger.recordOutput(LOGGING_PREFIX + "Arm/pid volts", pidVolts);
+      Logger.recordOutput(LOGGING_PREFIX + "Arm/friction volts", frictionVolts);
 
       limitAndSetVolts(volts);
     }
@@ -111,7 +112,7 @@ public class ArmSubsystem extends SubsystemBase {
       //      volts = -0.5;
     }
     volts = MathUtil.clamp(volts, -ArmConstants.MAX_ARM_VOLTS, ArmConstants.MAX_ARM_VOLTS);
-    Logger.recordOutput("ArmSubsystem/attemptedVolts", volts);
+    Logger.recordOutput(LOGGING_PREFIX + "attemptedVolts", volts);
     armIO.setVoltage(volts);
   }
 
