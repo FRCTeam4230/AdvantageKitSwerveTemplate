@@ -35,8 +35,8 @@ public final class DriveConstants {
                 Units.inchesToMeters(1.95), // Wheel radius
                 Units.inchesToMeters(29.0), // Track width x
                 Units.inchesToMeters(29.0), // Track width y
-                4.35,
-                3.5,
+                4.3,
+                3,
                 Units.degreesToRadians(450), // Max angular velocity
                 Units.degreesToRadians(800)); // Max angular acceleration
       };
@@ -120,13 +120,13 @@ public final class DriveConstants {
     public static final LoggedTunableNumber kD =
         tunableTable.makeField("headingController/kd", 0.1);
     public static final LoggedTunableNumber NOTE_PICKUP_MULT =
-        tunableTable.makeField("headingController/note pickup mult", 1.3);
+        tunableTable.makeField("headingController/note pickup mult", 1.1);
     public static final LoggedTunableNumber TOLERANCE =
         tunableTable.makeField("headingController/tolerance deg", 3);
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
         tunableTable.makeField("headingController/note pickup tolerance deg", 6);
     public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_DEG =
-        tunableTable.makeField("headingController/speaker shooting offset set", 5);
+        tunableTable.makeField("headingController/speaker shooting offset set", 10);
   }
 
   public static final PIDConstants PPtranslationConstants =

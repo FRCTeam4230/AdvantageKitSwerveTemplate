@@ -22,7 +22,7 @@ public final class ShooterConstants {
   public static final double CLOSED_LOOP_RAMP_RATE = 0.01;
   public static final double OPEN_LOOP_RAMP_RATE = 0.01;
   public static final LoggedTunableNumber VELOCITY_TOLERANCE =
-      tunableTable.makeField("velocity tolerance rad per s", 5);
+      tunableTable.makeField("velocity tolerance rad per s", 10);
 
   public static final LoggedTunableNumber AUTO_SHOOTER_TIMEOUT =
       tunableTable.makeField("auto shooter timeout", 1);

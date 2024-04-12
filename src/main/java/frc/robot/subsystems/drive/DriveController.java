@@ -119,10 +119,14 @@ public class DriveController {
     setHeadingSupplier(
         () ->
             new Rotation2d(
-                poseSupplier.get().getX()
-                    - AllianceFlipUtil.apply(FieldConstants.ampLobbingTarget).getX(),
-                poseSupplier.get().getY()
-                    - AllianceFlipUtil.apply(FieldConstants.ampLobbingTarget).getY()));
+                    poseSupplier.get().getX()
+                        - AllianceFlipUtil.apply(FieldConstants.ampLobbingTarget).getX(),
+                    poseSupplier.get().getY()
+                        - AllianceFlipUtil.apply(FieldConstants.ampLobbingTarget).getY())
+                .plus(
+                    Rotation2d.fromDegrees(
+                        DriveConstants.HeadingControllerConstants.SHOOTING_ANGLE_OFFSET_DEG
+                            .get())));
   }
 
   public void enableSourceHeading() {

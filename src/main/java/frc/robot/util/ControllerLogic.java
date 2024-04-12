@@ -140,6 +140,6 @@ public class ControllerLogic {
   }
 
   public Trigger multiDistanceShot() {
-    return secondController.rightBumper();
+    return secondController.rightBumper().or(driverController.rightBumper());
   }
 }

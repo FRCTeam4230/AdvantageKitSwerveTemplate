@@ -48,7 +48,7 @@ public class InterpolationData {
     {2.055, .48, 350},
     {3.12, 0.63, 400},
     {3.8289, 0.7, 400},
-    {3.8289, 0.7, 400}
+    {1000, 0.3, 400}
   };
 
   public static final double[][] lobbingDistanceData = {
