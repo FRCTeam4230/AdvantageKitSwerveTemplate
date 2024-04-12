@@ -46,7 +46,7 @@ public class Module {
     switch (Constants.getMode()) {
       case REAL:
       case REPLAY:
-        driveFeedforward = new SimpleMotorFeedforward(0.015344, 0.16084);
+        driveFeedforward = new SimpleMotorFeedforward(0.07, 0.13605);
         driveFeedback = new PIDController(0.16258, 0.0, 0.0);
         turnFeedback = new PIDController(7.0, 0.0, 0.0);
         break;
