@@ -4,6 +4,7 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.FieldConstants;
 import frc.robot.util.LoggedTunableNumber;
@@ -77,7 +78,10 @@ public class AutoConstants {
   public static Rotation2d getShootingAngleFromTranslation(Translation2d translation) {
     return translation
         .minus(AllianceFlipUtil.apply(FieldConstants.Speaker.centerSpeakerOpening.getTranslation()))
-        .getAngle();
+        .getAngle()
+        .plus(
+            Rotation2d.fromDegrees(
+                DriveConstants.HeadingControllerConstants.SHOOTING_ANGLE_OFFSET_DEG.get()));
   }
 
   public static class NotePickupLocations {
