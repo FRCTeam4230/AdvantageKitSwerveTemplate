@@ -125,8 +125,7 @@ public class DriveController {
                         - AllianceFlipUtil.apply(FieldConstants.ampLobbingTarget).getY())
                 .plus(
                     Rotation2d.fromDegrees(
-                        DriveConstants.HeadingControllerConstants.SHOOTING_ANGLE_OFFSET_DEG
-                            .get())));
+                        DriveConstants.HeadingControllerConstants.LOBBING_ANGLE_OFFSET_DEG.get())));
   }
 
   public void enableSourceHeading() {

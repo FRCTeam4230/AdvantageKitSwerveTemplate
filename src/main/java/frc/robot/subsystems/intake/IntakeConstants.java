@@ -13,12 +13,12 @@ public final class IntakeConstants {
   public static final double OPEN_LOOP_RAMP_RATE = 0.2;
   public static final double GEAR_RATIO = 1.0;
   public static final LoggedTunableNumber INTAKE_VOLTAGE =
-      tunableTable.makeField("intake volts", 11.99);
+      tunableTable.makeField("intake volts", 12);
 
   public static final double NOTE_CENTERING_DELAY_SECONDS = 0.5;
 
   public static final LoggedTunableNumber NOTE_CENTERING_VOLTS =
-      tunableTable.makeField("intake centering volts", 2);
+      tunableTable.makeField("intake centering volts", 4);
 
   public static final class FeedForwardConstants {
     public static final LoggedTunableNumber kS = tunableTable.makeField("ks", 0.0);
