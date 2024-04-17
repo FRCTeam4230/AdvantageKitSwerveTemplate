@@ -48,7 +48,7 @@ public class ControllerLogic {
   }
 
   public Trigger armSourcePos() {
-    return secondController.a();
+    return secondController.a().or(driverController.rightBumper());
   }
 
   public Trigger shooterOff() {
@@ -140,6 +140,6 @@ public class ControllerLogic {
   }
 
   public Trigger multiDistanceShot() {
-    return secondController.rightBumper().or(driverController.rightBumper());
+    return secondController.rightBumper().or(driverController.b());
   }
 }

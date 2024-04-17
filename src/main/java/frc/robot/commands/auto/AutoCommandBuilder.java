@@ -70,14 +70,7 @@ public class AutoCommandBuilder {
   }
 
   public Command intakeByVisionNote(Supplier<Optional<Translation2d>> noteSupplier) {
-    return IntakeCommands.manualIntakeCommand(
-            intake,
-            () -> {
-              final var targetNote = noteSupplier.get();
-              return (targetNote.isEmpty() || targetNote.get().getNorm() > 2)
-                  ? 0
-                  : IntakeConstants.INTAKE_VOLTAGE.get();
-            })
+    return IntakeCommands.manualIntakeCommand(intake, IntakeConstants.INTAKE_VOLTAGE::get)
         .until(beamBreak::detectNote);
   }
 
@@ -190,6 +183,12 @@ public class AutoCommandBuilder {
           pickupNoteAtTranslation(autoPart.note().get(), AutoConstants.PICKUP_TIMEOUT.get());
 
       output.addCommands(Commands.parallel(logAutoState("pickup"), pickupNote));
+
+      final Command fallbackPickup =
+          fallbackPickup()
+              .onlyWhile(() -> noteVision.getCurrentNote().isPresent())
+              .onlyIf(() -> !beamBreak.detectNote());
+      output.addCommands(Commands.parallel(logAutoState("fallback"), fallbackPickup));
     } else {
       final Command fallbackPickup = fallbackPickup().onlyIf(() -> !beamBreak.detectNote());
       output.addCommands(Commands.parallel(logAutoState("scanning"), fallbackPickup));
@@ -217,6 +216,7 @@ public class AutoCommandBuilder {
 
   private Command pathfindToNote(Translation2d note) {
     return Commands.parallel(
+            intakeByVisionNote(Optional::empty),
             Commands.runOnce(() -> drive.setRotateTowardsEndOfPath(true)),
             DriveToPointBuilder.driveToNoFlip(new Pose2d(note, new Rotation2d())))
         .finallyDo(() -> drive.setRotateTowardsEndOfPath(false))

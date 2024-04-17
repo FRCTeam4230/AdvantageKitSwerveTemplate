@@ -13,7 +13,7 @@ public final class IntakeConstants {
   public static final double OPEN_LOOP_RAMP_RATE = 0.2;
   public static final double GEAR_RATIO = 1.0;
   public static final LoggedTunableNumber INTAKE_VOLTAGE =
-      tunableTable.makeField("intake volts", 11.99);
+      tunableTable.makeField("intake volts", 12);
 
   public static final double NOTE_CENTERING_DELAY_SECONDS = 0.5;
 
