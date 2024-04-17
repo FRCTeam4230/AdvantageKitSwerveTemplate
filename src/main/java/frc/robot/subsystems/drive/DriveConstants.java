@@ -126,7 +126,7 @@ public final class DriveConstants {
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
         tunableTable.makeField("headingController/note pickup tolerance deg", 6);
     public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_DEG =
-        tunableTable.makeField("headingController/speaker shooting offset set", 7);
+        tunableTable.makeField("headingController/speaker shooting offset set", 3);
 
     public static final LoggedTunableNumber LOBBING_ANGLE_OFFSET_DEG =
         tunableTable.makeField("headingController/lobbing shooting offset set", 16);
