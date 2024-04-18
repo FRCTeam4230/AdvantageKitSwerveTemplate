@@ -48,27 +48,27 @@ public class AutoConstants {
 
   public static final LoggedTunableNumber PICKUP_TIMEOUT = tunableTable.makeField("pickup time", 3);
 
-  private static final double BETWEEN_SPIKE_POSE_X = 2.1;
+  private static final double BETWEEN_SPIKE_POSE_X = 1.9;
 
   public static class ShootingTranslations {
     public static final Translation2d SPEAKER_AMP_SIDE = new Translation2d(1, 6.7);
     public static final Translation2d SPEAKER_CENTER =
         new Translation2d(1.35, FieldConstants.Speaker.centerSpeakerOpening.getY());
     public static final Translation2d SPEAKER_SOURCE_SIDE = new Translation2d(0.9, 4.3);
-    public static final Translation2d STAGE_AMP_SIDE = new Translation2d(3, 5.7);
-    public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(3.1, 2.9);
+    public static final Translation2d STAGE_AMP_SIDE = new Translation2d(2.8, 5.7);
+    public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(2.4, 3.5);
     public static final Translation2d BETWEEN_1_2 =
         new Translation2d(
             BETWEEN_SPIKE_POSE_X,
-            (2 * FieldConstants.StagingLocations.spikeTranslations[1].getY()
+            (FieldConstants.StagingLocations.spikeTranslations[1].getY()
                     + FieldConstants.StagingLocations.spikeTranslations[2].getY())
-                / 3);
+                / 2);
     public static final Translation2d BETWEEN_0_1 =
         new Translation2d(
             BETWEEN_SPIKE_POSE_X,
             (FieldConstants.StagingLocations.spikeTranslations[0].getY()
-                    + 2 * FieldConstants.StagingLocations.spikeTranslations[1].getY())
-                / 3);
+                    + FieldConstants.StagingLocations.spikeTranslations[1].getY())
+                / 2);
   }
 
   public static Pose2d getShootingPose2dFromTranslation(Translation2d translation) {
