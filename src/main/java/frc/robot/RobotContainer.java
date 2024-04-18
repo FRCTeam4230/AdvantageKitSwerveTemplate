@@ -17,19 +17,14 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleConfigs;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -55,6 +50,7 @@ import frc.robot.subsystems.shooter.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.*;
 import java.util.Arrays;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardString;
 import org.photonvision.simulation.VisionSystemSim;
@@ -97,6 +93,9 @@ public class RobotContainer {
 
   //   private final LoggedTunableNumber flywheelSpeedInput =
   //       new LoggedTunableNumber("Flywheel Speed", 1500.0);
+
+  private final PowerDistribution pdh =
+      new PowerDistribution(20, PowerDistribution.ModuleType.kRev);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -264,19 +263,22 @@ public class RobotContainer {
     shooter.setDefaultCommand(shooter.run(() -> shooter.runVolts(3)));
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
+
+    setupPDHLogging();
+  }
+
+  private void setupPDHLogging() {
+    Commands.run(
+            () -> {
+              Logger.recordOutput("pdh/total current", pdh.getTotalCurrent());
+              Logger.recordOutput("pdh/energy", pdh.getTotalEnergy());
+            })
+        .ignoringDisable(true)
+        .schedule();
   }
 
   private void setupLimelightFlashing() {
     new Trigger(beamBreak::detectNote).whileTrue(LimelightControl.lightsOn("limelight"));
-
-    new Trigger(
-            () ->
-                MathUtil.isNear(
-                    0,
-                    AllianceFlipUtil.apply(drive.getRotation().plus(Rotation2d.fromDegrees(30)))
-                        .getDegrees(),
-                    60))
-        .whileTrue(LimelightControl.lightsFlashing("limelight-front", 0.2));
   }
 
   private void configureTeleopCommands() {
@@ -353,15 +355,10 @@ public class RobotContainer {
 
     controllerLogic
         .intakeTrigger()
-        .whileTrue(
-            new ConditionalCommand(
-                Commands.waitUntil(shooterStateHelpers::canShoot)
-                    .andThen(
-                        IntakeCommands.manualIntakeCommand(
-                            intake, controllerLogic::getIntakeSpeed)),
-                IntakeCommands.manualIntakeCommand(intake, controllerLogic::getIntakeSpeed)
-                    .until(beamBreak::detectNote),
-                beamBreak::detectNote));
+        .and(
+            new Trigger(shooterStateHelpers::canShoot)
+                .or(new Trigger(beamBreak::detectNote).negate()))
+        .whileTrue(IntakeCommands.manualIntakeCommand(intake, controllerLogic::getIntakeSpeed));
 
     // backup in case arm or shooter can't reach setpoint
     controllerLogic
