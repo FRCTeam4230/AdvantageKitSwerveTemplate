@@ -82,8 +82,11 @@ public class RobotContainer {
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
   private final CommandXboxController secondController = new CommandXboxController(1);
-  private final RumbleSubsystem rumbleSubsystem =
-      new RumbleSubsystem(driverController.getHID(), secondController.getHID());
+  private final RumbleSubsystem driverRumbleSubsystem =
+      new RumbleSubsystem(driverController.getHID());
+
+  private final RumbleSubsystem secondRumbleSubsystem =
+      new RumbleSubsystem(secondController.getHID());
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -283,14 +286,13 @@ public class RobotContainer {
   }
 
   private void configureRumble() {
-    rumbleSubsystem.setRumbleTimes(30, 10);
+    secondRumbleSubsystem.setDefaultCommand(
+        secondRumbleSubsystem.rumbleOnCondition(() -> intake.getVelocityRPM() > 20));
 
-    rumbleSubsystem.setDefaultCommand(
-        rumbleSubsystem.noteMonitoring(
-            beamBreak::detectNote,
-            () ->
-                noteVision.getCurrentNote().stream()
-                    .anyMatch(note -> note.getNorm() < NoteVisionConstants.DISTANCE_TO_RUMBLE)));
+    driverRumbleSubsystem.setDefaultCommand(
+        driverRumbleSubsystem.noteMonitoring(beamBreak::detectNote, () -> false));
+
+    driverRumbleSubsystem.setRumbleTimes(60, 40, 10);
   }
 
   private void configureNamedCommands() {
