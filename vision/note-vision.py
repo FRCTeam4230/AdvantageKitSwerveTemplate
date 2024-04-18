@@ -78,8 +78,8 @@ CAMERA_CONFIGS = [
 
 HUE_SHIFT = 10
 # Define lower and upper bounds for orange color in HSV
-lower_orange_hsv = np.array([18, 100, 200])
-upper_orange_hsv = np.array([30, 255, 255])
+lower_orange_hsv = np.array([18, 160, 200])
+upper_orange_hsv = np.array([38, 255, 255])
 # The minimum contour area to detect a note
 MINIMUM_CONTOUR_AREA = 500
 # The threshold for a contour to be considered a disk

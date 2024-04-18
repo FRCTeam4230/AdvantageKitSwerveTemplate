@@ -258,7 +258,7 @@ public class RobotContainer {
     configureTeleopCommands();
 
     intake.setDefaultCommand(IntakeCommands.keepNoteInCenter(intake, beamBreak));
-    shooter.setDefaultCommand(shooter.run(() -> shooter.runVolts(5)));
+    shooter.setDefaultCommand(shooter.run(() -> shooter.runVolts(3)));
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
   }
