@@ -53,7 +53,7 @@ public class AutoConstants {
   public static class ShootingTranslations {
     public static final Translation2d SPEAKER_AMP_SIDE = new Translation2d(1, 6.7);
     public static final Translation2d SPEAKER_CENTER =
-        new Translation2d(1.35, FieldConstants.Speaker.centerSpeakerOpening.getY());
+        new Translation2d(1.5, FieldConstants.Speaker.centerSpeakerOpening.getY());
     public static final Translation2d SPEAKER_SOURCE_SIDE = new Translation2d(0.9, 4.3);
     public static final Translation2d STAGE_AMP_SIDE = new Translation2d(2.8, 5.7);
     public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(2.4, 3.5);

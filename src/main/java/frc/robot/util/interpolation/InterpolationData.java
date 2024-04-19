@@ -42,13 +42,13 @@ public class InterpolationData {
 
   /** distance to speaker m, angle rad, velocity rad/s */
   protected static final double[][] shooterDistanceData = {
-    {0, .3, 350},
-    {1.37, .3, 370},
+    {0, .28, 350},
+    {1.37, .28, 370},
     {1.572, .40, 370},
     {2.14, .47, 400},
-    {3.255, 0.66, 500},
-    {4.103, 0.70, 550},
-    {5, 0.72, 550},
+    {3.255, 0.64, 500},
+    {4.103, 0.69, 550},
+    {5, 0.70, 550},
     {5, 0.3, 550},
     {1000, 0.3, 400}
   };
