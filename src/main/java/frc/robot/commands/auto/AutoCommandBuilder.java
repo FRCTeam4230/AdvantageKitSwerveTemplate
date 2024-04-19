@@ -177,6 +177,8 @@ public class AutoCommandBuilder {
     if (autoPart.note().isPresent()) {
       final Command pathfindToNote = pathfindToNote(autoPart.note().get());
 
+      Logger.recordOutput("auto/note", autoPart.note().get());
+
       output.addCommands(Commands.parallel(logAutoState("driving"), pathfindToNote));
 
       final Command pickupNote =

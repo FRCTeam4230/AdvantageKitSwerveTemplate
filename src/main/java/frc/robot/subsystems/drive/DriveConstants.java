@@ -23,11 +23,11 @@ public final class DriveConstants {
   public static final LoggedTunableNumber NOTE_PICKUP_MAX_SPEED =
       tunableTable.makeField("note pickup max speed", 4);
   public static final LoggedTunableNumber NOTE_PICKUP_MIN_SPEED =
-      tunableTable.makeField("note pickup min speed", 1);
+      tunableTable.makeField("note pickup min speed", 2);
   public static final LoggedTunableNumber NOTE_PICKUP_SPEED_STARTING_DISTANCE =
       tunableTable.makeField("note pickup speed starting distance", 0.4);
   public static final LoggedTunableNumber NOTE_PICKUP_DISTANCE_TO_SPEED_MULT =
-      tunableTable.makeField("note distance to speed mult", 5);
+      tunableTable.makeField("note distance to speed mult", 2);
   public static DrivetrainConfig drivetrainConfig =
       switch (Constants.getRobot()) {
         default ->
@@ -120,11 +120,11 @@ public final class DriveConstants {
     public static final LoggedTunableNumber kD =
         tunableTable.makeField("headingController/kd", 0.1);
     public static final LoggedTunableNumber NOTE_PICKUP_MULT =
-        tunableTable.makeField("headingController/note pickup mult", 1.1);
+        tunableTable.makeField("headingController/note pickup mult", 1);
     public static final LoggedTunableNumber TOLERANCE =
         tunableTable.makeField("headingController/tolerance deg", 1);
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
-        tunableTable.makeField("headingController/note pickup tolerance deg", 6);
+        tunableTable.makeField("headingController/note pickup tolerance deg", 3.5);
     public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_DEG =
         tunableTable.makeField("headingController/speaker shooting offset set", 1);
 

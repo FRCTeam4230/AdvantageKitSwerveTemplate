@@ -14,7 +14,7 @@ public final class ShooterConstants {
   public static final LoggedTunableNumber AMP_VELOCITY_RAD_PER_SEC =
       tunableTable.makeField("amp rad per sec", 150);
   public static final LoggedTunableNumber SPEAKER_VELOCITY_RAD_PER_SEC =
-      tunableTable.makeField("speaker rad per sec", 320);
+      tunableTable.makeField("speaker rad per sec", 500);
   public static final LoggedTunableNumber PODIUM_VELOCITY_RAD_PER_SEC =
       tunableTable.makeField("podium rad per sec", 300);
   public static final LoggedTunableNumber AMP_LOB_VELOCITY_RAD_PER_SEC =

@@ -48,7 +48,7 @@ public class AutoConstants {
 
   public static final LoggedTunableNumber PICKUP_TIMEOUT = tunableTable.makeField("pickup time", 3);
 
-  private static final double BETWEEN_SPIKE_POSE_X = 1.9;
+  private static final double BETWEEN_SPIKE_POSE_X = 1.7;
 
   public static class ShootingTranslations {
     public static final Translation2d SPEAKER_AMP_SIDE = new Translation2d(1, 6.7);
@@ -56,7 +56,7 @@ public class AutoConstants {
         new Translation2d(1.5, FieldConstants.Speaker.centerSpeakerOpening.getY());
     public static final Translation2d SPEAKER_SOURCE_SIDE = new Translation2d(0.9, 4.3);
     public static final Translation2d STAGE_AMP_SIDE = new Translation2d(2.8, 5.7);
-    public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(2.4, 3.5);
+    public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(1.5, 4);
     public static final Translation2d BETWEEN_1_2 =
         new Translation2d(
             BETWEEN_SPIKE_POSE_X,
@@ -88,7 +88,7 @@ public class AutoConstants {
     public static final Pair<Translation2d, Translation2d> STAGE =
         new Pair<>(new Translation2d(4.3, 4.7), new Translation2d(5.3, 3.7));
     public static final Pair<Translation2d, Translation2d> SOURCE_SIDE_NEXT_TO_STAGE =
-        new Pair<>(new Translation2d(5.7, 1), new Translation2d(2.1, 3.8));
+        new Pair<>(new Translation2d(5.7, 2), new Translation2d(2.1, 3.8));
     public static final Pair<Translation2d, Translation2d> CLOSE_NOTES =
         new Pair<>(new Translation2d(2, 9), new Translation2d(3.2, 3.8));
     public static final Pair<Translation2d, Translation2d> AMP_SIDE_FAR_STAGE =
