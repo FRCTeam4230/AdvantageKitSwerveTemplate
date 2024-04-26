@@ -69,22 +69,22 @@ CAMERA_PORT_PATHS_PI4 = {
     }
 }
 
-# CAMERA_PORT_PATHS_PI5 = {
-#     'usb3': {
-#         'top': '/dev/v4l/by-path/platform-xhci-hcd.1-usb-0:1:1.0-video-index0',
-#         'bottom': '/dev/v4l/by-path/platform-xhci-hcd.0-usb-0:1:1.0-video-index0',
-#     },
-#     'usb2': {
-#         'top': '/dev/v4l/by-path/platform-xhci-hcd.0-usb-0:2:1.0-video-index0',
-#         'bottom': '/dev/v4l/by-path/platform-xhci-hcd.1-usb-0:2:1.0-video-index0',
-#     },
-# }
+CAMERA_PORT_PATHS_PI5 = {
+    'usb3': {
+        'top': '/dev/v4l/by-path/platform-xhci-hcd.1-usb-0:1:1.0-video-index0',
+        'bottom': '/dev/v4l/by-path/platform-xhci-hcd.0-usb-0:1:1.0-video-index0',
+    },
+    'usb2': {
+        'top': '/dev/v4l/by-path/platform-xhci-hcd.0-usb-0:2:1.0-video-index0',
+        'bottom': '/dev/v4l/by-path/platform-xhci-hcd.1-usb-0:2:1.0-video-index0',
+    },
+}
 
 
 CAMERA_CONFIGS = [
-    CameraConfig(path=CAMERA_PORT_PATHS_PI4['usb3']['bottom'], name="center"),
-    # CameraConfig(path=CAMERA_PORT_PATHS_PI4['usb2']['bottom'], name="left"),
-    # CameraConfig(path=CAMERA_PORT_PATHS_PI4['usb2']['top'], name="right"),
+    CameraConfig(path=CAMERA_PORT_PATHS_PI5['usb3']['bottom'], name="center"),
+    CameraConfig(path=CAMERA_PORT_PATHS_PI5['usb2']['bottom'], name="left"),
+    CameraConfig(path=CAMERA_PORT_PATHS_PI5['usb2']['top'], name="right"),
 ]
 
 HUE_SHIFT = 10

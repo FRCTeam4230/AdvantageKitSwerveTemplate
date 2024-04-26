@@ -131,13 +131,10 @@ public class Drive extends SubsystemBase {
         targetPose -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
     PPHolonomicDriveController.setRotationTargetOverride(
         () -> {
-          final int STEP_COUNT = 5;
-          if (!rotateTowardsEndOfPath || currentPath == null) {
+          final int STEP_COUNT = 30;
+          if (!rotateTowardsEndOfPath || currentPath == null || currentPath.size() < STEP_COUNT) {
             return Optional.empty();
           }
-
-          if (currentPath.size() < STEP_COUNT)
-            ;
 
           final var finalTranslation = currentPath.get(currentPath.size() - 1).getTranslation();
           final var secondToLastTranslation =
