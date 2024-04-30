@@ -41,7 +41,7 @@ public final class ShooterConstants {
 
   public static final ShooterTune CURRENT_TUNE =
       new ShooterTune(
-          new FlywheelConstants(0.21553, 0.021, 1E-4), new FlywheelConstants(0.13955, 0.021, 1E-4));
+          new FlywheelConstants(0.117, 0.021, 1E-4), new FlywheelConstants(0.13955, 0.021, 1E-4));
   public static final ShooterTune OLD_TUNE =
       new ShooterTune(
           new FlywheelConstants(0.0508, 0.0196, 5E-6), new FlywheelConstants(0.1828, 0.0207, 5E-6));
