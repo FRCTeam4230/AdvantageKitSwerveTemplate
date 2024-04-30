@@ -1,18 +1,18 @@
 package frc.robot.commands.auto;
 
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.util.AllianceFlipUtil;
-import frc.robot.util.FieldConstants;
-import frc.robot.util.LoggedTunableNumber;
-import frc.robot.util.TunableNumberWrapper;
+import frc.robot.util.*;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.LoggedDashboardString;
 
 public class AutoConstants {
   private static final TunableNumberWrapper tunableTable =
@@ -56,7 +56,9 @@ public class AutoConstants {
         new Translation2d(1.5, FieldConstants.Speaker.centerSpeakerOpening.getY());
     public static final Translation2d SPEAKER_SOURCE_SIDE = new Translation2d(0.9, 4.3);
     public static final Translation2d STAGE_AMP_SIDE = new Translation2d(2.8, 5.7);
-    public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(1.5, 4);
+    public static final Translation2d STAGE_AMP_SIDE_FAR = new Translation2d(3.5, 6.3);
+    public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(2.5, 2.5);
+    public static final Translation2d STAGE_SOURCE_SIDE_CLOSE = new Translation2d(1.5, 3);
     public static final Translation2d BETWEEN_1_2 =
         new Translation2d(
             BETWEEN_SPIKE_POSE_X,
@@ -130,5 +132,26 @@ public class AutoConstants {
     } catch (Exception e) {
       return Optional.empty();
     }
+  }
+
+  public static final LoggedDashboardString INITIAL_SHOOTING_POSE =
+      new LoggedDashboardString("initial auto shot pose");
+
+  public static Optional<Translation2d> getInitialShootingPose() {
+    final var poseCharacter = INITIAL_SHOOTING_POSE.get();
+    if (poseCharacter.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(AutoConfigParser.shootingPoseMap.get(poseCharacter.charAt(0)))
+        .map(AllianceFlipUtil::apply);
+  }
+
+  public static final LoggedDashboardChooser<PathPlannerPath> THREAD_CHOOSER =
+      new LoggedDashboardChooser<>("auto thread path");
+
+  static {
+    THREAD_CHOOSER.addOption("note", PathPlannerPath.fromPathFile("notethread"));
+    THREAD_CHOOSER.addOption("amp", PathPlannerPath.fromPathFile("ampthread"));
+    THREAD_CHOOSER.addDefaultOption("none", null);
   }
 }

@@ -14,6 +14,7 @@ import frc.robot.util.AutoConfigParser;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 public class Dashboard {
   private Dashboard() {}
@@ -77,8 +78,11 @@ public class Dashboard {
                         .map(AllianceFlipUtil::apply)
                         .toArray(Pose2d[]::new));
                 shootingSpots.setPoses(
-                    autoParts.stream()
-                        .map(AutoConfigParser.AutoPart::shootingTranslation)
+                    Stream.concat(
+                            AutoConstants.getInitialShootingPose()
+                                .map(AllianceFlipUtil::apply)
+                                .stream(),
+                            autoParts.stream().map(AutoConfigParser.AutoPart::shootingTranslation))
                         .map(AutoConstants::getShootingPose2dFromTranslation)
                         .toArray(Pose2d[]::new));
               }

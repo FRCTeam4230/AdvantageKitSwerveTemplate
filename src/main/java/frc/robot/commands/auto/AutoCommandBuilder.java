@@ -1,5 +1,6 @@
 package frc.robot.commands.auto;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -198,8 +199,13 @@ public class AutoCommandBuilder {
       output.addCommands(Commands.parallel(logAutoState("scanning"), fallbackPickup));
     }
 
-    final Pose2d shootingPose =
-        AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation());
+    output.addCommands(distanceShot(autoPart.shootingTranslation()));
+
+    return output;
+  }
+
+  public Command distanceShot(Translation2d translation) {
+    final Pose2d shootingPose = AutoConstants.getShootingPose2dFromTranslation(translation);
     final Command returnCommand =
         DriveToPointBuilder.driveToAndAlign(
                 drive,
@@ -208,14 +214,11 @@ public class AutoCommandBuilder {
                 Units.degreesToRadians(AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get()),
                 false)
             .deadlineWith(IntakeCommands.keepNoteInCenter(intake, beamBreak));
-    output.addCommands(
-        Commands.parallel(
-                logAutoState("returning"),
-                Commands.sequence(returnCommand, logAutoState("shooting"), autoShoot())
-                    .deadlineWith(readyShooterDistance(shootingPose)))
-            .onlyIf(beamBreak::detectNote));
-
-    return output;
+    return (Commands.parallel(
+            logAutoState("returning"),
+            Commands.sequence(returnCommand, logAutoState("shooting"), autoShoot())
+                .deadlineWith(readyShooterDistance(shootingPose)))
+        .onlyIf(beamBreak::detectNote));
   }
 
   private Command pathfindToNote(Translation2d note) {
@@ -237,25 +240,38 @@ public class AutoCommandBuilder {
   public Command autoFromConfig(
       Supplier<Optional<List<AutoConfigParser.AutoPart>>> configSupplier) {
     return Commands.runOnce(this::clearObstacles)
-        .andThen(initialFullShot())
         .andThen(
             new DeferredCommand(
                 () -> {
+                  final SequentialCommandGroup output =
+                      new SequentialCommandGroup(initialFullShot());
+
+                  final var threadCommand =
+                      Optional.ofNullable(AutoConstants.THREAD_CHOOSER.get())
+                          .map(AutoBuilder::followPath);
+                  threadCommand.ifPresent(output::addCommands);
+
                   final var config = configSupplier.get();
-                  if (config.isEmpty()) {
-                    return Commands.none();
+                  if (config.isPresent()) {
+                    final var commands =
+                        config.get().stream().map(this::autoFromConfigPart).toArray(Command[]::new);
+
+                    output.addCommands(commands);
                   }
 
-                  final var commands =
-                      config.get().stream().map(this::autoFromConfigPart).toArray(Command[]::new);
-
-                  return Commands.sequence(commands).asProxy();
+                  return output.asProxy();
                 },
                 Set.of()));
   }
 
   public Command initialFullShot() {
-    return readyShooter().andThen(autoShoot());
+    final var shootingTranslation = AutoConstants.getInitialShootingPose();
+
+    if (shootingTranslation.isEmpty()) {
+      return readyShooter().andThen(autoShoot());
+    }
+
+    return distanceShot(shootingTranslation.get());
   }
 
   /** assumes the shooter is at the correct speed and the arm is in the correct position */

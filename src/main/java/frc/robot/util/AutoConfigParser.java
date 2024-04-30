@@ -21,7 +21,9 @@ public class AutoConfigParser {
     shootingPoseMap.put('d', AutoConstants.ShootingTranslations.BETWEEN_0_1);
     shootingPoseMap.put('e', AutoConstants.ShootingTranslations.BETWEEN_1_2);
     shootingPoseMap.put('f', AutoConstants.ShootingTranslations.STAGE_AMP_SIDE);
+    shootingPoseMap.put('i', AutoConstants.ShootingTranslations.STAGE_AMP_SIDE_FAR);
     shootingPoseMap.put('g', AutoConstants.ShootingTranslations.STAGE_SOURCE_SIDE);
+    shootingPoseMap.put('h', AutoConstants.ShootingTranslations.STAGE_SOURCE_SIDE_CLOSE);
   }
 
   public static final Map<Character, Pair<Translation2d, Translation2d>> obstacleMap =
