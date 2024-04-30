@@ -74,7 +74,8 @@ public class DriveIntoNoteCommand extends Command {
             DriveConstants.NOTE_PICKUP_MIN_SPEED.get(),
             DriveConstants.NOTE_PICKUP_MAX_SPEED.get());
 
-    final boolean nearNote = distanceToNote < 1.2;
+    final boolean nearNote =
+        distanceToNote < DriveConstants.NOTE_PICKUP_FACING_NOTE_REQUIRED_DISTANCE.get();
     final boolean pointedAtNote =
         Math.abs(drive.getThetaController().getPositionError())
             < Units.degreesToRadians(

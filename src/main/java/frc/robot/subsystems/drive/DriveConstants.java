@@ -23,19 +23,22 @@ public final class DriveConstants {
   public static final LoggedTunableNumber NOTE_PICKUP_MAX_SPEED =
       tunableTable.makeField("note pickup max speed", 4);
   public static final LoggedTunableNumber NOTE_PICKUP_MIN_SPEED =
-      tunableTable.makeField("note pickup min speed", 1);
+      tunableTable.makeField("note pickup min speed", 2);
+
+  public static final LoggedTunableNumber NOTE_PICKUP_FACING_NOTE_REQUIRED_DISTANCE =
+      tunableTable.makeField("note pickup distance where need to be facing note", 1);
   public static final LoggedTunableNumber NOTE_PICKUP_SPEED_STARTING_DISTANCE =
       tunableTable.makeField("note pickup speed starting distance", 0.4);
   public static final LoggedTunableNumber NOTE_PICKUP_DISTANCE_TO_SPEED_MULT =
-      tunableTable.makeField("note distance to speed mult", 5);
+      tunableTable.makeField("note distance to speed mult", 2);
   public static DrivetrainConfig drivetrainConfig =
       switch (Constants.getRobot()) {
         default ->
             new DrivetrainConfig(
                 Units.inchesToMeters(29.0), // Track width x
                 Units.inchesToMeters(29.0), // Track width y
-                4.35,
-                3.5,
+                4.3,
+                3,
                 Units.degreesToRadians(450), // Max angular velocity
                 Units.degreesToRadians(800)); // Max angular acceleration
       };
@@ -133,13 +136,16 @@ public final class DriveConstants {
     public static final LoggedTunableNumber kD =
         tunableTable.makeField("headingController/kd", 0.1);
     public static final LoggedTunableNumber NOTE_PICKUP_MULT =
-        tunableTable.makeField("headingController/note pickup mult", 1.3);
+        tunableTable.makeField("headingController/note pickup mult", 1);
     public static final LoggedTunableNumber TOLERANCE =
-        tunableTable.makeField("headingController/tolerance deg", 3);
+        tunableTable.makeField("headingController/tolerance deg", 1);
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
-        tunableTable.makeField("headingController/note pickup tolerance deg", 6);
+        tunableTable.makeField("headingController/note pickup tolerance deg", 3.5);
     public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_DEG =
-        tunableTable.makeField("headingController/speaker shooting offset set", 5);
+        tunableTable.makeField("headingController/speaker shooting offset set", 1);
+
+    public static final LoggedTunableNumber LOBBING_ANGLE_OFFSET_DEG =
+        tunableTable.makeField("headingController/lobbing shooting offset set", 16);
   }
 
   public static final PIDConstants PPtranslationConstants =

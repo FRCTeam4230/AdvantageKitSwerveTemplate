@@ -13,35 +13,25 @@ import numpy as np
 import cv2
 
 EXPOSURE_OPTIONS = [5, 10, 20, 39, 78, 156, 312, 625, 1250, 2500, 5000, 10000, 20000]
-EXPOSURE_INDEX = 6
+EXPOSURE = 100
 
 STREAM_FULL_RES = False
 
-LIFECAM_RESOLUTION_OPTIONS = [
+FISHEYE_RESOLUTION_OPTIONS = [
+    (1920, 1080),
+    (1280, 720),
+    (800, 600),
     (640, 480),
-    (960, 544),
     (640, 360),
-    (424, 240),
     (352, 288),
-    (320, 240),
-    (176, 144),
-    (160, 120),
+    (320, 240)
 ]
-RESOLUTION = LIFECAM_RESOLUTION_OPTIONS[0]
+RESOLUTION = FISHEYE_RESOLUTION_OPTIONS[0]
 RESOLUTION_DIAGONAL = math.hypot(RESOLUTION[0], RESOLUTION[1])
 STREAM_RESOLUTION = (150, 100)
 
-LIFECAM_DIAGONAL_FOV = 68.5
+FISHEYE_DIAGONAL_FOV = 180
 
-
-def get_axis_fov(size: int):
-    return 2 * math.degrees(math.atan(
-        math.tan(math.radians(LIFECAM_DIAGONAL_FOV / 2)) *
-        size / RESOLUTION_DIAGONAL
-    ))
-
-
-LIFECAM_FOV_DEG = tuple(map(get_axis_fov, RESOLUTION))
 CENTER_FRAME = tuple(map(lambda n: n / 2, RESOLUTION))
 PIXEL_DISTANCE = (
     CENTER_FRAME[0] / math.tan(math.radians(LIFECAM_FOV_DEG[0]) / 2),
@@ -58,18 +48,7 @@ class CameraConfig:
     name: str
 
 
-CAMERA_PORT_PATHS_PI4 = {
-    'usb3': {
-        'top': '/dev/v4l/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.1:1.0-video-index0',
-        'bottom': '/dev/v4l/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.2:1.0-video-index0',
-    },
-    'usb2': {
-        'top': '/dev/v4l/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.3:1.0-video-index0',
-        'bottom': '/dev/v4l/by-path/platform-fd500000.pcie-pci-0000:01:00.0-usb-0:1.4:1.0-video-index0',
-    }
-}
-
-CAMERA_PORT_PATHS_PI5 = {
+CAMERA_PORT_PATHS = {
     'usb3': {
         'top': '/dev/v4l/by-path/platform-xhci-hcd.1-usb-0:1:1.0-video-index0',
         'bottom': '/dev/v4l/by-path/platform-xhci-hcd.0-usb-0:1:1.0-video-index0',
@@ -82,15 +61,15 @@ CAMERA_PORT_PATHS_PI5 = {
 
 
 CAMERA_CONFIGS = [
-    CameraConfig(path=CAMERA_PORT_PATHS_PI5['usb3']['bottom'], name="center"),
-    CameraConfig(path=CAMERA_PORT_PATHS_PI5['usb2']['bottom'], name="left"),
-    CameraConfig(path=CAMERA_PORT_PATHS_PI5['usb2']['top'], name="right"),
+    CameraConfig(path=CAMERA_PORT_PATHS['usb3']['bottom'], name="center"),
+    CameraConfig(path=CAMERA_PORT_PATHS['usb2']['bottom'], name="left"),
+    CameraConfig(path=CAMERA_PORT_PATHS['usb2']['top'], name="right"),
 ]
 
 HUE_SHIFT = 10
 # Define lower and upper bounds for orange color in HSV
-lower_orange_hsv = np.array([5, 160, 150])
-upper_orange_hsv = np.array([20, 255, 255])
+lower_orange_hsv = np.array([18, 100, 200])
+upper_orange_hsv = np.array([30, 255, 255])
 # The minimum contour area to detect a note
 MINIMUM_CONTOUR_AREA = 500
 # The threshold for a contour to be considered a disk

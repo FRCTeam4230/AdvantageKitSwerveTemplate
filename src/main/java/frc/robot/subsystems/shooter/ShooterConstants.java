@@ -14,7 +14,7 @@ public final class ShooterConstants {
   public static final LoggedTunableNumber AMP_VELOCITY_RAD_PER_SEC =
       tunableTable.makeField("amp rad per sec", 150);
   public static final LoggedTunableNumber SPEAKER_VELOCITY_RAD_PER_SEC =
-      tunableTable.makeField("speaker rad per sec", 280);
+      tunableTable.makeField("speaker rad per sec", 500);
   public static final LoggedTunableNumber PODIUM_VELOCITY_RAD_PER_SEC =
       tunableTable.makeField("podium rad per sec", 300);
   public static final LoggedTunableNumber AMP_LOB_VELOCITY_RAD_PER_SEC =
@@ -22,7 +22,7 @@ public final class ShooterConstants {
   public static final double CLOSED_LOOP_RAMP_RATE = 0.01;
   public static final double OPEN_LOOP_RAMP_RATE = 0.01;
   public static final LoggedTunableNumber VELOCITY_TOLERANCE =
-      tunableTable.makeField("velocity tolerance rad per s", 5);
+      tunableTable.makeField("velocity tolerance rad per s", 10);
 
   public static final LoggedTunableNumber AUTO_SHOOTER_TIMEOUT =
       tunableTable.makeField("auto shooter timeout", 1);
@@ -39,11 +39,10 @@ public final class ShooterConstants {
 
   public record ShooterTune(FlywheelConstants top, FlywheelConstants bottom) {}
 
-  public static final ShooterTune BACKUP_TUNE =
-      new ShooterTune(
-          new FlywheelConstants(0.0599, 0.020633, 5E-6),
-          new FlywheelConstants(0.13925, 0.02058, 5E-6));
   public static final ShooterTune CURRENT_TUNE =
+      new ShooterTune(
+          new FlywheelConstants(0.117, 0.021, 1E-4), new FlywheelConstants(0.13955, 0.021, 1E-4));
+  public static final ShooterTune OLD_TUNE =
       new ShooterTune(
           new FlywheelConstants(0.0508, 0.0196, 5E-6), new FlywheelConstants(0.1828, 0.0207, 5E-6));
 

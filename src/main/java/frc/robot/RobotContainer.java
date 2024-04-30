@@ -17,20 +17,14 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleConfigs;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.pathfinding.Pathfinding;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -56,7 +50,7 @@ import frc.robot.subsystems.shooter.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.*;
 import java.util.Arrays;
-import java.util.List;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.LoggedDashboardString;
 import org.photonvision.simulation.VisionSystemSim;
@@ -84,8 +78,11 @@ public class RobotContainer {
   // Controller
   private final CommandXboxController driverController = new CommandXboxController(0);
   private final CommandXboxController secondController = new CommandXboxController(1);
-  private final RumbleSubsystem rumbleSubsystem =
-      new RumbleSubsystem(driverController.getHID(), secondController.getHID());
+  private final RumbleSubsystem driverRumbleSubsystem =
+      new RumbleSubsystem(driverController.getHID());
+
+  private final RumbleSubsystem secondRumbleSubsystem =
+      new RumbleSubsystem(secondController.getHID());
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -96,6 +93,9 @@ public class RobotContainer {
 
   //   private final LoggedTunableNumber flywheelSpeedInput =
   //       new LoggedTunableNumber("Flywheel Speed", 1500.0);
+
+  private final PowerDistribution pdh =
+      new PowerDistribution(20, PowerDistribution.ModuleType.kRev);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -203,8 +203,8 @@ public class RobotContainer {
                 drive::getPose,
                 arm::getPositionRad);
 
-        new Trigger(DriverStation::isAutonomousEnabled)
-            .onTrue(Commands.runOnce(noteVisionIOs[0]::resetNotePoses));
+        //        new Trigger(DriverStation::isAutonomousEnabled)
+        //            .onTrue(Commands.runOnce(noteVisionIOs[0]::resetNotePoses));
       }
       default -> {
         // Replayed robot, disable IO implementations
@@ -260,25 +260,25 @@ public class RobotContainer {
     configureTeleopCommands();
 
     intake.setDefaultCommand(IntakeCommands.keepNoteInCenter(intake, beamBreak));
+    //    shooter.setDefaultCommand(shooter.run(() -> shooter.runVolts(3)));
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
-    Pathfinding.setDynamicObstacles(
-        AutoConstants.createDynamicObstaclesList(
-            List.of(AutoConstants.AvoidanceZones.STAGE, AutoConstants.AvoidanceZones.CLOSE_NOTES)),
-        drive.getPose().getTranslation());
+
+    setupPDHLogging();
+  }
+
+  private void setupPDHLogging() {
+    Commands.run(
+            () -> {
+              Logger.recordOutput("pdh/total current", pdh.getTotalCurrent());
+              Logger.recordOutput("pdh/energy", pdh.getTotalEnergy());
+            })
+        .ignoringDisable(true)
+        .schedule();
   }
 
   private void setupLimelightFlashing() {
     new Trigger(beamBreak::detectNote).whileTrue(LimelightControl.lightsOn("limelight"));
-
-    new Trigger(
-            () ->
-                MathUtil.isNear(
-                    0,
-                    AllianceFlipUtil.apply(drive.getRotation().plus(Rotation2d.fromDegrees(30)))
-                        .getDegrees(),
-                    60))
-        .whileTrue(LimelightControl.lightsFlashing("limelight-front", 0.2));
   }
 
   private void configureTeleopCommands() {
@@ -288,14 +288,13 @@ public class RobotContainer {
   }
 
   private void configureRumble() {
-    rumbleSubsystem.setRumbleTimes(30, 10);
+    secondRumbleSubsystem.setDefaultCommand(
+        secondRumbleSubsystem.rumbleOnCondition(() -> intake.getVelocityRPM() > 20));
 
-    rumbleSubsystem.setDefaultCommand(
-        rumbleSubsystem.noteMonitoring(
-            beamBreak::detectNote,
-            () ->
-                noteVision.getCurrentNote().stream()
-                    .anyMatch(note -> note.getNorm() < NoteVisionConstants.DISTANCE_TO_RUMBLE)));
+    driverRumbleSubsystem.setDefaultCommand(
+        driverRumbleSubsystem.noteMonitoring(beamBreak::detectNote, () -> false));
+
+    driverRumbleSubsystem.setRumbleTimes(60, 40, 10);
   }
 
   private void configureNamedCommands() {
@@ -356,15 +355,10 @@ public class RobotContainer {
 
     controllerLogic
         .intakeTrigger()
-        .whileTrue(
-            new ConditionalCommand(
-                Commands.waitUntil(shooterStateHelpers::canShoot)
-                    .andThen(
-                        IntakeCommands.manualIntakeCommand(
-                            intake, controllerLogic::getIntakeSpeed)),
-                IntakeCommands.manualIntakeCommand(intake, controllerLogic::getIntakeSpeed)
-                    .until(beamBreak::detectNote),
-                beamBreak::detectNote));
+        .and(
+            new Trigger(shooterStateHelpers::canShoot)
+                .or(new Trigger(beamBreak::detectNote).negate()))
+        .whileTrue(IntakeCommands.manualIntakeCommand(intake, controllerLogic::getIntakeSpeed));
 
     // backup in case arm or shooter can't reach setpoint
     controllerLogic
@@ -426,7 +420,9 @@ public class RobotContainer {
                 arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get))
         .onTrue(
             ShooterCommands.runSpeed(shooter, ShooterConstants.PODIUM_VELOCITY_RAD_PER_SEC::get));
-    controllerLogic.shooterOff().onTrue(Commands.runOnce(shooter::stop, shooter));
+    controllerLogic
+        .shooterOff()
+        .onTrue(Commands.runOnce(shooter::stop, shooter).andThen(Commands.idle(shooter)));
 
     final Trigger multiDistance = controllerLogic.multiDistanceShot();
     final Trigger inAllianceWing =

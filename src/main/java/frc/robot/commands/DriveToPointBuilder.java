@@ -32,7 +32,7 @@ public class DriveToPointBuilder {
 
   public static Command driveToNoFlip(Pose2d targetPose, double endVelocity) {
     return AutoBuilder.pathfindToPose(
-        targetPose, DriveConstants.pathPlannerConstraints, endVelocity, 0.0);
+        targetPose, DriveConstants.pathPlannerConstraints, endVelocity, 0.2);
   }
 
   public static Command align(

@@ -1,30 +1,30 @@
 package frc.robot.commands.auto;
 
+import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.util.AllianceFlipUtil;
-import frc.robot.util.FieldConstants;
-import frc.robot.util.LoggedTunableNumber;
-import frc.robot.util.TunableNumberWrapper;
+import frc.robot.util.*;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.LoggedDashboardString;
 
 public class AutoConstants {
   private static final TunableNumberWrapper tunableTable =
       new TunableNumberWrapper(MethodHandles.lookup().lookupClass());
   public static final LoggedTunableNumber DISTANCE_TO_TRUST_CAMERA =
       tunableTable.makeField("camera trust m", 1);
-  public static final LoggedTunableNumber DRIVE_TO_PICKUP_INTERRUPT_DISTANCE =
-      tunableTable.makeField("drive to pickup interupt m", 0);
+  public static final LoggedTunableNumber PATHFIND_UNTIL_DISTANCE =
+      tunableTable.makeField("pathfind to note end m", 2);
   public static final LoggedTunableNumber SHOOTING_DISTANCE_OFFSET_TOLERANCE =
       tunableTable.makeField("align distance tolerance m", 0.1);
   public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_TOLERANCE =
-      tunableTable.makeField("align angle tolerance deg", 6);
+      tunableTable.makeField("align angle tolerance deg", 3);
   public static final Translation2d[] AUTO_NOTES =
       Stream.concat(
               Stream.concat(
@@ -53,22 +53,24 @@ public class AutoConstants {
   public static class ShootingTranslations {
     public static final Translation2d SPEAKER_AMP_SIDE = new Translation2d(1, 6.7);
     public static final Translation2d SPEAKER_CENTER =
-        new Translation2d(1.35, FieldConstants.Speaker.centerSpeakerOpening.getY());
+        new Translation2d(1.5, FieldConstants.Speaker.centerSpeakerOpening.getY());
     public static final Translation2d SPEAKER_SOURCE_SIDE = new Translation2d(0.9, 4.3);
-    public static final Translation2d STAGE_AMP_SIDE = new Translation2d(3.7, 5.7);
-    public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(3.1, 2.9);
+    public static final Translation2d STAGE_AMP_SIDE = new Translation2d(2.8, 5.7);
+    public static final Translation2d STAGE_AMP_SIDE_FAR = new Translation2d(3.5, 6.3);
+    public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(2.5, 2.5);
+    public static final Translation2d STAGE_SOURCE_SIDE_CLOSE = new Translation2d(1.5, 3);
     public static final Translation2d BETWEEN_1_2 =
         new Translation2d(
             BETWEEN_SPIKE_POSE_X,
-            (2 * FieldConstants.StagingLocations.spikeTranslations[1].getY()
+            (FieldConstants.StagingLocations.spikeTranslations[1].getY()
                     + FieldConstants.StagingLocations.spikeTranslations[2].getY())
-                / 3);
+                / 2);
     public static final Translation2d BETWEEN_0_1 =
         new Translation2d(
             BETWEEN_SPIKE_POSE_X,
             (FieldConstants.StagingLocations.spikeTranslations[0].getY()
-                    + 2 * FieldConstants.StagingLocations.spikeTranslations[1].getY())
-                / 3);
+                    + FieldConstants.StagingLocations.spikeTranslations[1].getY())
+                / 2);
   }
 
   public static Pose2d getShootingPose2dFromTranslation(Translation2d translation) {
@@ -84,23 +86,25 @@ public class AutoConstants {
                 DriveConstants.HeadingControllerConstants.SHOOTING_ANGLE_OFFSET_DEG.get()));
   }
 
-  public static class NotePickupLocations {
-    public static final Pose2d X =
-        new Pose2d(new Translation2d(6.1, 6.5), Rotation2d.fromDegrees(10));
-    public static final Pose2d Y =
-        new Pose2d(
-            new Translation2d(6.1, FieldConstants.fieldWidth / 2), Rotation2d.fromDegrees(0));
-    public static final Pose2d Z =
-        new Pose2d(new Translation2d(6.1, 1.7), Rotation2d.fromDegrees(-10));
-  }
-
   public static class AvoidanceZones {
     public static final Pair<Translation2d, Translation2d> STAGE =
         new Pair<>(new Translation2d(4.3, 4.7), new Translation2d(5.3, 3.7));
     public static final Pair<Translation2d, Translation2d> SOURCE_SIDE_NEXT_TO_STAGE =
-        new Pair<>(new Translation2d(5.7, 1.8), new Translation2d(2.1, 3.8));
+        new Pair<>(new Translation2d(5.7, 2), new Translation2d(2.1, 3.8));
     public static final Pair<Translation2d, Translation2d> CLOSE_NOTES =
         new Pair<>(new Translation2d(2, 9), new Translation2d(3.2, 3.8));
+    public static final Pair<Translation2d, Translation2d> AMP_SIDE_FAR_STAGE =
+        new Pair<>(new Translation2d(5.5, 5.5), new Translation2d(6, 8.5));
+    public static final Pair<Translation2d, Translation2d> MIDDLE_FAR_STAGE =
+        new Pair<>(new Translation2d(5.5, 3), new Translation2d(6, 5.5));
+    public static final Pair<Translation2d, Translation2d> SOURCE_SIDE_FAR_STAGE =
+        new Pair<>(new Translation2d(5.5, 3), new Translation2d(6, -1));
+    public static final Pair<Translation2d, Translation2d> AMP_SIDE_MIDDLE_STAGE =
+        new Pair<>(new Translation2d(5.5, 5.5), new Translation2d(3.5, 5));
+    public static final Pair<Translation2d, Translation2d> SOURCE_SIDE_MIDDLE_STAGE =
+        new Pair<>(new Translation2d(5.5, 2), new Translation2d(3.5, 3.5));
+    public static final Pair<Translation2d, Translation2d> MIDDLE_SUBWOOFER =
+        new Pair<>(new Translation2d(1, 6.2), new Translation2d(2.3, 4.8));
   }
 
   public static List<Pair<Translation2d, Translation2d>> createDynamicObstaclesList(
@@ -128,5 +132,26 @@ public class AutoConstants {
     } catch (Exception e) {
       return Optional.empty();
     }
+  }
+
+  public static final LoggedDashboardString INITIAL_SHOOTING_POSE =
+      new LoggedDashboardString("initial auto shot pose");
+
+  public static Optional<Translation2d> getInitialShootingPose() {
+    final var poseCharacter = INITIAL_SHOOTING_POSE.get();
+    if (poseCharacter.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(AutoConfigParser.shootingPoseMap.get(poseCharacter.charAt(0)))
+        .map(AllianceFlipUtil::apply);
+  }
+
+  public static final LoggedDashboardChooser<PathPlannerPath> THREAD_CHOOSER =
+      new LoggedDashboardChooser<>("auto thread path");
+
+  static {
+    THREAD_CHOOSER.addOption("note", PathPlannerPath.fromPathFile("notethread"));
+    THREAD_CHOOSER.addOption("amp", PathPlannerPath.fromPathFile("ampthread"));
+    THREAD_CHOOSER.addDefaultOption("none", null);
   }
 }

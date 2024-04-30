@@ -43,6 +43,10 @@ public class RumbleSubsystem extends SubsystemBase {
     new TimeTrigger(secondsLeft).onTrue(rumbleForTime(TIME.durationSeconds, TIME.strength));
   }
 
+  public Command rumbleOnCondition(BooleanSupplier rumbleActive) {
+    return runEnd(() -> set(rumbleActive.getAsBoolean() ? 1 : 0), this::stop);
+  }
+
   public void setRumbleTimes(double... times) {
     for (double time : times) {
       rumbleAtTimeLeft(time);

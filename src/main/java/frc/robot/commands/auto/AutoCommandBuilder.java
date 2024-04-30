@@ -1,5 +1,6 @@
 package frc.robot.commands.auto;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -70,14 +71,7 @@ public class AutoCommandBuilder {
   }
 
   public Command intakeByVisionNote(Supplier<Optional<Translation2d>> noteSupplier) {
-    return IntakeCommands.manualIntakeCommand(
-            intake,
-            () -> {
-              final var targetNote = noteSupplier.get();
-              return (targetNote.isEmpty() || targetNote.get().getNorm() > 2)
-                  ? 0
-                  : IntakeConstants.INTAKE_VOLTAGE.get();
-            })
+    return IntakeCommands.manualIntakeCommand(intake, IntakeConstants.INTAKE_VOLTAGE::get)
         .until(beamBreak::detectNote);
   }
 
@@ -181,23 +175,37 @@ public class AutoCommandBuilder {
           Commands.waitUntil(() -> DriverStation.getMatchTime() <= autoPart.time().get()));
     }
 
-    if (autoPart.notePickupPose().isPresent()) {
-      final Command driveToPickup = driveToPickup(autoPart.notePickupPose().get());
-
-      output.addCommands(Commands.parallel(logAutoState("driving"), driveToPickup));
-    }
-
     if (autoPart.note().isPresent()) {
+      final Command pathfindToNote = pathfindToNote(autoPart.note().get());
+
+      output.addCommands(
+          Commands.parallel(
+              Commands.runOnce(() -> Logger.recordOutput("auto/note", autoPart.note().get())),
+              logAutoState("driving"),
+              pathfindToNote));
+
       final Command pickupNote =
           pickupNoteAtTranslation(autoPart.note().get(), AutoConstants.PICKUP_TIMEOUT.get());
 
       output.addCommands(Commands.parallel(logAutoState("pickup"), pickupNote));
+
+      final Command fallbackPickup =
+          fallbackPickup()
+              .onlyWhile(() -> noteVision.getCurrentNote().isPresent())
+              .onlyIf(() -> !beamBreak.detectNote());
+      output.addCommands(Commands.parallel(logAutoState("fallback"), fallbackPickup));
+    } else {
+      final Command fallbackPickup = fallbackPickup().onlyIf(() -> !beamBreak.detectNote());
+      output.addCommands(Commands.parallel(logAutoState("scanning"), fallbackPickup));
     }
 
-    final Command fallbackPickup = fallbackPickup().onlyIf(() -> !beamBreak.detectNote());
-    output.addCommands(Commands.parallel(logAutoState("fallback"), fallbackPickup));
-    final Pose2d shootingPose =
-        AutoConstants.getShootingPose2dFromTranslation(autoPart.shootingTranslation());
+    output.addCommands(distanceShot(autoPart.shootingTranslation()));
+
+    return output;
+  }
+
+  public Command distanceShot(Translation2d translation) {
+    final Pose2d shootingPose = AutoConstants.getShootingPose2dFromTranslation(translation);
     final Command returnCommand =
         DriveToPointBuilder.driveToAndAlign(
                 drive,
@@ -206,13 +214,23 @@ public class AutoCommandBuilder {
                 Units.degreesToRadians(AutoConstants.SHOOTING_ANGLE_OFFSET_TOLERANCE.get()),
                 false)
             .deadlineWith(IntakeCommands.keepNoteInCenter(intake, beamBreak));
-    output.addCommands(
-        Commands.parallel(
+    return (Commands.parallel(
             logAutoState("returning"),
             Commands.sequence(returnCommand, logAutoState("shooting"), autoShoot())
-                .deadlineWith(readyShooterDistance(shootingPose))));
+                .deadlineWith(readyShooterDistance(shootingPose)))
+        .onlyIf(beamBreak::detectNote));
+  }
 
-    return output;
+  private Command pathfindToNote(Translation2d note) {
+    return Commands.parallel(
+            intakeByVisionNote(Optional::empty),
+            Commands.runOnce(() -> drive.setRotateTowardsEndOfPath(true)),
+            DriveToPointBuilder.driveToNoFlip(new Pose2d(note, new Rotation2d())))
+        .finallyDo(() -> drive.setRotateTowardsEndOfPath(false))
+        .until(
+            () ->
+                drive.getPose().getTranslation().getDistance(note)
+                    < AutoConstants.PATHFIND_UNTIL_DISTANCE.get());
   }
 
   public Command autoFromConfigString(Supplier<String> configStringSupplier) {
@@ -222,25 +240,38 @@ public class AutoCommandBuilder {
   public Command autoFromConfig(
       Supplier<Optional<List<AutoConfigParser.AutoPart>>> configSupplier) {
     return Commands.runOnce(this::clearObstacles)
-        .andThen(initialFullShot())
         .andThen(
             new DeferredCommand(
                 () -> {
+                  final SequentialCommandGroup output =
+                      new SequentialCommandGroup(initialFullShot());
+
+                  final var threadCommand =
+                      Optional.ofNullable(AutoConstants.THREAD_CHOOSER.get())
+                          .map(AutoBuilder::followPath);
+                  threadCommand.ifPresent(output::addCommands);
+
                   final var config = configSupplier.get();
-                  if (config.isEmpty()) {
-                    return Commands.none();
+                  if (config.isPresent()) {
+                    final var commands =
+                        config.get().stream().map(this::autoFromConfigPart).toArray(Command[]::new);
+
+                    output.addCommands(commands);
                   }
 
-                  final var commands =
-                      config.get().stream().map(this::autoFromConfigPart).toArray(Command[]::new);
-
-                  return Commands.sequence(commands).asProxy();
+                  return output.asProxy();
                 },
                 Set.of()));
   }
 
   public Command initialFullShot() {
-    return readyShooter().andThen(autoShoot());
+    final var shootingTranslation = AutoConstants.getInitialShootingPose();
+
+    if (shootingTranslation.isEmpty()) {
+      return readyShooter().andThen(autoShoot());
+    }
+
+    return distanceShot(shootingTranslation.get());
   }
 
   /** assumes the shooter is at the correct speed and the arm is in the correct position */
