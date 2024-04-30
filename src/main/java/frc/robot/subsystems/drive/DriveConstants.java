@@ -24,6 +24,9 @@ public final class DriveConstants {
       tunableTable.makeField("note pickup max speed", 4);
   public static final LoggedTunableNumber NOTE_PICKUP_MIN_SPEED =
       tunableTable.makeField("note pickup min speed", 2);
+
+  public static final LoggedTunableNumber NOTE_PICKUP_FACING_NOTE_REQUIRED_DISTANCE =
+      tunableTable.makeField("note pickup distance where need to be facing note", 1);
   public static final LoggedTunableNumber NOTE_PICKUP_SPEED_STARTING_DISTANCE =
       tunableTable.makeField("note pickup speed starting distance", 0.4);
   public static final LoggedTunableNumber NOTE_PICKUP_DISTANCE_TO_SPEED_MULT =
