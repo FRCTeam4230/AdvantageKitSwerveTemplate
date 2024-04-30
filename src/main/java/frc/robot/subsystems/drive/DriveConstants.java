@@ -21,7 +21,7 @@ public final class DriveConstants {
       new TunableNumberWrapper(MethodHandles.lookup().lookupClass());
 
   public static final LoggedTunableNumber NOTE_PICKUP_MAX_SPEED =
-      tunableTable.makeField("note pickup max speed", 4);
+      tunableTable.makeField("note pickup max speed", 5);
   public static final LoggedTunableNumber NOTE_PICKUP_MIN_SPEED =
       tunableTable.makeField("note pickup min speed", 2);
 
@@ -141,11 +141,11 @@ public final class DriveConstants {
     public static final LoggedTunableNumber kD =
         tunableTable.makeField("headingController/kd", 0.1);
     public static final LoggedTunableNumber NOTE_PICKUP_MULT =
-        tunableTable.makeField("headingController/note pickup mult", 1);
+        tunableTable.makeField("headingController/note pickup mult", 1.3);
     public static final LoggedTunableNumber TOLERANCE =
         tunableTable.makeField("headingController/tolerance deg", 1);
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
-        tunableTable.makeField("headingController/note pickup tolerance deg", 3.5);
+        tunableTable.makeField("headingController/note pickup tolerance deg", 5);
     public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_DEG =
         tunableTable.makeField("headingController/speaker shooting offset set", 1);
 
