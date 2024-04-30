@@ -58,6 +58,7 @@ public class ModuleIOSparkMax implements ModuleIO {
   private final Queue<Double> turnPositionQueue;
 
   private final Rotation2d absoluteEncoderOffset;
+  private final double wheelRadius;
 
   public ModuleIOSparkMax(ModuleConfig config) {
     // Init motor & encoder objects
@@ -123,6 +124,8 @@ public class ModuleIOSparkMax implements ModuleIO {
 
     driveSparkMax.burnFlash();
     turnSparkMax.burnFlash();
+
+    wheelRadius = config.wheelRadius();
   }
 
   @Override
@@ -205,5 +208,10 @@ public class ModuleIOSparkMax implements ModuleIO {
   @Override
   public void setTurnBrakeMode(boolean enable) {
     turnSparkMax.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+  }
+
+  @Override
+  public double getWheelRadius() {
+    return wheelRadius;
   }
 }
