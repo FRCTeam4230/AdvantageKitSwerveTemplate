@@ -3,6 +3,7 @@ package frc.robot.subsystems.vision;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.commands.auto.AutoConstants;
 import frc.robot.util.FieldConstants;
 import frc.robot.util.PoseLog;
 import java.util.ArrayList;
@@ -38,6 +39,8 @@ public class NoteVisionSubsystem extends SubsystemBase {
 
   /** Position of the simulated note for auto in field space */
   @Getter private Optional<Translation2d> virtualAutoNote = Optional.empty();
+
+  private int virtualAutoNoteCoveredFrameCount = 0;
 
   private double virtualNoteDistanceToRemove;
 
@@ -92,8 +95,6 @@ public class NoteVisionSubsystem extends SubsystemBase {
         continue;
       }
 
-      checkAutoNote(noteVisionIOsAndInputs[i].config);
-
       var oldNotes = notesInOdometrySpace;
       var newNotes =
           calculateNotesInOdometrySpace(
@@ -122,6 +123,8 @@ public class NoteVisionSubsystem extends SubsystemBase {
       groupNoteRecords(currentNotes);
 
       notesInOdometrySpace = currentNotes.toArray(TimestampedNote[]::new);
+
+      checkAutoNote(noteVisionIOsAndInputs[i].config);
     }
   }
 
@@ -388,6 +391,7 @@ public class NoteVisionSubsystem extends SubsystemBase {
   public void setVirtualAutoNote(Translation2d globalNote, double distanceToRemove) {
     virtualAutoNote = Optional.of(globalNote);
     virtualNoteDistanceToRemove = distanceToRemove;
+    virtualAutoNoteCoveredFrameCount = 0;
   }
 
   public void clearAutoNote() {
@@ -408,9 +412,17 @@ public class NoteVisionSubsystem extends SubsystemBase {
             virtualAutoNote.get(), currentRobotVisionFieldPoseSupplier.get());
 
     if (canCameraSeeNote(config, relativeAutoNote, virtualNoteDistanceToRemove)) {
-      {
-        virtualAutoNote = Optional.empty();
-      }
+      virtualAutoNoteCoveredFrameCount++;
+    }
+
+    if (virtualAutoNoteCoveredFrameCount
+            > NoteVisionConstants.VIRTUAL_AUTO_NOTE_FRAMES_TO_CLEAR.get()
+        || Arrays.stream(getNotesInGlobalSpace())
+            .anyMatch(
+                note ->
+                    note.getDistance(virtualAutoNote.get())
+                        < AutoConstants.AutoNoteOffsetThresholds.WHILE_ATTEMPTING_PICKUP.get())) {
+      virtualAutoNote = Optional.empty();
     }
   }
 }

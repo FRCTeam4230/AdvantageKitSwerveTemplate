@@ -31,10 +31,11 @@ public class AutoConstants {
                   Stream.of(FieldConstants.StagingLocations.spikeTranslations),
                   Stream.of(FieldConstants.StagingLocations.centerlineTranslations)),
               Stream.of(
-                  new Translation2d(-1, 5),
-                  new Translation2d(1, 9),
-                  new Translation2d(17, 1),
-                  new Translation2d(0, -1)))
+                  //                  new Translation2d(-1, 5),
+                  //                  new Translation2d(1, 9),
+                  //                  new Translation2d(17, 1),
+                  //                  new Translation2d(0, -1)
+                  ))
           .toArray(Translation2d[]::new);
 
   public static class AutoNoteOffsetThresholds {
@@ -46,7 +47,7 @@ public class AutoConstants {
         tunableTable.makeField("auto fallback past middle tolerance m", 1);
   }
 
-  public static final LoggedTunableNumber PICKUP_TIMEOUT = tunableTable.makeField("pickup time", 3);
+  public static final LoggedTunableNumber PICKUP_TIMEOUT = tunableTable.makeField("pickup time", 5);
 
   private static final double BETWEEN_SPIKE_POSE_X = 1.7;
 
