@@ -136,11 +136,15 @@ public class Drive extends SubsystemBase {
             return Optional.empty();
           }
 
-          final var finalTranslation = currentPath.get(currentPath.size() - 1).getTranslation();
-          final var secondToLastTranslation =
-              currentPath.get(currentPath.size() - STEP_COUNT).getTranslation();
+          return Optional.empty();
 
-          return Optional.of(finalTranslation.minus(secondToLastTranslation).getAngle());
+          //          final var finalTranslation = currentPath.get(currentPath.size() -
+          // 1).getTranslation();
+          //          final var secondToLastTranslation =
+          //              currentPath.get(currentPath.size() - STEP_COUNT).getTranslation();
+          //
+          //          return
+          // Optional.of(finalTranslation.minus(secondToLastTranslation).getAngle());
         });
 
     thetaController.enableContinuousInput(-Math.PI, Math.PI);

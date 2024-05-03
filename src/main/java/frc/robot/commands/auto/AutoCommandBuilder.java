@@ -225,7 +225,12 @@ public class AutoCommandBuilder {
     return Commands.parallel(
             intakeByVisionNote(Optional::empty),
             Commands.runOnce(() -> drive.setRotateTowardsEndOfPath(true)),
-            DriveToPointBuilder.driveToNoFlip(new Pose2d(note, new Rotation2d())))
+            DriveToPointBuilder.driveToNoFlip(
+                new Pose2d(
+                    note,
+                    AllianceFlipUtil.shouldFlip()
+                        ? Rotation2d.fromDegrees(180)
+                        : Rotation2d.fromDegrees(0))))
         .finallyDo(() -> drive.setRotateTowardsEndOfPath(false))
         .until(
             () ->
