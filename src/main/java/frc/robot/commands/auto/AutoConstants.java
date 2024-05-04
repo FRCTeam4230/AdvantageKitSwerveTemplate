@@ -59,7 +59,7 @@ public class AutoConstants {
     public static final Translation2d STAGE_AMP_SIDE = new Translation2d(2.8, 5.7);
     public static final Translation2d STAGE_AMP_SIDE_FAR = new Translation2d(3.5, 6.3);
     public static final Translation2d STAGE_SOURCE_SIDE = new Translation2d(2.5, 2.5);
-    public static final Translation2d STAGE_SOURCE_SIDE_CLOSE = new Translation2d(1.5, 3);
+    public static final Translation2d STAGE_SOURCE_SIDE_CLOSE = new Translation2d(2.3, 3);
     public static final Translation2d BETWEEN_1_2 =
         new Translation2d(
             BETWEEN_SPIKE_POSE_X,

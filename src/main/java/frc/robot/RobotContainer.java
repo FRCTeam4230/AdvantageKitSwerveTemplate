@@ -421,8 +421,8 @@ public class RobotContainer {
         .onTrue(
             ShooterCommands.runSpeed(shooter, ShooterConstants.PODIUM_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
-        .shooterOff()
-        .onTrue(Commands.runOnce(shooter::stop, shooter).andThen(Commands.idle(shooter)));
+        .shooterOn()
+        .onTrue(shooter.run(() -> shooter.runVolts(11)));
 
     final Trigger multiDistance = controllerLogic.multiDistanceShot();
     final Trigger inAllianceWing =
