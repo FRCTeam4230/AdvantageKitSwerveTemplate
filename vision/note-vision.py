@@ -89,8 +89,8 @@ CAMERA_CONFIGS = [
 
 HUE_SHIFT = 10
 # Define lower and upper bounds for orange color in HSV
-lower_orange_hsv = np.array([5, 160, 150])
-upper_orange_hsv = np.array([20, 255, 255])
+lower_orange_hsv = np.array([12, 150, 150])
+upper_orange_hsv = np.array([25, 255, 255])
 # The minimum contour area to detect a note
 MINIMUM_CONTOUR_AREA = 500
 # The threshold for a contour to be considered a disk
@@ -326,6 +326,7 @@ def handle_camera(config: CameraConfig, output_entry: ntcore.NetworkTableEntry):
             frame_hsv = rotate_hue(cv2.cvtColor(frame, cv2.COLOR_BGR2HSV))
             # Threshold the HSV image to get only orange colors
             mask = cv2.inRange(frame_hsv, lower_orange_hsv, upper_orange_hsv)
+#             mask = cv2.erode(mask, np.ones((15,2), np.uint8), iterations=1)
             contours = find_contours(mask)
 
             angles = []
