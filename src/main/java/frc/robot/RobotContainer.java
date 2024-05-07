@@ -263,6 +263,8 @@ public class RobotContainer {
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
 
     setupPDHLogging();
+
+    SchoolMap.setupHallObstacles(drive.getDrive().getTranslation());
   }
 
   private void setupPDHLogging() {

@@ -37,7 +37,7 @@ public final class DriveConstants {
             new DrivetrainConfig(
                 Units.inchesToMeters(29.0), // Track width x
                 Units.inchesToMeters(29.0), // Track width y
-                3,
+                2,
                 1,
                 Units.degreesToRadians(100), // Max angular velocity
                 Units.degreesToRadians(100)); // Max angular acceleration
@@ -137,15 +137,15 @@ public final class DriveConstants {
       };
 
   public static class HeadingControllerConstants {
-    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 5);
+    public static final LoggedTunableNumber kP = tunableTable.makeField("headingController/kp", 1);
     public static final LoggedTunableNumber kD =
-        tunableTable.makeField("headingController/kd", 0.1);
+        tunableTable.makeField("headingController/kd", 0.0);
     public static final LoggedTunableNumber NOTE_PICKUP_MULT =
-        tunableTable.makeField("headingController/note pickup mult", 1.3);
+        tunableTable.makeField("headingController/note pickup mult", 1);
     public static final LoggedTunableNumber TOLERANCE =
         tunableTable.makeField("headingController/tolerance deg", 1);
     public static final LoggedTunableNumber NOTE_PICKUP_TOLERANCE =
-        tunableTable.makeField("headingController/note pickup tolerance deg", 5);
+        tunableTable.makeField("headingController/note pickup tolerance deg", 3);
     public static final LoggedTunableNumber SHOOTING_ANGLE_OFFSET_DEG =
         tunableTable.makeField("headingController/speaker shooting offset set", 1);
 
