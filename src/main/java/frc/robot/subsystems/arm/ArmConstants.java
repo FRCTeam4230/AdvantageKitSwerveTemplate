@@ -11,9 +11,9 @@ public class ArmConstants {
 
   public static final int LEFT_MOTOR_ID = 9;
   public static final int RIGHT_MOTOR_ID = 10;
-  public static final LoggedTunableNumber kP = tunableTable.makeField("kP", 6);
+  public static final LoggedTunableNumber kP = tunableTable.makeField("kP", 2);
   public static final LoggedTunableNumber kI = tunableTable.makeField("kI", 0.0);
-  public static final LoggedTunableNumber kD = tunableTable.makeField("kD", 0.5);
+  public static final LoggedTunableNumber kD = tunableTable.makeField("kD", 0);
   public static final LoggedTunableNumber setpointToleranceRad =
       tunableTable.makeField("setpoint tolerance rad", 0.01); // todo tune
   public static final double ARM_ENCODER_OFFSET_RAD = 2.04801388399;
@@ -24,7 +24,7 @@ public class ArmConstants {
   public static final double MIN_RAD = 0; // todo tune
   public static final double MAX_RAD = Units.degreesToRadians(90); // todo tune
   public static final LoggedTunableNumber MAX_ARM_PID_VOLTS =
-      tunableTable.makeField("max arm pid volts", 3.0);
+      tunableTable.makeField("max arm pid volts", 2);
   public static final LoggedTunableNumber MANUAL_ARM_MAX_VOLTS =
       tunableTable.makeField("max arm manual volts", 2.0);
 

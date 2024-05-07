@@ -12,8 +12,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.arm.ArmSubsystem;
 import frc.robot.subsystems.shooter.ShooterSubsystem;
 import frc.robot.util.AllianceFlipUtil;
-import frc.robot.util.FieldConstants;
-import frc.robot.util.interpolation.InterpolationMaps;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -85,27 +83,5 @@ public class MultiDistanceShot extends Command {
   public boolean isFinished() {
     // The command never finishes on its own
     return false;
-  }
-
-  public static Command forSpeaker(
-      Supplier<Pose2d> poseSupplier, ShooterSubsystem shooter, ArmSubsystem arm) {
-    return new MultiDistanceShot(
-        poseSupplier,
-        FieldConstants.Speaker.centerSpeakerOpening.getTranslation(),
-        shooter,
-        arm,
-        InterpolationMaps.shooterDistanceToVelocity,
-        InterpolationMaps.getShooterDistanceToArmAngle);
-  }
-
-  public static Command forLobbing(
-      Supplier<Pose2d> poseSupplier, ShooterSubsystem shooter, ArmSubsystem arm) {
-    return new MultiDistanceShot(
-        poseSupplier,
-        FieldConstants.ampLobbingTarget,
-        shooter,
-        arm,
-        InterpolationMaps.lobbingDistanceToVelocity,
-        InterpolationMaps.lobbingDistanceToArmRad);
   }
 }

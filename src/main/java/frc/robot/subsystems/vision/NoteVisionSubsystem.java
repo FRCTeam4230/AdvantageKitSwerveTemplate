@@ -3,7 +3,6 @@ package frc.robot.subsystems.vision;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.commands.auto.AutoConstants;
 import frc.robot.util.FieldConstants;
 import frc.robot.util.PoseLog;
 import java.util.ArrayList;
@@ -15,7 +14,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import lombok.Data;
-import lombok.Getter;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -36,13 +34,6 @@ public class NoteVisionSubsystem extends SubsystemBase {
   private final Supplier<Pose2d> currentRobotPoseNoVisionSupplier;
   private final Supplier<Pose2d> currentRobotVisionFieldPoseSupplier;
   private final DoubleSupplier armPositionSupplierRad;
-
-  /** Position of the simulated note for auto in field space */
-  @Getter private Optional<Translation2d> virtualAutoNote = Optional.empty();
-
-  private int virtualAutoNoteCoveredFrameCount = 0;
-
-  private double virtualNoteDistanceToRemove;
 
   public record TimestampedNote(Translation2d pose, double timestamp) {}
 
@@ -123,8 +114,6 @@ public class NoteVisionSubsystem extends SubsystemBase {
       groupNoteRecords(currentNotes);
 
       notesInOdometrySpace = currentNotes.toArray(TimestampedNote[]::new);
-
-      checkAutoNote(noteVisionIOsAndInputs[i].config);
     }
   }
 
@@ -378,51 +367,5 @@ public class NoteVisionSubsystem extends SubsystemBase {
 
   public Optional<Translation2d> getCurrentNote() {
     return NoteVisionSubsystem.getTargetNote(getNotesInRelativeSpace());
-  }
-
-  /**
-   * Set the note to simulate for auto. Please require this subsystem in the command that calls
-   * this.
-   *
-   * @param globalNote the field relative position of target note
-   * @param distanceToRemove the subsystem will remove this note once the distance between the note
-   *     and a camera is less than this param
-   */
-  public void setVirtualAutoNote(Translation2d globalNote, double distanceToRemove) {
-    virtualAutoNote = Optional.of(globalNote);
-    virtualNoteDistanceToRemove = distanceToRemove;
-    virtualAutoNoteCoveredFrameCount = 0;
-  }
-
-  public void clearAutoNote() {
-    virtualAutoNote = Optional.empty();
-  }
-
-  private void checkAutoNote(NoteVisionConstants.CameraConfig config) {
-    if (virtualAutoNote.isEmpty()) {
-      Logger.recordOutput("auto/virtual auto note", new Pose2d());
-      return;
-    }
-
-    Logger.recordOutput(
-        "auto/virtual auto note", new Pose2d(virtualAutoNote.get(), new Rotation2d()));
-
-    final var relativeAutoNote =
-        deprojectProjectedNoteFromRobotPose(
-            virtualAutoNote.get(), currentRobotVisionFieldPoseSupplier.get());
-
-    if (canCameraSeeNote(config, relativeAutoNote, virtualNoteDistanceToRemove)) {
-      virtualAutoNoteCoveredFrameCount++;
-    }
-
-    if (virtualAutoNoteCoveredFrameCount
-            > NoteVisionConstants.VIRTUAL_AUTO_NOTE_FRAMES_TO_CLEAR.get()
-        || Arrays.stream(getNotesInGlobalSpace())
-            .anyMatch(
-                note ->
-                    note.getDistance(virtualAutoNote.get())
-                        < AutoConstants.AutoNoteOffsetThresholds.WHILE_ATTEMPTING_PICKUP.get())) {
-      virtualAutoNote = Optional.empty();
-    }
   }
 }

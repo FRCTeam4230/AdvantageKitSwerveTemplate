@@ -21,26 +21,26 @@ public final class DriveConstants {
       new TunableNumberWrapper(MethodHandles.lookup().lookupClass());
 
   public static final LoggedTunableNumber NOTE_PICKUP_MAX_SPEED =
-      tunableTable.makeField("note pickup max speed", 5);
+      tunableTable.makeField("note pickup max speed", 3);
   public static final LoggedTunableNumber NOTE_PICKUP_MIN_SPEED =
-      tunableTable.makeField("note pickup min speed", 2);
+      tunableTable.makeField("note pickup min speed", 1);
 
   public static final LoggedTunableNumber NOTE_PICKUP_FACING_NOTE_REQUIRED_DISTANCE =
       tunableTable.makeField("note pickup distance where need to be facing note", 1);
   public static final LoggedTunableNumber NOTE_PICKUP_SPEED_STARTING_DISTANCE =
       tunableTable.makeField("note pickup speed starting distance", 0.4);
   public static final LoggedTunableNumber NOTE_PICKUP_DISTANCE_TO_SPEED_MULT =
-      tunableTable.makeField("note distance to speed mult", 2);
+      tunableTable.makeField("note distance to speed mult", 1);
   public static DrivetrainConfig drivetrainConfig =
       switch (Constants.getRobot()) {
         default ->
             new DrivetrainConfig(
                 Units.inchesToMeters(29.0), // Track width x
                 Units.inchesToMeters(29.0), // Track width y
-                4.3,
                 3,
-                Units.degreesToRadians(450), // Max angular velocity
-                Units.degreesToRadians(800)); // Max angular acceleration
+                1,
+                Units.degreesToRadians(100), // Max angular velocity
+                Units.degreesToRadians(100)); // Max angular acceleration
       };
   public static final PathConstraints pathPlannerConstraints =
       new PathConstraints(

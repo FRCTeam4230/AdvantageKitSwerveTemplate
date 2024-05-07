@@ -95,14 +95,6 @@ public class ControllerLogic {
     return secondController.start().or(driverController.start());
   }
 
-  public Trigger pointAtSpeaker() {
-    return driverController.povLeft();
-  }
-
-  public Trigger pointAtSource() {
-    return driverController.a();
-  }
-
   // +x means forward for the robot
   public double getDriveSpeedX() {
     return -driverController.getRightY();
@@ -123,23 +115,7 @@ public class ControllerLogic {
         () -> Math.abs(getDriveRotationSpeed()) > RESTORE_MANUAL_DRIVE_CONTROL_THRESHOLD);
   }
 
-  public Trigger ampPathFind() {
-    return driverController.y();
-  }
-
   public Trigger visionIntake() {
     return driverController.x();
-  }
-
-  public Trigger lobbingAlign() {
-    return driverController.povUp();
-  }
-
-  public Trigger climbAlign() {
-    return driverController.povRight();
-  }
-
-  public Trigger multiDistanceShot() {
-    return secondController.rightBumper().or(driverController.b());
   }
 }

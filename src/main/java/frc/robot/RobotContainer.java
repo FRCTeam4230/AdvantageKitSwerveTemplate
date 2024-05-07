@@ -30,7 +30,6 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.*;
 import frc.robot.commands.auto.AutoCommandBuilder;
-import frc.robot.commands.auto.AutoConstants;
 import frc.robot.commands.climber.ManualClimberCommand;
 import frc.robot.commands.climber.ResetClimberBasic;
 import frc.robot.subsystems.RumbleSubsystem;
@@ -52,7 +51,6 @@ import frc.robot.util.*;
 import java.util.Arrays;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-import org.littletonrobotics.junction.networktables.LoggedDashboardString;
 import org.photonvision.simulation.VisionSystemSim;
 
 /**
@@ -282,9 +280,7 @@ public class RobotContainer {
   }
 
   private void configureTeleopCommands() {
-    new Trigger(DriverStation::isTeleopEnabled)
-        .onTrue(resetClimbersCommand)
-        .onTrue(Commands.runOnce(autoCommandBuilder::clearObstacles));
+    new Trigger(DriverStation::isTeleopEnabled).onTrue(resetClimbersCommand);
   }
 
   private void configureRumble() {
@@ -331,15 +327,6 @@ public class RobotContainer {
                 controllerLogic::getDriveRotationSpeed)
             .finallyDo(driveMode::disableHeadingControl));
 
-    controllerLogic
-        .ampPathFind()
-        .whileTrue(
-            DriveToPointBuilder.driveToAndAlign(
-                drive, FieldConstants.ampScoringPose, 0.05, Units.degreesToRadians(3), true));
-    controllerLogic.pointAtSpeaker().onTrue(Commands.runOnce(driveMode::enableSpeakerHeading));
-    controllerLogic.pointAtSource().onTrue(Commands.runOnce(driveMode::enableSourceHeading));
-    controllerLogic.climbAlign().onTrue(Commands.runOnce(driveMode::enableStageHeading));
-    controllerLogic.lobbingAlign().onTrue(Commands.runOnce(driveMode::enableAmpLobbingHeading));
     controllerLogic
         .disableHeadingControl()
         .onTrue(Commands.runOnce(driveMode::disableHeadingControl));
@@ -424,17 +411,6 @@ public class RobotContainer {
         .shooterOff()
         .onTrue(Commands.runOnce(shooter::stop, shooter).andThen(Commands.idle(shooter)));
 
-    final Trigger multiDistance = controllerLogic.multiDistanceShot();
-    final Trigger inAllianceWing =
-        new Trigger(() -> AllianceFlipUtil.apply(drive.getPose()).getX() < FieldConstants.wingX);
-
-    multiDistance
-        .and(inAllianceWing)
-        .whileTrue(MultiDistanceShot.forSpeaker(drive::getPose, shooter, arm));
-    multiDistance
-        .and(inAllianceWing.negate())
-        .whileTrue(MultiDistanceShot.forLobbing(drive::getPose, shooter, arm));
-
     controllerLogic
         .runShooter()
         .whileTrue(
@@ -452,32 +428,16 @@ public class RobotContainer {
   }
 
   private void configureAutoChooser() {
-    final var configString = new LoggedDashboardString("auto config string", ".102b");
-    autoChooser.addDefaultOption(
-        "configurable auto", autoCommandBuilder.autoFromConfigString(configString::get));
-
-    Dashboard.showAutoPlan(configString::get).schedule();
-
     // -999 is an indicator that it is unchanged
     final var angle =
         new LoggedTunableNumber(
             "starting angle deg (0 is intake away from ds, and + is counterclockwise for blue and clockwise for red)",
             -999);
-    final var startingPoseId = new LoggedTunableNumber("starting pose id", -999);
 
     new Trigger(() -> angle.hasChanged(0))
         .onTrue(
             AdjustPositionCommands.setRotation(
                 drive, () -> AllianceFlipUtil.apply(Rotation2d.fromDegrees(angle.get()))));
-    new Trigger(() -> startingPoseId.hasChanged(0))
-        .onTrue(
-            Commands.runOnce(
-                    () -> {
-                      final var pose =
-                          AutoConstants.convertPoseIdToPose((int) startingPoseId.get());
-                      pose.ifPresent(drive::setAutoStartPose);
-                    })
-                .ignoringDisable(true));
 
     autoChooser.addOption("test note pickup", autoCommandBuilder.pickupVisibleNote());
 
