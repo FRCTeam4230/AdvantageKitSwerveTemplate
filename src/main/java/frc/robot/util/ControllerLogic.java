@@ -51,7 +51,7 @@ public class ControllerLogic {
     return secondController.a().or(driverController.rightBumper());
   }
 
-  public Trigger shooterOff() {
+  public Trigger shooterOn() {
     return secondController.b();
   }
 

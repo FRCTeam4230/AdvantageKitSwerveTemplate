@@ -409,9 +409,7 @@ public class RobotContainer {
                 arm, ArmConstants.Positions.SPEAKER_FROM_PODIUM_POS_RAD::get))
         .onTrue(
             ShooterCommands.runSpeed(shooter, ShooterConstants.PODIUM_VELOCITY_RAD_PER_SEC::get));
-    controllerLogic
-        .shooterOff()
-        .onTrue(Commands.runOnce(shooter::stop, shooter).andThen(Commands.idle(shooter)));
+    controllerLogic.shooterOn().onTrue(shooter.run(() -> shooter.runVolts(11)));
 
     controllerLogic
         .runShooter()
