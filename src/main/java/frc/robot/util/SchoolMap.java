@@ -9,12 +9,12 @@ import java.util.List;
 public class SchoolMap {
   private SchoolMap() {}
 
-    public static final Translation2d[] PATROL_POINTS = {
-          new Translation2d(-1.5, 1.5),
-            new Translation2d(-19.5, 1.5),
-            new Translation2d(-21.5, 28),
-            new Translation2d(-10, 28),
-    };
+  public static final Translation2d[] PATROL_POINTS = {
+    new Translation2d(-1.5, 1.5),
+    new Translation2d(-19.5, 1.5),
+    new Translation2d(-21.5, 28),
+    new Translation2d(-10, 28),
+  };
 
   private static final double BUFFER_DISTANCE = 1.5;
 

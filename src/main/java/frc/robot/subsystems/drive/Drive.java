@@ -118,8 +118,7 @@ public class Drive extends SubsystemBase {
             drivetrainConfig.driveBaseRadius(),
             new ReplanningConfig()),
         () ->
-            DriverStation.getAlliance().isPresent()
-                && DriverStation.getAlliance().get() == Alliance.Red,
+                false,
         this);
     PathPlannerLogging.setLogActivePathCallback(
         activePath -> {

@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.util.AllianceFlipUtil;
 import java.util.function.Supplier;
 
 public class DriveToPointBuilder {
@@ -43,7 +42,7 @@ public class DriveToPointBuilder {
       boolean flip) {
     return Commands.runEnd(
             () -> {
-              final var flippedTargetPose = flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
+              final var flippedTargetPose = targetPose;
               final var pos = drive.getPose();
 
               final var translationOffset =
@@ -69,7 +68,7 @@ public class DriveToPointBuilder {
             drive)
         .until(
             () -> {
-              final var flippedTargetPose = flip ? AllianceFlipUtil.apply(targetPose) : targetPose;
+              final var flippedTargetPose = targetPose;
               final var pos = drive.getPose();
               return pos.getTranslation().getDistance(flippedTargetPose.getTranslation())
                       < distanceTolerance

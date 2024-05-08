@@ -11,7 +11,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.arm.ArmSubsystem;
 import frc.robot.subsystems.shooter.ShooterSubsystem;
-import frc.robot.util.AllianceFlipUtil;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -55,8 +54,7 @@ public class MultiDistanceShot extends Command {
   @Override
   public void execute() {
     // Calculate the distance from the current pose to the target pose
-    double distance =
-        poseSupplier.get().getTranslation().getDistance(AllianceFlipUtil.apply(targetTranslation));
+    double distance = poseSupplier.get().getTranslation().getDistance(targetTranslation);
 
     // Get the corresponding speed from the distance-speed map
     double speed = distanceToShooterVelocityRadPerSec.get(distance);

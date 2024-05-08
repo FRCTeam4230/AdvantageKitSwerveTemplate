@@ -360,9 +360,7 @@ public class RobotContainer {
 
     controllerLogic
         .resetRobotPoseAngle()
-        .onTrue(
-            AdjustPositionCommands.setRotation(
-                drive, () -> AllianceFlipUtil.apply(new Rotation2d(0))));
+        .onTrue(AdjustPositionCommands.setRotation(drive, () -> new Rotation2d(0)));
     controllerLogic
         .toggleVision()
         .toggleOnTrue(
@@ -436,8 +434,7 @@ public class RobotContainer {
 
     new Trigger(() -> angle.hasChanged(0))
         .onTrue(
-            AdjustPositionCommands.setRotation(
-                drive, () -> AllianceFlipUtil.apply(Rotation2d.fromDegrees(angle.get()))));
+            AdjustPositionCommands.setRotation(drive, () -> Rotation2d.fromDegrees(angle.get())));
 
     autoChooser.addOption("test note pickup", autoCommandBuilder.pickupVisibleNote());
 
