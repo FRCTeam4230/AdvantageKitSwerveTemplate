@@ -17,6 +17,7 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleConfigs;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -320,14 +321,19 @@ public class RobotContainer {
   private void configureButtonBindings() {
     final ControllerLogic controllerLogic = new ControllerLogic(driverController, secondController);
 
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-                drive,
-                driveMode,
-                controllerLogic::getDriveSpeedX,
-                controllerLogic::getDriveSpeedY,
-                controllerLogic::getDriveRotationSpeed)
-            .finallyDo(driveMode::disableHeadingControl));
+    drive.setDefaultCommand(Patrol.patrol(drive));
+
+    controllerLogic
+        .manualDriving()
+        .debounce(1, Debouncer.DebounceType.kFalling)
+        .whileTrue(
+            DriveCommands.joystickDrive(
+                    drive,
+                    driveMode,
+                    controllerLogic::getDriveSpeedX,
+                    controllerLogic::getDriveSpeedY,
+                    controllerLogic::getDriveRotationSpeed)
+                .finallyDo(driveMode::disableHeadingControl));
 
     controllerLogic
         .disableHeadingControl()
@@ -437,6 +443,7 @@ public class RobotContainer {
             AdjustPositionCommands.setRotation(drive, () -> Rotation2d.fromDegrees(angle.get())));
 
     autoChooser.addOption("test note pickup", autoCommandBuilder.pickupVisibleNote());
+    autoChooser.addOption("patrol", Patrol.patrol(drive));
 
     final SysIdBuilder sysIdBuilder = new SysIdBuilder(autoChooser);
 

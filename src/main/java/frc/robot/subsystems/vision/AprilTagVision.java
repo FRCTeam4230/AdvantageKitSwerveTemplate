@@ -11,9 +11,11 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.vision.AprilTagVisionIO.AprilTagVisionIOInputs;
 import frc.robot.util.FieldConstants;
+import frc.robot.util.SchoolMap;
 import frc.robot.util.VisionHelpers.PoseEstimate;
 import frc.robot.util.VisionHelpers.TimestampedVisionUpdate;
 import java.util.ArrayList;
@@ -95,6 +97,12 @@ public class AprilTagVision extends SubsystemBase {
         }
         double timestamp = poseEstimates.timestampSeconds();
         Pose3d robotPose = poseEstimates.pose();
+        robotPose =
+            new Pose3d(
+                robotPose
+                    .getTranslation()
+                    .plus(new Translation3d(SchoolMap.OFFSET.getX(), SchoolMap.OFFSET.getY(), 0.0)),
+                robotPose.getRotation());
         double xyStdDev = calculateXYStdDev(poseEstimates, (int) poseEstimates.tagCount());
         double thetaStdDev = calculateThetaStdDev(poseEstimates, (int) poseEstimates.tagCount());
         visionUpdates.add(
@@ -124,12 +132,7 @@ public class AprilTagVision extends SubsystemBase {
    * @return True if the robot pose is outside the field border, false otherwise
    */
   private boolean isOutsideFieldBorder(Pose3d robotPose) {
-    return robotPose.getX() < -fieldBorderMargin
-        || robotPose.getX() > FieldConstants.fieldLength + fieldBorderMargin
-        || robotPose.getY() < -fieldBorderMargin
-        || robotPose.getY() > FieldConstants.fieldWidth + fieldBorderMargin
-        || robotPose.getZ() < -zMargin
-        || robotPose.getZ() > zMargin;
+    return false;
   }
 
   /**

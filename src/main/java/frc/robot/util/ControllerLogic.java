@@ -9,6 +9,7 @@ public class ControllerLogic {
   private final CommandXboxController secondController;
   private final double CLIMBER_DEADBAND = 0.3;
   private final double INTAKE_DEADBAND = 0.2;
+  private final double DRIVE_DEADBAND = 0.1;
   private final double RESTORE_MANUAL_DRIVE_CONTROL_THRESHOLD = 0.3;
 
   public ControllerLogic(
@@ -113,6 +114,15 @@ public class ControllerLogic {
   public Trigger disableHeadingControl() {
     return new Trigger(
         () -> Math.abs(getDriveRotationSpeed()) > RESTORE_MANUAL_DRIVE_CONTROL_THRESHOLD);
+  }
+
+  public Trigger manualDriving() {
+    return new Trigger(
+            () ->
+                Math.hypot(getDriveSpeedX(), getDriveSpeedY()) > DRIVE_DEADBAND
+                    || getDriveRotationSpeed() > DRIVE_DEADBAND)
+        .or(driverController.leftStick())
+        .or(driverController.rightStick());
   }
 
   public Trigger visionIntake() {

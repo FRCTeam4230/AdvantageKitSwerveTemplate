@@ -36,7 +36,6 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.PoseLog;
 import frc.robot.util.VisionHelpers.TimestampedVisionUpdate;
@@ -117,8 +116,7 @@ public class Drive extends SubsystemBase {
             drivetrainConfig.maxLinearVelocity(),
             drivetrainConfig.driveBaseRadius(),
             new ReplanningConfig()),
-        () ->
-                false,
+        () -> false,
         this);
     PathPlannerLogging.setLogActivePathCallback(
         activePath -> {
@@ -130,20 +128,32 @@ public class Drive extends SubsystemBase {
         targetPose -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
     PPHolonomicDriveController.setRotationTargetOverride(
         () -> {
-          final int STEP_COUNT = 30;
-          if (!rotateTowardsEndOfPath || currentPath == null || currentPath.size() < STEP_COUNT) {
+          if (!rotateTowardsEndOfPath) {
             return Optional.empty();
           }
 
-          return Optional.empty();
+          final var chasisSpeeds = getDriveSpeeds();
 
-          //          final var finalTranslation = currentPath.get(currentPath.size() -
-          // 1).getTranslation();
-          //          final var secondToLastTranslation =
-          //              currentPath.get(currentPath.size() - STEP_COUNT).getTranslation();
-          //
-          //          return
-          // Optional.of(finalTranslation.minus(secondToLastTranslation).getAngle());
+          final double driveSpeed =
+              Math.hypot(chasisSpeeds.vxMetersPerSecond, chasisSpeeds.vyMetersPerSecond);
+
+          Logger.recordOutput("drive/drive speed", driveSpeed);
+
+          if (driveSpeed < 0.2) {
+            return Optional.of(getRotation());
+          }
+
+          Rotation2d travelAngle =
+              Rotation2d.fromRadians(
+                      Math.atan2(chasisSpeeds.vyMetersPerSecond, chasisSpeeds.vxMetersPerSecond))
+                  .plus(getRotation());
+
+          travelAngle = new Rotation2d(travelAngle.getCos(), travelAngle.getSin());
+
+          Logger.recordOutput("drive/travel angle", travelAngle);
+          Logger.recordOutput("drive/travel angle deg", travelAngle.getDegrees());
+
+          return Optional.of(travelAngle);
         });
 
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
