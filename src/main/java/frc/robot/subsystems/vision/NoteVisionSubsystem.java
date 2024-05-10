@@ -3,7 +3,6 @@ package frc.robot.subsystems.vision;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.util.FieldConstants;
 import frc.robot.util.PoseLog;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -284,12 +283,7 @@ public class NoteVisionSubsystem extends SubsystemBase {
   }
 
   public static boolean isNoteInsideField(Translation2d globalNote) {
-    final double x = globalNote.getX();
-    final double y = globalNote.getY();
-    return x > -NoteVisionConstants.INSIDE_FIELD_TOLERANCE
-        && x < FieldConstants.fieldLength + NoteVisionConstants.INSIDE_FIELD_TOLERANCE
-        && y > -NoteVisionConstants.INSIDE_FIELD_TOLERANCE
-        && y < FieldConstants.fieldWidth + NoteVisionConstants.INSIDE_FIELD_TOLERANCE;
+    return true;
   }
 
   public static Translation2d projectRelativeNotePoseOntoRobotPose(

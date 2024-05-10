@@ -17,7 +17,6 @@ import static frc.robot.subsystems.drive.DriveConstants.moduleConfigs;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
-import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -46,6 +45,9 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.intake.IntakeConstants;
 import frc.robot.subsystems.intake.IntakeIO;
 import frc.robot.subsystems.intake.IntakeIOSparkMax;
+import frc.robot.subsystems.personDetection.LimelightPersonDetector;
+import frc.robot.subsystems.personDetection.PersonDetectionIO;
+import frc.robot.subsystems.personDetection.PersonDetectionSubsystem;
 import frc.robot.subsystems.shooter.*;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.*;
@@ -65,6 +67,7 @@ public class RobotContainer {
   private final Drive drive;
   private final AprilTagVision aprilTagVision;
   private final NoteVisionSubsystem noteVision;
+  private final PersonDetectionSubsystem personDetection;
   private static final DriveController driveMode = new DriveController();
   private final ShooterSubsystem shooter;
 
@@ -147,6 +150,7 @@ public class RobotContainer {
                 drive::getDrive,
                 drive::getPose,
                 arm::getPositionRad);
+        personDetection = new PersonDetectionSubsystem(new LimelightPersonDetector());
       }
       case SIM -> {
         // Sim robot, instantiate physics sim IO implementations
@@ -204,6 +208,7 @@ public class RobotContainer {
 
         //        new Trigger(DriverStation::isAutonomousEnabled)
         //            .onTrue(Commands.runOnce(noteVisionIOs[0]::resetNotePoses));
+        personDetection = new PersonDetectionSubsystem(new PersonDetectionIO() {});
       }
       default -> {
         // Replayed robot, disable IO implementations
@@ -231,6 +236,7 @@ public class RobotContainer {
                 drive::getDrive,
                 drive::getPose,
                 arm::getPositionRad);
+        personDetection = new PersonDetectionSubsystem(new PersonDetectionIO() {});
       }
     }
 
@@ -243,8 +249,12 @@ public class RobotContainer {
     aprilTagVision.setDataInterfaces(drive::addVisionData);
     driveMode.setPoseSupplier(drive::getPose);
     driveMode.disableHeadingControl();
+    drive.setDriveController(driveMode);
 
     setupLimelightFlashing();
+
+    LimelightHelpers.setPipelineIndex("limelight", 1);
+    LimelightHelpers.setPipelineIndex("limelight-front", 1);
 
     drive.setPose(new Pose2d(1, 1, new Rotation2d(1, 1)));
     autoCommandBuilder =
@@ -321,19 +331,56 @@ public class RobotContainer {
   private void configureButtonBindings() {
     final ControllerLogic controllerLogic = new ControllerLogic(driverController, secondController);
 
-    drive.setDefaultCommand(Patrol.patrol(drive));
+    drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+                drive,
+                driveMode,
+                controllerLogic::getDriveSpeedX,
+                controllerLogic::getDriveSpeedY,
+                controllerLogic::getDriveRotationSpeed)
+            .finallyDo(driveMode::disableHeadingControl));
 
-    controllerLogic
-        .manualDriving()
-        .debounce(1, Debouncer.DebounceType.kFalling)
+    new Trigger(beamBreak::detectNote)
         .whileTrue(
-            DriveCommands.joystickDrive(
-                    drive,
-                    driveMode,
-                    controllerLogic::getDriveSpeedX,
-                    controllerLogic::getDriveSpeedY,
-                    controllerLogic::getDriveRotationSpeed)
-                .finallyDo(driveMode::disableHeadingControl));
+            Commands.startEnd(
+                () ->
+                    driveMode.setHeadingSupplier(
+                        () ->
+                            drive
+                                .getRotation()
+                                .plus(
+                                    personDetection
+                                        .getPersonAngle()
+                                        .orElseGet(() -> Rotation2d.fromDegrees(20)))),
+                driveMode::disableHeadingControl));
+
+    new Trigger(beamBreak::detectNote)
+        .negate()
+        .and(() -> arm.getPositionRad() < 0.05)
+        .and(() -> noteVision.getCurrentNote().isPresent())
+        .whileTrue(
+            autoCommandBuilder
+                .driveIntoVisibleNote()
+                .alongWith(IntakeCommands.manualIntakeCommand(intake, () -> 1)));
+
+    new Trigger(beamBreak::detectNote)
+        .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SOURCE_POS_RAD::get))
+        .onFalse(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.INTAKE_POS_RAD::get));
+
+    new Trigger(beamBreak::detectNote)
+        .and(() -> personDetection.getPersonAngle().isPresent())
+        .whileTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC::get));
+
+    new Trigger(beamBreak::detectNote)
+        .and(
+            () ->
+                personDetection.getPersonAngle().isPresent()
+                    && Math.abs(personDetection.getPersonAngle().get().getDegrees() % 360) < 5)
+        .and(shooterStateHelpers::canShoot)
+        .whileTrue(IntakeCommands.manualIntakeCommand(intake, () -> 1));
+
+    controllerLogic.patrol().whileTrue(Patrol.patrol(drive));
 
     controllerLogic
         .disableHeadingControl()
@@ -396,6 +443,8 @@ public class RobotContainer {
             ShooterCommands.runSpeed(shooter, ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC::get));
     controllerLogic
         .armSourcePos()
+        .onTrue(
+            ShooterCommands.runSpeed(shooter, ShooterConstants.SPEAKER_VELOCITY_RAD_PER_SEC::get))
         .onTrue(ArmCommands.autoArmToPosition(arm, ArmConstants.Positions.SOURCE_POS_RAD::get));
     controllerLogic
         .armAmpPos()

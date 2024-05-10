@@ -116,13 +116,8 @@ public class ControllerLogic {
         () -> Math.abs(getDriveRotationSpeed()) > RESTORE_MANUAL_DRIVE_CONTROL_THRESHOLD);
   }
 
-  public Trigger manualDriving() {
-    return new Trigger(
-            () ->
-                Math.hypot(getDriveSpeedX(), getDriveSpeedY()) > DRIVE_DEADBAND
-                    || getDriveRotationSpeed() > DRIVE_DEADBAND)
-        .or(driverController.leftStick())
-        .or(driverController.rightStick());
+  public Trigger patrol() {
+    return driverController.leftStick().or(driverController.rightStick());
   }
 
   public Trigger visionIntake() {

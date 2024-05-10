@@ -16,7 +16,6 @@ package frc.robot.subsystems.drive;
 import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
@@ -40,7 +39,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.PoseLog;
 import frc.robot.util.VisionHelpers.TimestampedVisionUpdate;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.Getter;
@@ -54,6 +52,7 @@ public class Drive extends SubsystemBase {
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
   @Getter private final PoseLog poseLogForNoteDetection = new PoseLog();
+  @Setter private DriveController driveController;
 
   @Getter
   private final PIDController thetaController =
@@ -107,7 +106,7 @@ public class Drive extends SubsystemBase {
         this::getPose,
         this::setAutoStartPose,
         () -> kinematics.toChassisSpeeds(getModuleStates()),
-        this::runVelocity,
+        this::runVelocityPathPlanner,
         new HolonomicPathFollowerConfig(
             new PIDConstants(
                 PPtranslationConstants.kP, PPtranslationConstants.kI, PPtranslationConstants.kD),
@@ -126,35 +125,6 @@ public class Drive extends SubsystemBase {
         });
     PathPlannerLogging.setLogTargetPoseCallback(
         targetPose -> Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose));
-    PPHolonomicDriveController.setRotationTargetOverride(
-        () -> {
-          if (!rotateTowardsEndOfPath) {
-            return Optional.empty();
-          }
-
-          final var chasisSpeeds = getDriveSpeeds();
-
-          final double driveSpeed =
-              Math.hypot(chasisSpeeds.vxMetersPerSecond, chasisSpeeds.vyMetersPerSecond);
-
-          Logger.recordOutput("drive/drive speed", driveSpeed);
-
-          if (driveSpeed < 0.2) {
-            return Optional.of(getRotation());
-          }
-
-          Rotation2d travelAngle =
-              Rotation2d.fromRadians(
-                      Math.atan2(chasisSpeeds.vyMetersPerSecond, chasisSpeeds.vxMetersPerSecond))
-                  .plus(getRotation());
-
-          travelAngle = new Rotation2d(travelAngle.getCos(), travelAngle.getSin());
-
-          Logger.recordOutput("drive/travel angle", travelAngle);
-          Logger.recordOutput("drive/travel angle deg", travelAngle.getDegrees());
-
-          return Optional.of(travelAngle);
-        });
 
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
     thetaController.setTolerance(
@@ -235,6 +205,24 @@ public class Drive extends SubsystemBase {
     thetaController.setD(HeadingControllerConstants.kD.get());
     thetaController.setTolerance(
         Units.degreesToRadians(HeadingControllerConstants.TOLERANCE.get()));
+  }
+
+  public void runVelocityPathPlanner(ChassisSpeeds speeds) {
+    if (driveController.getHeadingSupplier().isPresent()) {
+      var omega =
+          getThetaController()
+              .calculate(
+                  getPose().getRotation().getRadians(),
+                  driveController.getHeadingSupplier().get().get().getRadians());
+      if (getThetaController().atSetpoint()) {
+        omega = 0;
+      }
+
+      speeds.omegaRadiansPerSecond = omega;
+    } else {
+      speeds.omegaRadiansPerSecond = Units.rotationsToRadians(0.1);
+    }
+    runVelocity(speeds);
   }
 
   /**

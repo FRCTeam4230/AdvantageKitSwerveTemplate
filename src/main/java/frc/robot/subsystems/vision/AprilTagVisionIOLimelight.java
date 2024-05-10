@@ -40,7 +40,7 @@ public class AprilTagVisionIOLimelight implements AprilTagVisionIO {
 
     observationSubscriber =
         limelightTable
-            .getDoubleArrayTopic("botpose_wpiblue")
+            .getDoubleArrayTopic("botpose")
             .subscribe(
                 new double[] {}, PubSubOption.keepDuplicates(true), PubSubOption.sendAll(true));
   }
@@ -84,6 +84,8 @@ public class AprilTagVisionIOLimelight implements AprilTagVisionIO {
       double tagCount = poseReading[7];
       double averageTagDistance = poseReading[9]; // Initializes the average tag distance to 0.0
       timestamp -= (latencyMS / 1e3); // Adjusts the timestamp by subtracting the latency in seconds
+
+      if (tagCount != 1 || poseEstimation.getZ() > 0.5) continue;
 
       poseEstimates.add(
           new PoseEstimate(

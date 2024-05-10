@@ -20,13 +20,10 @@ public class SchoolMap {
   public static final Translation2d[] PATROL_POINTS =
       offsetTranslations(
           new Translation2d[] {
-            new Translation2d(-1.5, 1.5),
-            new Translation2d(-19.5, 1.5),
-            new Translation2d(-21.5, 28),
-            new Translation2d(-10, 28),
+            new Translation2d(-3, 1.5), new Translation2d(-16, 10), new Translation2d(-19, 1.5),
           });
 
-  private static final double BUFFER_DISTANCE = 0.5;
+  private static final double BUFFER_DISTANCE = 1.5;
 
   public static final Translation2d[] PERIMETER_POINTS =
       offsetTranslations(
@@ -35,12 +32,12 @@ public class SchoolMap {
             new Translation2d(-21, 0),
             new Translation2d(-21, 3.43),
             new Translation2d(-18, 3.43),
-            new Translation2d(-18, 27),
-            new Translation2d(-23, 27),
-            new Translation2d(-23, 29),
-            new Translation2d(-9, 29),
-            new Translation2d(-9, 27),
-            new Translation2d(-14.36, 27),
+            new Translation2d(-18, 26),
+            new Translation2d(-23, 26),
+            new Translation2d(-23, 30),
+            new Translation2d(-9, 30),
+            new Translation2d(-9, 26),
+            new Translation2d(-14.36, 26),
             new Translation2d(-14.36, 3.43),
             new Translation2d(-0, 3.43),
             new Translation2d(0, 0),
