@@ -220,7 +220,7 @@ public class Drive extends SubsystemBase {
 
       speeds.omegaRadiansPerSecond = omega;
     } else {
-      speeds.omegaRadiansPerSecond = Units.rotationsToRadians(0.1);
+      speeds.omegaRadiansPerSecond = Units.rotationsToRadians(0.3);
     }
     runVelocity(speeds);
   }

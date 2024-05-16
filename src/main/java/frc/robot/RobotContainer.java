@@ -340,6 +340,25 @@ public class RobotContainer {
                 controllerLogic::getDriveRotationSpeed)
             .finallyDo(driveMode::disableHeadingControl));
 
+    controllerLogic
+        .patrol()
+        .whileTrue(Patrol.patrol(drive).finallyDo(driveMode::disableHeadingControl));
+
+    new Trigger(beamBreak::detectNote)
+        .whileTrue(
+            Commands.startEnd(
+                    () -> LimelightHelpers.setPipelineIndex("limelight", 2),
+                    () -> LimelightHelpers.setPipelineIndex("limelight", 1))
+                .ignoringDisable(true));
+
+    new Trigger(beamBreak::detectNote)
+        .negate()
+        .whileTrue(
+            Commands.startEnd(
+                () ->
+                    driveMode.setHeadingSupplier(
+                        () -> drive.getRotation().plus(Rotation2d.fromDegrees(30))),
+                driveMode::disableHeadingControl));
     new Trigger(beamBreak::detectNote)
         .whileTrue(
             Commands.startEnd(
@@ -351,7 +370,7 @@ public class RobotContainer {
                                 .plus(
                                     personDetection
                                         .getPersonAngle()
-                                        .orElseGet(() -> Rotation2d.fromDegrees(20)))),
+                                        .orElseGet(() -> Rotation2d.fromDegrees(30)))),
                 driveMode::disableHeadingControl));
 
     new Trigger(beamBreak::detectNote)
@@ -378,6 +397,7 @@ public class RobotContainer {
                 personDetection.getPersonAngle().isPresent()
                     && Math.abs(personDetection.getPersonAngle().get().getDegrees() % 360) < 5)
         .and(shooterStateHelpers::canShoot)
+        .and(() -> arm.getSetpointRad() != 0)
         .whileTrue(IntakeCommands.manualIntakeCommand(intake, () -> 1));
 
     controllerLogic.patrol().whileTrue(Patrol.patrol(drive));

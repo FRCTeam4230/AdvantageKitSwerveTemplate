@@ -26,6 +26,7 @@ public class DriveController {
 
   /** Disables heading control (heading control is disabled). */
   public void disableHeadingControl() {
-    this.headingSupplier = Optional.empty();
+    this.headingSupplier =
+        Optional.of(() -> poseSupplier.get().getRotation().minus(Rotation2d.fromDegrees(30)));
   }
 }

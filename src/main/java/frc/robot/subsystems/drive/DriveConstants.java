@@ -37,7 +37,7 @@ public final class DriveConstants {
             new DrivetrainConfig(
                 Units.inchesToMeters(29.0), // Track width x
                 Units.inchesToMeters(29.0), // Track width y
-                2,
+                1,
                 1,
                 Units.degreesToRadians(100), // Max angular velocity
                 Units.degreesToRadians(100)); // Max angular acceleration
