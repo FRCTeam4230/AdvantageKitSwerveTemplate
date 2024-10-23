@@ -88,10 +88,8 @@ public class AutoConfigParser {
           if (noteCharInt == '?') {
             note = Optional.empty();
           } else {
-            note =
-                Optional.of(
-                    AllianceFlipUtil.apply(
-                        AutoConstants.AUTO_NOTES[Character.getNumericValue(noteCharInt)]));
+            var index = Character.getNumericValue(noteCharInt);
+            note = Optional.of(AllianceFlipUtil.apply(AutoConstants.AUTO_NOTES[index]));
           }
 
           output.add(
@@ -105,6 +103,7 @@ public class AutoConfigParser {
       }
       return Optional.of(output);
     } catch (Exception e) {
+      e.printStackTrace();
       return Optional.empty();
     }
   }
