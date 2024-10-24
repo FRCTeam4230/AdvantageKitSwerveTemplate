@@ -450,7 +450,7 @@ public class RobotContainer {
   }
 
   private void configureAutoChooser() {
-    final var configString = new LoggedDashboardString("auto config string", ".102b");
+    final var configString = new LoggedDashboardString("auto config string", "102b");
     autoChooser.addDefaultOption(
         "configurable auto", autoCommandBuilder.autoFromConfigString(configString::get));
 
