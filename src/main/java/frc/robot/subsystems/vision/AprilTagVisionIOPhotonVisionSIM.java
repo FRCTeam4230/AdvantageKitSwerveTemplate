@@ -53,7 +53,6 @@ public class AprilTagVisionIOPhotonVisionSIM implements AprilTagVisionIO {
         new PhotonPoseEstimator(
             FieldConstants.aprilTags,
             PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-            camera,
             robotToCamera);
     photonEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
     // Create the vision system simulation which handles cameras and targets on the
@@ -88,45 +87,49 @@ public class AprilTagVisionIOPhotonVisionSIM implements AprilTagVisionIO {
   @Override
   public void updateInputs(AprilTagVisionIOInputs inputs) {
     visionSim.update(poseSupplier.get());
-    PhotonPipelineResult results = cameraSim.getCamera().getLatestResult();
     ArrayList<PoseEstimate> poseEstimates = new ArrayList<>();
-    double timestamp = results.getTimestampSeconds();
     Optional<Alliance> allianceOptional = DriverStation.getAlliance();
-    if (!results.targets.isEmpty() && allianceOptional.isPresent()) {
-      double latencyMS = results.getLatencyMillis();
-      Pose3d poseEstimation;
-      Optional<EstimatedRobotPose> estimatedPose = getEstimatedGlobalPose();
-      if (estimatedPose.isEmpty()) {
-        return;
-      }
-      poseEstimation = estimatedPose.get().estimatedPose;
-      double averageTagDistance = 0.0;
-      timestamp -= (latencyMS / 1e3);
-      int[] tagIDs = new int[results.targets.size()];
-      for (int i = 0; i < results.targets.size(); i++) {
-        tagIDs[i] = results.targets.get(i).getFiducialId();
-        var tagPose = photonEstimator.getFieldTags().getTagPose(tagIDs[i]);
-        if (tagPose.isEmpty()) {
-          continue;
+
+     cameraSim.getCamera().getAllUnreadResults().forEach(
+      photonPipelineResult -> {
+        double timestamp = photonPipelineResult.getTimestampSeconds();
+
+        if (!photonPipelineResult.targets.isEmpty() && allianceOptional.isPresent()) {
+          //double latencyMS = photonPipelineResult.
+          Pose3d poseEstimation;
+          Optional<EstimatedRobotPose> estimatedPose = getEstimatedGlobalPose(photonPipelineResult);
+          if (estimatedPose.isEmpty()) {
+            return;
+          }
+          poseEstimation = estimatedPose.get().estimatedPose;
+          double averageTagDistance = 0.0;
+         // timestamp -= (latencyMS / 1e3);
+          int[] tagIDs = new int[photonPipelineResult.targets.size()];
+          for (int i = 0; i < photonPipelineResult.targets.size(); i++) {
+            tagIDs[i] = photonPipelineResult.targets.get(i).getFiducialId();
+            var tagPose = photonEstimator.getFieldTags().getTagPose(tagIDs[i]);
+            if (tagPose.isEmpty()) {
+              continue;
+            }
+            averageTagDistance +=
+                tagPose
+                    .get()
+                    .toPose2d()
+                    .getTranslation()
+                    .getDistance(poseEstimation.getTranslation().toTranslation2d());
+          }
+          averageTagDistance /= tagIDs.length;
+          poseEstimates.add(
+              new PoseEstimate(poseEstimation, timestamp, averageTagDistance, tagIDs.length));
         }
-        averageTagDistance +=
-            tagPose
-                .get()
-                .toPose2d()
-                .getTranslation()
-                .getDistance(poseEstimation.getTranslation().toTranslation2d());
-      }
-      averageTagDistance /= tagIDs.length;
-      poseEstimates.add(
-          new PoseEstimate(poseEstimation, timestamp, averageTagDistance, tagIDs.length));
-    }
+      });
     inputs.poseEstimates = poseEstimates;
   }
 
   /** Updates the PhotonPoseEstimator and returns the estimated global pose. */
-  public Optional<EstimatedRobotPose> getEstimatedGlobalPose() {
-    var visionEst = photonEstimator.update();
-    double latestTimestamp = camera.getLatestResult().getTimestampSeconds();
+  public Optional<EstimatedRobotPose> getEstimatedGlobalPose(PhotonPipelineResult photonPipelineResult) {
+    var visionEst = photonEstimator.update(photonPipelineResult);
+    double latestTimestamp = photonPipelineResult.getTimestampSeconds();
     boolean newResult = Math.abs(latestTimestamp - lastEstTimestamp) > 1e-5;
     visionEst.ifPresentOrElse(
         est ->

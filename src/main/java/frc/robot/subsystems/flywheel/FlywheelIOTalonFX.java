@@ -23,6 +23,10 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Voltage;
 
 public class FlywheelIOTalonFX implements FlywheelIO {
   private static final double GEAR_RATIO = 1.5;
@@ -30,11 +34,11 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   private final TalonFX leader = new TalonFX(0);
   private final TalonFX follower = new TalonFX(1);
 
-  private final StatusSignal<Double> leaderPosition = leader.getPosition();
-  private final StatusSignal<Double> leaderVelocity = leader.getVelocity();
-  private final StatusSignal<Double> leaderAppliedVolts = leader.getMotorVoltage();
-  private final StatusSignal<Double> leaderCurrent = leader.getStatorCurrent();
-  private final StatusSignal<Double> followerCurrent = follower.getStatorCurrent();
+  private final StatusSignal<Angle> leaderPosition = leader.getPosition();
+  private final StatusSignal<AngularVelocity> leaderVelocity = leader.getVelocity();
+  private final StatusSignal<Voltage> leaderAppliedVolts = leader.getMotorVoltage();
+  private final StatusSignal<Current> leaderCurrent = leader.getStatorCurrent();
+  private final StatusSignal<Current> followerCurrent = follower.getStatorCurrent();
 
   public FlywheelIOTalonFX() {
     var config = new TalonFXConfiguration();
@@ -71,8 +75,12 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   @Override
   public void setVelocity(double velocityRadPerSec, double ffVolts) {
     leader.setControl(
+
         new VelocityVoltage(
-            Units.radiansToRotations(velocityRadPerSec),
+            Units.radiansToRotations(velocityRadPerSec))
+            .withFeedForward(ffVolts));
+
+    /* TODO convert these below to the correct VelocityVoltage stuff
             0.0,
             true,
             ffVolts,
@@ -80,6 +88,7 @@ public class FlywheelIOTalonFX implements FlywheelIO {
             false,
             false,
             false));
+     */
   }
 
   @Override

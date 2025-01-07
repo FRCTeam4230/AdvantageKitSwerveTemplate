@@ -1,9 +1,12 @@
 package frc.robot.subsystems.intake;
 
 import com.revrobotics.*;
+import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.util.Units;
 
 public class IntakeIOSparkMax implements IntakeIO {
@@ -15,14 +18,18 @@ public class IntakeIOSparkMax implements IntakeIO {
   private final SparkClosedLoopController pid = motor.getClosedLoopController();
 
   public IntakeIOSparkMax() {
-    motor.restoreFactoryDefaults();
-    motor.setIdleMode(CANSparkBase.IdleMode.kCoast);
+
+    motor.configure(
+        new SparkMaxConfig()
+            .idleMode(SparkBaseConfig.IdleMode.kCoast)
+            .voltageCompensation(12.0)
+            .smartCurrentLimit(30)
+            .closedLoopRampRate(IntakeConstants.CLOSED_LOOP_RAMP_RATE)
+            .openLoopRampRate(IntakeConstants.OPEN_LOOP_RAMP_RATE),
+        SparkBase.ResetMode.kResetSafeParameters,
+        SparkBase.PersistMode.kPersistParameters);
+
     motor.setCANTimeout(250);
-    motor.enableVoltageCompensation(12.0);
-    motor.setSmartCurrentLimit(30);
-    motor.setClosedLoopRampRate(IntakeConstants.CLOSED_LOOP_RAMP_RATE);
-    motor.setOpenLoopRampRate(IntakeConstants.OPEN_LOOP_RAMP_RATE);
-    motor.burnFlash();
   }
 
   @Override
@@ -33,8 +40,8 @@ public class IntakeIOSparkMax implements IntakeIO {
     inputs.appliedVolts = motor.getAppliedOutput() * motor.getBusVoltage();
     inputs.currentAmps = new double[] {motor.getOutputCurrent()};
     inputs.motorTemperatureCelsius = motor.getMotorTemperature();
-    inputs.motorSensorFault = motor.getFault(CANSparkBase.FaultID.kSensorFault);
-    inputs.motorBrownOut = motor.getFault(CANSparkBase.FaultID.kBrownout);
+    inputs.motorSensorFault = motor.getFaults().sensor; //might be wrong
+    inputs.motorBrownOut = motor.getFaults().other; //might be wrong
     inputs.motorCANID = motor.getDeviceId();
   }
 

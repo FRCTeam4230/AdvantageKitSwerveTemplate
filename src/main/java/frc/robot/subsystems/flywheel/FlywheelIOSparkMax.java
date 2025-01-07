@@ -14,10 +14,16 @@
 package frc.robot.subsystems.flywheel;
 
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.*;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.util.Units;
+import frc.robot.Constants;
 
 /**
  * NOTE: To use the Spark Flex / NEO Vortex, replace all instances of "SparkMax" with
@@ -31,21 +37,26 @@ public class FlywheelIOSparkMax implements FlywheelIO {
   private final RelativeEncoder encoder = leader.getEncoder();
   private final SparkClosedLoopController pid = leader.getClosedLoopController();
 
+
+  private void configureLeader(ClosedLoopConfig pidConfig){
+    SparkBaseConfig config = new SparkMaxConfig()
+        .inverted(false)
+        .voltageCompensation(12.0)
+        .smartCurrentLimit(30);
+    config.apply(pidConfig);
+
+    leader.configure(config,
+        SparkBase.ResetMode.kResetSafeParameters,
+        SparkBase.PersistMode.kPersistParameters);
+  }
+
   public FlywheelIOSparkMax() {
-    leader.restoreFactoryDefaults();
-    follower.restoreFactoryDefaults();
-
     leader.setCANTimeout(250);
+    follower.configure(new SparkMaxConfig()
+        .follow(leader,false),
+        SparkBase.ResetMode.kResetSafeParameters,
+        SparkBase.PersistMode.kPersistParameters);
     follower.setCANTimeout(250);
-
-    leader.setInverted(false);
-    follower.follow(leader, false);
-
-    leader.enableVoltageCompensation(12.0);
-    leader.setSmartCurrentLimit(30);
-
-    leader.burnFlash();
-    follower.burnFlash();
   }
 
   @Override
@@ -66,10 +77,10 @@ public class FlywheelIOSparkMax implements FlywheelIO {
   public void setVelocity(double velocityRadPerSec, double ffVolts) {
     pid.setReference(
         Units.radiansPerSecondToRotationsPerMinute(velocityRadPerSec) * GEAR_RATIO,
-        ControlType.kVelocity,
-        0,
+        SparkBase.ControlType.kVelocity,
+        ClosedLoopSlot.kSlot0,
         ffVolts,
-        ArbFFUnits.kVoltage);
+        SparkClosedLoopController.ArbFFUnits.kVoltage);
   }
 
   @Override
@@ -79,9 +90,6 @@ public class FlywheelIOSparkMax implements FlywheelIO {
 
   @Override
   public void configurePID(double kP, double kI, double kD) {
-    pid.setP(kP, 0);
-    pid.setI(kI, 0);
-    pid.setD(kD, 0);
-    pid.setFF(0, 0);
+    configureLeader(new ClosedLoopConfig().pid(kP,kI,kD));
   }
 }
