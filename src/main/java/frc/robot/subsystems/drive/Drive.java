@@ -100,6 +100,7 @@ public class Drive extends SubsystemBase {
     PhoenixOdometryThread.getInstance().start();
     SparkMaxOdometryThread.getInstance().start();
 
+    /*
     // Configure AutoBuilder for PathPlanner
     AutoBuilder.configureHolonomic(
         this::getPose,
@@ -118,6 +119,8 @@ public class Drive extends SubsystemBase {
             DriverStation.getAlliance().isPresent()
                 && DriverStation.getAlliance().get() == Alliance.Red,
         this);
+
+     */
     PathPlannerLogging.setLogActivePathCallback(
         activePath -> {
           Logger.recordOutput(

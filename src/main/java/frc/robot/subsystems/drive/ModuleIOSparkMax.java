@@ -18,13 +18,10 @@ import static frc.robot.subsystems.drive.DriveConstants.*;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
-import com.revrobotics.CANSparkBase.FaultID;
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.*;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -46,8 +43,8 @@ import java.util.Queue;
  */
 public class ModuleIOSparkMax implements ModuleIO {
 
-  private final CANSparkMax driveSparkMax;
-  private final CANSparkMax turnSparkMax;
+  private final SparkMax driveSparkMax;
+  private final SparkMax turnSparkMax;
 
   private final RelativeEncoder driveEncoder;
   private final RelativeEncoder turnRelativeEncoder;
@@ -62,8 +59,8 @@ public class ModuleIOSparkMax implements ModuleIO {
 
   public ModuleIOSparkMax(ModuleConfig config) {
     // Init motor & encoder objects
-    driveSparkMax = new CANSparkMax(config.driveID(), MotorType.kBrushless);
-    turnSparkMax = new CANSparkMax(config.turnID(), MotorType.kBrushless);
+    driveSparkMax = new SparkMax(config.driveID(), MotorType.kBrushless);
+    turnSparkMax = new SparkMax(config.turnID(), MotorType.kBrushless);
     cancoder = new CANcoder(config.absoluteEncoderChannel(), canbus);
     cancoder.getConfigurator().apply(new CANcoderConfiguration());
     turnAbsolutePosition = cancoder.getAbsolutePosition();

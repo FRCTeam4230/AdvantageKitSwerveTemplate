@@ -1,26 +1,29 @@
 package frc.robot.subsystems.shooter;
 
 import com.revrobotics.*;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkLowLevel;
+import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.util.Units;
 
 public class ShooterIOSparkMax implements ShooterIO {
-  private final CANSparkMax motor;
+  private final SparkMax motor;
   private final RelativeEncoder encoder;
-  private final SparkPIDController pidController;
+  private final SparkClosedLoopController pidController;
 
   public ShooterIOSparkMax(ShooterConstants.ShooterWheels topOrBottom) {
     switch (topOrBottom) {
       case TOP:
         motor =
-            new CANSparkMax(ShooterConstants.TOP_MOTOR_ID, CANSparkLowLevel.MotorType.kBrushless);
+            new SparkMax(ShooterConstants.TOP_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         encoder = motor.getEncoder();
         encoder.setPositionConversionFactor(ShooterConstants.TOP_GEAR_RATIO);
         encoder.setVelocityConversionFactor(ShooterConstants.TOP_GEAR_RATIO);
         break;
       case BOTTOM:
         motor =
-            new CANSparkMax(
-                ShooterConstants.BOTTOM_MOTOR_ID, CANSparkLowLevel.MotorType.kBrushless);
+            new SparkMax(
+                ShooterConstants.BOTTOM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         encoder = motor.getEncoder();
         encoder.setPositionConversionFactor(ShooterConstants.BOTTOM_GEAR_RATIO);
         encoder.setVelocityConversionFactor(ShooterConstants.BOTTOM_GEAR_RATIO);

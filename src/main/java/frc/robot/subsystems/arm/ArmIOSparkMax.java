@@ -1,18 +1,17 @@
 package frc.robot.subsystems.arm;
 
-import com.revrobotics.CANSparkBase;
-import com.revrobotics.CANSparkLowLevel;
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkLowLevel;
+import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 
 public class ArmIOSparkMax implements ArmIO {
-  private final CANSparkMax leader =
-      new CANSparkMax(ArmConstants.LEFT_MOTOR_ID, CANSparkLowLevel.MotorType.kBrushless);
-  private final CANSparkMax follower =
-      new CANSparkMax(ArmConstants.RIGHT_MOTOR_ID, CANSparkLowLevel.MotorType.kBrushless);
+  private final SparkMax leader =
+      new SparkMax(ArmConstants.LEFT_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
+  private final SparkMax follower =
+      new SparkMax(ArmConstants.RIGHT_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
   private final DutyCycleEncoder encoder =
       new DutyCycleEncoder(ArmConstants.DUTY_CYCLE_ENCODER_PORT);
 

@@ -1,15 +1,18 @@
 package frc.robot.subsystems.intake;
 
 import com.revrobotics.*;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkLowLevel;
+import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.util.Units;
 
 public class IntakeIOSparkMax implements IntakeIO {
   private static final double GEAR_RATIO = IntakeConstants.GEAR_RATIO;
 
-  private final CANSparkMax motor =
-      new CANSparkMax(IntakeConstants.MOTOR_ID, CANSparkLowLevel.MotorType.kBrushless);
+  private final SparkMax motor =
+      new SparkMax(IntakeConstants.MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
   private final RelativeEncoder encoder = motor.getEncoder();
-  private final SparkPIDController pid = motor.getPIDController();
+  private final SparkClosedLoopController pid = motor.getClosedLoopController();
 
   public IntakeIOSparkMax() {
     motor.restoreFactoryDefaults();
