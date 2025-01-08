@@ -9,7 +9,7 @@ import java.util.Queue;
 import org.littletonrobotics.junction.Logger;
 
 public class GyroIONavX2 implements GyroIO {
-  private final AHRS navx = new AHRS(SPI.Port.kMXP);
+  private final AHRS navx = new AHRS(AHRS.NavXComType.kMXP_SPI);
   private final Queue<Double> yawPositionQueue;
 
   public GyroIONavX2() {

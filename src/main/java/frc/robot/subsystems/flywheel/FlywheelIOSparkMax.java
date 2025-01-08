@@ -90,6 +90,9 @@ public class FlywheelIOSparkMax implements FlywheelIO {
 
   @Override
   public void configurePID(double kP, double kI, double kD) {
+
     configureLeader(new ClosedLoopConfig().pid(kP,kI,kD));
+
+
   }
 }

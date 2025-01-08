@@ -46,7 +46,7 @@ public class ArmIOSparkMax implements ArmIO {
   @Override
   public void updateInputs(ArmIOInputs inputs) {
     inputs.positionRad =
-        (encoder.getAbsolutePosition() * Math.PI * 2) - ArmConstants.ARM_ENCODER_OFFSET_RAD;
+        (encoder.get() * Math.PI * 2) - ArmConstants.ARM_ENCODER_OFFSET_RAD;
     inputs.velocityRadPerSec = velocityEncoder.getVelocity();
     inputs.upperLimit = (inputs.positionRad > ArmConstants.MAX_RAD) || (!upperLimitSwitch.get());
     inputs.lowerLimit = (inputs.positionRad < ArmConstants.MIN_RAD);
@@ -54,11 +54,11 @@ public class ArmIOSparkMax implements ArmIO {
     inputs.currentAmps = new double[] {leader.getOutputCurrent(), follower.getOutputCurrent()};
     inputs.leftMotorTemperatureCelsius = leader.getMotorTemperature();
     inputs.rightMotorTemperatureCelsius = follower.getMotorTemperature();
-    inputs.leftMotorSensorFault = leader.getFault(CANSparkBase.FaultID.kSensorFault);
-    inputs.leftMotorBrownOut = leader.getFault(CANSparkBase.FaultID.kBrownout);
+    inputs.leftMotorSensorFault = leader.getFaults().sensor;
+    inputs.leftMotorBrownOut = leader.getFaults().other;
     inputs.leftMotorCANID = leader.getDeviceId();
-    inputs.rightMotorSensorFault = follower.getFault(CANSparkBase.FaultID.kSensorFault);
-    inputs.rightMotorBrownOut = follower.getFault(CANSparkBase.FaultID.kBrownout);
+    inputs.rightMotorSensorFault = follower.getFaults().sensor;
+    inputs.rightMotorBrownOut = follower.getFaults().other;
     inputs.rightMotorCANID = follower.getDeviceId();
   }
 

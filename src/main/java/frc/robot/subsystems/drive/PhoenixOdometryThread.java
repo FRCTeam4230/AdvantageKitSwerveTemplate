@@ -25,6 +25,8 @@ import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import edu.wpi.first.units.measure.Angle;
 import org.littletonrobotics.junction.Logger;
 
 /**
@@ -64,7 +66,7 @@ public class PhoenixOdometryThread extends Thread {
     }
   }
 
-  public Queue<Double> registerSignal(ParentDevice device, StatusSignal<Double> signal) {
+  public Queue<Double> registerSignal(ParentDevice device, StatusSignal<Angle> signal) {
     ArrayBlockingQueue<Double> queue = new ArrayBlockingQueue<>(10);
     signalsLock.lock();
     Drive.odometryLock.lock();
