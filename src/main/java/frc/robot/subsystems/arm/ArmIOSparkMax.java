@@ -1,11 +1,16 @@
 package frc.robot.subsystems.arm;
 
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.config.EncoderConfig;
+import com.revrobotics.spark.config.SparkBaseConfig;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 
 public class ArmIOSparkMax implements ArmIO {
   private final SparkMax leader =
@@ -20,17 +25,22 @@ public class ArmIOSparkMax implements ArmIO {
       new DigitalInput(ArmConstants.UPPER_LIMIT_SWITCH_PORT);
 
   public ArmIOSparkMax() {
+
+    EncoderConfig leaderEncoderConfig= new EncoderConfig().velocityConversionFactor(Math.PI * 2 / 60 / ArmConstants.MOTOR_TO_ARM_RATIO);
+    EncoderConfig relativeEncoderConfig = new EncoderConfig().positionConversionFactor(2 * Math.PI);
+    leader.configure(new SparkMaxConfig()
+        .inverted(true)
+        .idleMode(SparkBaseConfig.IdleMode.kBrake)
+            .apply(leaderEncoderConfig),
+        SparkBase.ResetMode.kResetSafeParameters,
+        SparkBase.PersistMode.kPersistParameters);
     // The motors are mirrored, so invert
-    leader.setInverted(true);
-    follower.follow(leader, true);
 
-    encoder.reset();
-    encoder.setDistancePerRotation(2 * Math.PI);
 
-    velocityEncoder.setVelocityConversionFactor(Math.PI * 2 / 60 / ArmConstants.MOTOR_TO_ARM_RATIO);
 
-    follower.setIdleMode(CANSparkBase.IdleMode.kBrake);
-    leader.setIdleMode(CANSparkBase.IdleMode.kBrake);
+    follower.configure(new SparkMaxConfig().follow(leader,true).idleMode(SparkBaseConfig.IdleMode.kBrake),
+    SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
+
   }
 
   @Override
