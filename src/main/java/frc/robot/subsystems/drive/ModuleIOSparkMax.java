@@ -207,13 +207,21 @@ public class ModuleIOSparkMax implements ModuleIO {
   @Override
   public void setDriveBrakeMode(boolean enable) {
     // TODO fix this
-    // driveSparkMax.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+    driveSparkMax.configure(
+        new SparkMaxConfig()
+            .idleMode(enable ? SparkBaseConfig.IdleMode.kBrake : SparkBaseConfig.IdleMode.kCoast),
+        SparkBase.ResetMode.kNoResetSafeParameters,
+        SparkBase.PersistMode.kPersistParameters);
   }
 
   @Override
   public void setTurnBrakeMode(boolean enable) {
     // TODO fix this
-    // turnSparkMax.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+    turnSparkMax.configure(
+        new SparkMaxConfig()
+            .idleMode(enable ? SparkBaseConfig.IdleMode.kBrake : SparkBaseConfig.IdleMode.kCoast),
+        SparkBase.ResetMode.kNoResetSafeParameters,
+        SparkBase.PersistMode.kPersistParameters);
   }
 
   @Override

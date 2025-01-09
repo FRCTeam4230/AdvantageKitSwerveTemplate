@@ -13,7 +13,12 @@ public class ShooterIOSparkMax implements ShooterIO {
 
   public ShooterIOSparkMax(ShooterConstants.ShooterWheels topOrBottom) {
     SparkBaseConfig config =
-        new SparkMaxConfig().voltageCompensation(12.0).smartCurrentLimit(30).inverted(false);
+        new SparkMaxConfig()
+            .voltageCompensation(12.0)
+            .smartCurrentLimit(30)
+            .inverted(false)
+            .openLoopRampRate(ShooterConstants.OPEN_LOOP_RAMP_RATE)
+            .closedLoopRampRate(ShooterConstants.CLOSED_LOOP_RAMP_RATE);
 
     switch (topOrBottom) {
       case TOP:
@@ -48,11 +53,6 @@ public class ShooterIOSparkMax implements ShooterIO {
     }
 
     motor.setCANTimeout(250);
-
-    // TODO what are these values in the new config??
-    // motor.setClosedLoopRampRate(ShooterConstants.CLOSED_LOOP_RAMP_RATE);
-    // motor.setOpenLoopRampRate(ShooterConstants.OPEN_LOOP_RAMP_RATE);
-    // motor.burnFlash();
 
     pidController = motor.getClosedLoopController();
   }

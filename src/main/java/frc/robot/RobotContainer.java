@@ -264,7 +264,7 @@ public class RobotContainer {
 
     Dashboard.logField(drive::getPose, noteVision::getNotesInGlobalSpace).schedule();
 
-    setupPDHLogging();
+    // setupPDHLogging();
   }
 
   private void setupPDHLogging() {
