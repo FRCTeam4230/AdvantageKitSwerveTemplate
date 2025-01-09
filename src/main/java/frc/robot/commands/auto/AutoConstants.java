@@ -151,8 +151,13 @@ public class AutoConstants {
       new LoggedDashboardChooser<>("auto thread path");
 
   static {
-    THREAD_CHOOSER.addOption("note", PathPlannerPath.fromPathFile("notethread"));
-    THREAD_CHOOSER.addOption("amp", PathPlannerPath.fromPathFile("ampthread"));
-    THREAD_CHOOSER.addDefaultOption("none", null);
+    try {
+      THREAD_CHOOSER.addOption("note", PathPlannerPath.fromPathFile("notethread"));
+      THREAD_CHOOSER.addOption("amp", PathPlannerPath.fromPathFile("ampthread"));
+    }catch(Exception e){
+      System.out.println("Failed to load auto thread paths");
+    }finally {
+      THREAD_CHOOSER.addDefaultOption("none", null);
+    }
   }
 }

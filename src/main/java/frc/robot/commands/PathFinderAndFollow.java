@@ -43,7 +43,7 @@ public class PathFinderAndFollow extends Command {
   /** Runs a new autonomous path based on the current drive mode. */
   public void runNewAutoPath() {
     pathRun =
-        AutoBuilder.pathfindThenFollowPath(targetPath, DriveConstants.pathPlannerConstraints, 0.0);
+        AutoBuilder.pathfindThenFollowPath(targetPath, DriveConstants.pathPlannerConstraints);
     scoreCommand = Commands.sequence(pathRun);
     scoreCommand.schedule();
   }
