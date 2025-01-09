@@ -12,31 +12,33 @@ public class ShooterIOSparkMax implements ShooterIO {
   private final SparkClosedLoopController pidController;
 
   public ShooterIOSparkMax(ShooterConstants.ShooterWheels topOrBottom) {
-    SparkBaseConfig config = new SparkMaxConfig()
-        .voltageCompensation(12.0)
-        .smartCurrentLimit(30)
-        .inverted(false);
-
+    SparkBaseConfig config =
+        new SparkMaxConfig().voltageCompensation(12.0).smartCurrentLimit(30).inverted(false);
 
     switch (topOrBottom) {
       case TOP:
-        motor =
-            new SparkMax(ShooterConstants.TOP_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
+        motor = new SparkMax(ShooterConstants.TOP_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         encoder = motor.getEncoder();
-        config.encoder
+        config
+            .encoder
             .positionConversionFactor(ShooterConstants.TOP_GEAR_RATIO)
             .velocityConversionFactor(ShooterConstants.TOP_GEAR_RATIO);
-        motor.configure(config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
+        motor.configure(
+            config,
+            SparkBase.ResetMode.kResetSafeParameters,
+            SparkBase.PersistMode.kPersistParameters);
         break;
       case BOTTOM:
-        motor =
-            new SparkMax(
-                ShooterConstants.BOTTOM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
+        motor = new SparkMax(ShooterConstants.BOTTOM_MOTOR_ID, SparkLowLevel.MotorType.kBrushless);
         encoder = motor.getEncoder();
-        config.encoder
+        config
+            .encoder
             .positionConversionFactor(ShooterConstants.BOTTOM_GEAR_RATIO)
             .velocityConversionFactor(ShooterConstants.BOTTOM_GEAR_RATIO);
-        motor.configure(config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
+        motor.configure(
+            config,
+            SparkBase.ResetMode.kResetSafeParameters,
+            SparkBase.PersistMode.kPersistParameters);
         break;
       default:
         System.out.println("Shooter top/bottom not valid");
@@ -47,10 +49,10 @@ public class ShooterIOSparkMax implements ShooterIO {
 
     motor.setCANTimeout(250);
 
-    //TODO what are these values in the new config??
-    //motor.setClosedLoopRampRate(ShooterConstants.CLOSED_LOOP_RAMP_RATE);
-    //motor.setOpenLoopRampRate(ShooterConstants.OPEN_LOOP_RAMP_RATE);
-    //motor.burnFlash();
+    // TODO what are these values in the new config??
+    // motor.setClosedLoopRampRate(ShooterConstants.CLOSED_LOOP_RAMP_RATE);
+    // motor.setOpenLoopRampRate(ShooterConstants.OPEN_LOOP_RAMP_RATE);
+    // motor.burnFlash();
 
     pidController = motor.getClosedLoopController();
   }
@@ -90,12 +92,10 @@ public class ShooterIOSparkMax implements ShooterIO {
   @Override
   public void configurePID(double kP, double kI, double kD) {
     SparkBaseConfig config = new SparkMaxConfig();
-    config.closedLoop
-        .pid(kP,kI,kD)
-        .velocityFF(0);
-    motor.configure(config,
+    config.closedLoop.pid(kP, kI, kD).velocityFF(0);
+    motor.configure(
+        config,
         SparkBase.ResetMode.kNoResetSafeParameters,
         SparkBase.PersistMode.kPersistParameters);
-
   }
 }

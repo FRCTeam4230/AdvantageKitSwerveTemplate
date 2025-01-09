@@ -51,9 +51,7 @@ public class AprilTagVisionIOPhotonVisionSIM implements AprilTagVisionIO {
     camera = new PhotonCamera(identifier);
     photonEstimator =
         new PhotonPoseEstimator(
-            FieldConstants.aprilTags,
-            PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
-            robotToCamera);
+            FieldConstants.aprilTags, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCamera);
     photonEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
     // Create the vision system simulation which handles cameras and targets on the
     // field.
@@ -90,44 +88,49 @@ public class AprilTagVisionIOPhotonVisionSIM implements AprilTagVisionIO {
     ArrayList<PoseEstimate> poseEstimates = new ArrayList<>();
     Optional<Alliance> allianceOptional = DriverStation.getAlliance();
 
-     cameraSim.getCamera().getAllUnreadResults().forEach(
-      photonPipelineResult -> {
-        double timestamp = photonPipelineResult.getTimestampSeconds();
+    cameraSim
+        .getCamera()
+        .getAllUnreadResults()
+        .forEach(
+            photonPipelineResult -> {
+              double timestamp = photonPipelineResult.getTimestampSeconds();
 
-        if (!photonPipelineResult.targets.isEmpty() && allianceOptional.isPresent()) {
-          //double latencyMS = photonPipelineResult.
-          Pose3d poseEstimation;
-          Optional<EstimatedRobotPose> estimatedPose = getEstimatedGlobalPose(photonPipelineResult);
-          if (estimatedPose.isEmpty()) {
-            return;
-          }
-          poseEstimation = estimatedPose.get().estimatedPose;
-          double averageTagDistance = 0.0;
-         // timestamp -= (latencyMS / 1e3);
-          int[] tagIDs = new int[photonPipelineResult.targets.size()];
-          for (int i = 0; i < photonPipelineResult.targets.size(); i++) {
-            tagIDs[i] = photonPipelineResult.targets.get(i).getFiducialId();
-            var tagPose = photonEstimator.getFieldTags().getTagPose(tagIDs[i]);
-            if (tagPose.isEmpty()) {
-              continue;
-            }
-            averageTagDistance +=
-                tagPose
-                    .get()
-                    .toPose2d()
-                    .getTranslation()
-                    .getDistance(poseEstimation.getTranslation().toTranslation2d());
-          }
-          averageTagDistance /= tagIDs.length;
-          poseEstimates.add(
-              new PoseEstimate(poseEstimation, timestamp, averageTagDistance, tagIDs.length));
-        }
-      });
+              if (!photonPipelineResult.targets.isEmpty() && allianceOptional.isPresent()) {
+                // double latencyMS = photonPipelineResult.
+                Pose3d poseEstimation;
+                Optional<EstimatedRobotPose> estimatedPose =
+                    getEstimatedGlobalPose(photonPipelineResult);
+                if (estimatedPose.isEmpty()) {
+                  return;
+                }
+                poseEstimation = estimatedPose.get().estimatedPose;
+                double averageTagDistance = 0.0;
+                // timestamp -= (latencyMS / 1e3);
+                int[] tagIDs = new int[photonPipelineResult.targets.size()];
+                for (int i = 0; i < photonPipelineResult.targets.size(); i++) {
+                  tagIDs[i] = photonPipelineResult.targets.get(i).getFiducialId();
+                  var tagPose = photonEstimator.getFieldTags().getTagPose(tagIDs[i]);
+                  if (tagPose.isEmpty()) {
+                    continue;
+                  }
+                  averageTagDistance +=
+                      tagPose
+                          .get()
+                          .toPose2d()
+                          .getTranslation()
+                          .getDistance(poseEstimation.getTranslation().toTranslation2d());
+                }
+                averageTagDistance /= tagIDs.length;
+                poseEstimates.add(
+                    new PoseEstimate(poseEstimation, timestamp, averageTagDistance, tagIDs.length));
+              }
+            });
     inputs.poseEstimates = poseEstimates;
   }
 
   /** Updates the PhotonPoseEstimator and returns the estimated global pose. */
-  public Optional<EstimatedRobotPose> getEstimatedGlobalPose(PhotonPipelineResult photonPipelineResult) {
+  public Optional<EstimatedRobotPose> getEstimatedGlobalPose(
+      PhotonPipelineResult photonPipelineResult) {
     var visionEst = photonEstimator.update(photonPipelineResult);
     double latestTimestamp = photonPipelineResult.getTimestampSeconds();
     boolean newResult = Math.abs(latestTimestamp - lastEstTimestamp) > 1e-5;

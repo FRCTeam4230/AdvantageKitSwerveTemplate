@@ -23,7 +23,6 @@ import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.util.Units;
-import frc.robot.Constants;
 
 /**
  * NOTE: To use the Spark Flex / NEO Vortex, replace all instances of "SparkMax" with
@@ -37,23 +36,19 @@ public class FlywheelIOSparkMax implements FlywheelIO {
   private final RelativeEncoder encoder = leader.getEncoder();
   private final SparkClosedLoopController pid = leader.getClosedLoopController();
 
-
-  private void configureLeader(ClosedLoopConfig pidConfig){
-    SparkBaseConfig config = new SparkMaxConfig()
-        .inverted(false)
-        .voltageCompensation(12.0)
-        .smartCurrentLimit(30);
+  private void configureLeader(ClosedLoopConfig pidConfig) {
+    SparkBaseConfig config =
+        new SparkMaxConfig().inverted(false).voltageCompensation(12.0).smartCurrentLimit(30);
     config.apply(pidConfig);
 
-    leader.configure(config,
-        SparkBase.ResetMode.kResetSafeParameters,
-        SparkBase.PersistMode.kPersistParameters);
+    leader.configure(
+        config, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
   }
 
   public FlywheelIOSparkMax() {
     leader.setCANTimeout(250);
-    follower.configure(new SparkMaxConfig()
-        .follow(leader,false),
+    follower.configure(
+        new SparkMaxConfig().follow(leader, false),
         SparkBase.ResetMode.kResetSafeParameters,
         SparkBase.PersistMode.kPersistParameters);
     follower.setCANTimeout(250);
@@ -91,8 +86,6 @@ public class FlywheelIOSparkMax implements FlywheelIO {
   @Override
   public void configurePID(double kP, double kI, double kD) {
 
-    configureLeader(new ClosedLoopConfig().pid(kP,kI,kD));
-
-
+    configureLeader(new ClosedLoopConfig().pid(kP, kI, kD));
   }
 }

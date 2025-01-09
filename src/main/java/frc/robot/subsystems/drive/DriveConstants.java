@@ -33,14 +33,13 @@ public final class DriveConstants {
       tunableTable.makeField("note distance to speed mult", 2);
   public static DrivetrainConfig drivetrainConfig =
       switch (Constants.getRobot()) {
-        default ->
-            new DrivetrainConfig(
-                Units.inchesToMeters(29.0), // Track width x
-                Units.inchesToMeters(29.0), // Track width y
-                4.3,
-                3,
-                Units.degreesToRadians(450), // Max angular velocity
-                Units.degreesToRadians(800)); // Max angular acceleration
+        default -> new DrivetrainConfig(
+            Units.inchesToMeters(29.0), // Track width x
+            Units.inchesToMeters(29.0), // Track width y
+            4.3,
+            3,
+            Units.degreesToRadians(450), // Max angular velocity
+            Units.degreesToRadians(800)); // Max angular acceleration
       };
   public static final PathConstraints pathPlannerConstraints =
       new PathConstraints(
@@ -89,36 +88,30 @@ public final class DriveConstants {
 
   public static ModuleConfig[] moduleConfigs =
       switch (Constants.getRobot()) {
-        case COMPBOT ->
-            new ModuleConfig[] {
-              // Front left
-              new ModuleConfig(
-                  6,
-                  5,
-                  25,
-                  Rotation2d.fromRotations(0.017578 + 0.5),
-                  true,
-                  Units.inchesToMeters(1.757)),
-              // Front right
-              new ModuleConfig(
-                  8,
-                  7,
-                  27,
-                  Rotation2d.fromRotations(-0.258301),
-                  true,
-                  Units.inchesToMeters(1.83625)),
-              // Back left
-              new ModuleConfig(
-                  4,
-                  3,
-                  23,
-                  Rotation2d.fromRotations(0.326904 + 0.5),
-                  true,
-                  Units.inchesToMeters(1.83625)),
-              // Back right
-              new ModuleConfig(
-                  2, 1, 21, Rotation2d.fromRotations(0.133789), true, Units.inchesToMeters(1.78175))
-            };
+        case COMPBOT -> new ModuleConfig[] {
+          // Front left
+          new ModuleConfig(
+              6,
+              5,
+              25,
+              Rotation2d.fromRotations(0.017578 + 0.5),
+              true,
+              Units.inchesToMeters(1.757)),
+          // Front right
+          new ModuleConfig(
+              8, 7, 27, Rotation2d.fromRotations(-0.258301), true, Units.inchesToMeters(1.83625)),
+          // Back left
+          new ModuleConfig(
+              4,
+              3,
+              23,
+              Rotation2d.fromRotations(0.326904 + 0.5),
+              true,
+              Units.inchesToMeters(1.83625)),
+          // Back right
+          new ModuleConfig(
+              2, 1, 21, Rotation2d.fromRotations(0.133789), true, Units.inchesToMeters(1.78175))
+        };
         case SIMBOT -> {
           ModuleConfig[] configs = new ModuleConfig[4];
           for (int i = 0; i < configs.length; i++)
@@ -130,10 +123,10 @@ public final class DriveConstants {
 
   public static final ModuleConstants moduleConstants =
       switch (Constants.getRobot()) {
-        case COMPBOT ->
-            new ModuleConstants(Mk4iReductions.L2.reduction, Mk4iReductions.TURN.reduction);
-        case SIMBOT ->
-            new ModuleConstants(Mk4iReductions.L2.reduction, Mk4iReductions.TURN.reduction);
+        case COMPBOT -> new ModuleConstants(
+            Mk4iReductions.L2.reduction, Mk4iReductions.TURN.reduction);
+        case SIMBOT -> new ModuleConstants(
+            Mk4iReductions.L2.reduction, Mk4iReductions.TURN.reduction);
       };
 
   public static class HeadingControllerConstants {

@@ -10,7 +10,6 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
 
 public class ArmIOSparkMax implements ArmIO {
   private final SparkMax leader =
@@ -26,27 +25,28 @@ public class ArmIOSparkMax implements ArmIO {
 
   public ArmIOSparkMax() {
 
-    EncoderConfig leaderEncoderConfig= new EncoderConfig().velocityConversionFactor(Math.PI * 2 / 60 / ArmConstants.MOTOR_TO_ARM_RATIO);
+    EncoderConfig leaderEncoderConfig =
+        new EncoderConfig()
+            .velocityConversionFactor(Math.PI * 2 / 60 / ArmConstants.MOTOR_TO_ARM_RATIO);
     EncoderConfig relativeEncoderConfig = new EncoderConfig().positionConversionFactor(2 * Math.PI);
-    leader.configure(new SparkMaxConfig()
-        .inverted(true)
-        .idleMode(SparkBaseConfig.IdleMode.kBrake)
+    leader.configure(
+        new SparkMaxConfig()
+            .inverted(true)
+            .idleMode(SparkBaseConfig.IdleMode.kBrake)
             .apply(leaderEncoderConfig),
         SparkBase.ResetMode.kResetSafeParameters,
         SparkBase.PersistMode.kPersistParameters);
     // The motors are mirrored, so invert
 
-
-
-    follower.configure(new SparkMaxConfig().follow(leader,true).idleMode(SparkBaseConfig.IdleMode.kBrake),
-    SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters);
-
+    follower.configure(
+        new SparkMaxConfig().follow(leader, true).idleMode(SparkBaseConfig.IdleMode.kBrake),
+        SparkBase.ResetMode.kResetSafeParameters,
+        SparkBase.PersistMode.kPersistParameters);
   }
 
   @Override
   public void updateInputs(ArmIOInputs inputs) {
-    inputs.positionRad =
-        (encoder.get() * Math.PI * 2) - ArmConstants.ARM_ENCODER_OFFSET_RAD;
+    inputs.positionRad = (encoder.get() * Math.PI * 2) - ArmConstants.ARM_ENCODER_OFFSET_RAD;
     inputs.velocityRadPerSec = velocityEncoder.getVelocity();
     inputs.upperLimit = (inputs.positionRad > ArmConstants.MAX_RAD) || (!upperLimitSwitch.get());
     inputs.lowerLimit = (inputs.positionRad < ArmConstants.MIN_RAD);

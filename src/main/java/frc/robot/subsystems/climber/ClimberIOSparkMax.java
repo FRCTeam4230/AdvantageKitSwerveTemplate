@@ -17,9 +17,8 @@ public class ClimberIOSparkMax implements ClimberIO {
 
   public ClimberIOSparkMax(int sparkMaxCanID, int limitSwitchDIOPort) {
     motor = new SparkMax(sparkMaxCanID, SparkLowLevel.MotorType.kBrushless);
-    motor.configure(new SparkMaxConfig()
-        .inverted(false)
-        .idleMode(SparkBaseConfig.IdleMode.kBrake),
+    motor.configure(
+        new SparkMaxConfig().inverted(false).idleMode(SparkBaseConfig.IdleMode.kBrake),
         SparkBase.ResetMode.kResetSafeParameters,
         SparkBase.PersistMode.kNoPersistParameters);
 

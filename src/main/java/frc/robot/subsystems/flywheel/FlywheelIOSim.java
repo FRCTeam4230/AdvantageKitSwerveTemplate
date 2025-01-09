@@ -20,8 +20,13 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 
 public class FlywheelIOSim implements FlywheelIO {
-  //TODO this is probably wrong
-  private FlywheelSim sim = new FlywheelSim(LinearSystemId.createFlywheelSystem(DCMotor.getNEO(1), 1.0, 1.0),DCMotor.getNEO(1), 1.5, 0.004);
+  // TODO this is probably wrong
+  private FlywheelSim sim =
+      new FlywheelSim(
+          LinearSystemId.createFlywheelSystem(DCMotor.getNEO(1), 1.0, 1.0),
+          DCMotor.getNEO(1),
+          1.5,
+          0.004);
   private PIDController pid = new PIDController(0.0, 0.0, 0.0);
 
   private boolean closedLoop = false;

@@ -21,10 +21,8 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.*;
-import com.revrobotics.spark.config.EncoderConfig;
-import com.revrobotics.spark.config.SignalsConfig;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -75,37 +73,33 @@ public class ModuleIOSparkMax implements ModuleIO {
     driveSparkMax.setCANTimeout(250);
     turnSparkMax.setCANTimeout(250);
 
-    SparkBaseConfig driveConfig = new SparkMaxConfig()
-        .smartCurrentLimit(40)
-        .voltageCompensation(12.0);
-    driveConfig.encoder
-        .uvwMeasurementPeriod(10)
-        .uvwAverageDepth(2);
+    SparkBaseConfig driveConfig =
+        new SparkMaxConfig().smartCurrentLimit(40).voltageCompensation(12.0);
+    driveConfig.encoder.uvwMeasurementPeriod(10).uvwAverageDepth(2);
     driveConfig.signals.primaryEncoderPositionPeriodMs((int) (1000.0 / odometryFrequency));
 
-    driveSparkMax.configure(driveConfig,
+    driveSparkMax.configure(
+        driveConfig,
         SparkBase.ResetMode.kResetSafeParameters,
         SparkBase.PersistMode.kPersistParameters);
 
     driveEncoder = driveSparkMax.getEncoder();
     driveEncoder.setPosition(0.0);
 
-
-    SparkBaseConfig turnConfig = new SparkMaxConfig()
-        .smartCurrentLimit(30)
-        .voltageCompensation(12.0)
+    SparkBaseConfig turnConfig =
+        new SparkMaxConfig()
+            .smartCurrentLimit(30)
+            .voltageCompensation(12.0)
             .inverted(config.turnMotorInverted());
-    turnConfig.encoder
-        .uvwMeasurementPeriod(10)
-        .uvwAverageDepth(2);
+    turnConfig.encoder.uvwMeasurementPeriod(10).uvwAverageDepth(2);
     turnConfig.signals.primaryEncoderPositionPeriodMs((int) (1000.0 / odometryFrequency));
 
     turnRelativeEncoder = turnSparkMax.getEncoder();
     turnRelativeEncoder.setPosition(0.0);
-    turnSparkMax.configure(turnConfig,
+    turnSparkMax.configure(
+        turnConfig,
         SparkBase.ResetMode.kResetSafeParameters,
         SparkBase.PersistMode.kPersistParameters);
-
 
     driveSparkMax.setCANTimeout(0);
     turnSparkMax.setCANTimeout(0);
@@ -212,14 +206,14 @@ public class ModuleIOSparkMax implements ModuleIO {
 
   @Override
   public void setDriveBrakeMode(boolean enable) {
-    //TODO fix this
-    //driveSparkMax.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+    // TODO fix this
+    // driveSparkMax.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
   }
 
   @Override
   public void setTurnBrakeMode(boolean enable) {
-    //TODO fix this
-    //turnSparkMax.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
+    // TODO fix this
+    // turnSparkMax.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
   }
 
   @Override

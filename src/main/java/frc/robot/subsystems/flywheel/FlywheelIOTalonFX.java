@@ -75,20 +75,17 @@ public class FlywheelIOTalonFX implements FlywheelIO {
   @Override
   public void setVelocity(double velocityRadPerSec, double ffVolts) {
     leader.setControl(
-
-        new VelocityVoltage(
-            Units.radiansToRotations(velocityRadPerSec))
-            .withFeedForward(ffVolts));
+        new VelocityVoltage(Units.radiansToRotations(velocityRadPerSec)).withFeedForward(ffVolts));
 
     /* TODO convert these below to the correct VelocityVoltage stuff
-            0.0,
-            true,
-            ffVolts,
-            0,
-            false,
-            false,
-            false));
-     */
+           0.0,
+           true,
+           ffVolts,
+           0,
+           false,
+           false,
+           false));
+    */
   }
 
   @Override
