@@ -15,6 +15,9 @@ package frc.robot.subsystems.drive;
 
 import static frc.robot.subsystems.drive.DriveConstants.*;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.math.Matrix;
@@ -98,27 +101,31 @@ public class Drive extends SubsystemBase {
     PhoenixOdometryThread.getInstance().start();
     SparkMaxOdometryThread.getInstance().start();
 
-    /*
+    RobotConfig config = null;
+    try {
+      config = RobotConfig.fromGUISettings();
+    } catch (Exception e) {
+      // Handle exception as needed
+      e.printStackTrace();
+    }
+
     // Configure AutoBuilder for PathPlanner
-    AutoBuilder.configureHolonomic(
+    AutoBuilder.configure(
         this::getPose,
         this::setAutoStartPose,
         () -> kinematics.toChassisSpeeds(getModuleStates()),
         this::runVelocity,
-        new HolonomicPathFollowerConfig(
+        new PPHolonomicDriveController(
             new PIDConstants(
                 PPtranslationConstants.kP, PPtranslationConstants.kI, PPtranslationConstants.kD),
             new PIDConstants(
-                PProtationConstants.kP, PProtationConstants.kI, PProtationConstants.kD),
-            drivetrainConfig.maxLinearVelocity(),
-            drivetrainConfig.driveBaseRadius(),
-            new ReplanningConfig()),
+                PProtationConstants.kP, PProtationConstants.kI, PProtationConstants.kD)),
+        config,
         () ->
             DriverStation.getAlliance().isPresent()
-                && DriverStation.getAlliance().get() == Alliance.Red,
+                && DriverStation.getAlliance().get() == DriverStation.Alliance.Red,
         this);
 
-     */
     PathPlannerLogging.setLogActivePathCallback(
         activePath -> {
           Logger.recordOutput(
