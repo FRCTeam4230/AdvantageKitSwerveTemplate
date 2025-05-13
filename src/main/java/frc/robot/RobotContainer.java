@@ -366,7 +366,7 @@ public class RobotContainer {
         .whileTrue(
             Commands.startEnd(
                 () -> intake.setVoltage(IntakeConstants.INTAKE_VOLTAGE.get()),
-                intake::stop,
+                () -> intake.setVoltage(0) ,
                 intake));
 
     controllerLogic
